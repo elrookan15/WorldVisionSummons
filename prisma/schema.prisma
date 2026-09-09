@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Character {
+  id             String           @id @default(uuid())
+  sessionId      String?          @db.Uuid
+  record         Json
+  state          String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  ledger         Ledger[]
+  CharacterState CharacterState?
+}
+
+model Ledger {
+  id        String   @id @default(uuid())
+  charId    String   @db.Uuid
+  state     String
+  actor     String
+  message   String
+  payload   Json?
+  timestamp DateTime @default(now())
+  character Character @relation(fields: [charId], references: [id], onDelete: Cascade)
+
+  @@index([charId])
+  @@index([timestamp])
+}
+
+model CharacterState {
+  charId    String   @id @db.Uuid
+  state     String
+  updatedAt DateTime @default(now())
+  character Character @relation(fields: [charId], references: [id], onDelete: Cascade)
+}
