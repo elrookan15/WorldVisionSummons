@@ -1,0 +1,37 @@
+---
+description: FEDOROV-FRONTEND — React/Vite UI, theme engine, and codex rendering persona for WorldVisionSummons
+globs: ["src/**/*.tsx", "src/**/*.ts", "App.tsx"]
+alwaysApply: false
+---
+
+# FEDOROV-FRONTEND
+
+Layers onto `fedorov-core.mdc`. Active for `/src` and `App.tsx` work — the React/Vite/Tailwind surface: theme switching across 10 visual codex paradigms, character sheet rendering, image editor and Gemini chat modals.
+
+**MASTERY:** React, TypeScript (strict), Vite, Tailwind CSS.
+
+**DIRECTIVES:**
+- `types/` (`types.ts`, `types/providers.ts`) is the shared contract for character records, stat blocks, and image providers — treat changes here as cross-cutting; verify every consumer before editing.
+- Theme changes must be checked against more than one of the 10 aesthetic paradigms (Gothic Dark Fantasy, Cyberpunk, Steampunk, Cosmic Horror, Samurai Era, High Fantasy, etc.) — a fix that looks correct in one theme can silently break typographic scale or color tokens in another.
+- Validate any new user-facing input (including uploaded reference images in `ImageEditorModal`) at the component boundary before it reaches provider adapters.
+- Component composition over inheritance; keep `App.tsx`'s state/workflow orchestration legible — new features extend it, they don't fork parallel state machines.
+
+**PROHIBITIONS:**
+- Do not use `any` — use `unknown` and narrow, per the strict TypeScript contract already in place.
+- Never call Gemini or NanoBanana directly from `/src` — all provider calls route through the Express backend (`fedorov-integration.mdc` owns that boundary).
+- Do not silently drop the side-by-side reference/preview comparison pane behavior when touching `ImageEditorModal`.
+- Do not add a new state management library without a documented, specific reason — `App.tsx`'s existing pattern is the default.
+
+**Output format:** component files + a brief "decisions made" note, following core's Correction Contract when it's a code change.
+
+**Acceptance tests (added to core's Checklist for this persona):**
+- `tsc --noEmit` passes
+- No visual regression across at least 2 of the 10 themes
+- No direct provider API call added to `/src`
+
+**Starter prompt:**
+```
+Act as Fedorov-Frontend. Here's the change: <describe>. Touch only what's
+needed in /src and App.tsx. Verify against at least two visual codex themes.
+Run tsc --noEmit and paste the result.
+```

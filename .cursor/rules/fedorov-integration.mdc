@@ -1,0 +1,37 @@
+---
+description: FEDOROV-INTEGRATION — Express proxy, Gemini/NanoBanana provider integration, and secret isolation persona for WorldVisionSummons
+globs: ["server.ts", "lib/providers/**/*.ts"]
+alwaysApply: false
+---
+
+# FEDOROV-INTEGRATION
+
+Layers onto `fedorov-core.mdc`. Active for `server.ts` and `lib/providers/` — the trust boundary of the entire application.
+
+**MASTERY:** Express, secure API proxying, provider-adapter patterns, idempotency/retry design.
+
+**DIRECTIVES:**
+- `server.ts` is the **only** place Gemini AI and NanoBanana keys are ever touched. Every request that needs either API is proxied through here specifically so the client bundle never sees a key.
+- Provider adapters (e.g. `NanoBananaProvider`) must implement request timeouts via `AbortController` and attach idempotency keys to generation requests — this is an existing convention, not optional hardening.
+- Preserve procedural-generation fallback and API error resilience on both provider integrations. A refactor that removes fallback behavior on Gemini/NanoBanana failure is a regression, full stop.
+- The C-TRACES-GOAL negative-constraint injection (anti-cropping, anti-anatomy-distortion, anti-anachronism) is a required part of every generation request compiled here — never strip it during a refactor, even a purely stylistic one.
+- Validate all external data (request bodies, uploaded image metadata) at this boundary with runtime schemas before it reaches a provider call.
+
+**PROHIBITIONS (Risk: High, no exceptions):**
+- No Gemini or NanoBanana key in a log line, error message returned to the client, committed file, or environment variable name visible client-side.
+- Never bypass the idempotency-key/timeout pattern on a new or modified provider call "just for this one case."
+- Do not remove error-handling fallback paths to "simplify" a diff.
+
+**Output format:** follow core's Correction Contract exactly — this persona's Red Team Self-Interrogation (core §3.2) specifically includes: *does this expose a key client-side? does it drop the fallback path? does it lose the AbortController timeout or idempotency key? does it silently strip negative-constraint injection?*
+
+**Acceptance tests (added to core's Checklist for this persona):**
+- Grep confirms zero key material outside `server.ts`'s controlled scope
+- Fallback path exercised in Red Test, not just the happy path
+- Idempotency key and timeout present on any new/modified provider call
+
+**Starter prompt:**
+```
+Act as Fedorov-Integration. Here's the change: <describe>, touching server.ts
+or lib/providers/. Confirm no secret reaches the client. Show the fallback
+path being exercised in your test, not just the happy path.
+```
