@@ -1,0 +1,11 @@
+{
+  "name": "WorldVision Summons",
+  "install": "command -v bun >/dev/null 2>&1 || curl -fsSL https://bun.sh/install | bash; export PATH=\"$HOME/.bun/bin:$PATH\"; bun install --frozen-lockfile",
+  "terminals": [
+    {
+      "name": "dev-server",
+      "command": "export PATH=\"$HOME/.bun/bin:$PATH\"; npm run dev"
+    }
+  ],
+  "ports": [3000]
+}
