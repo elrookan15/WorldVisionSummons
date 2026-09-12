@@ -17,7 +17,6 @@ import {
   RotateCcw,
   Sparkles,
   ChevronDown,
-  Layers,
   Scale
 } from "lucide-react";
 import { SheetPreset } from "../types";

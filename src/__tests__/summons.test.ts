@@ -39,6 +39,8 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(prompt).toContain("5'11\"");
     expect(prompt).toContain("Gaunt");
     expect(prompt).toContain("Finger-bone tassels");
+    expect(prompt).toContain("Generate a single high-fidelity image");
+    expect(prompt).toContain("2K resolution");
   });
 
   it("should compile categorized inventory grid prompt", () => {
@@ -89,6 +91,76 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     const parsed = JSON.parse(serialized);
     expect(parsed.name).toBe("Gelbinor");
     expect(parsed.derivedStats.ac).toBe(14);
+  });
+
+  it("should canonicalize preset aliases onto the 10 visual genres", async () => {
+    const { canonicalizeSheetStyle, themeIdForStyle, primaryItemFromInventory } = await import("../lib/themeMap");
+
+    expect(canonicalizeSheetStyle("Steampunk Tinkerer")).toBe("Steampunk");
+    expect(canonicalizeSheetStyle("Neon Ronin")).toBe("Cyberpunk");
+    expect(canonicalizeSheetStyle("Wasteland Scavenger")).toBe("Post-Apocalyptic");
+    expect(canonicalizeSheetStyle("Obsidian Cult")).toBe("Gothic Dark Fantasy");
+    expect(themeIdForStyle("High Fantasy")).toBe("highFantasy");
+    expect(primaryItemFromInventory("Runebound Broadsword, Tarnished Iron Shield")).toBe("Runebound Broadsword");
+    expect(primaryItemFromInventory(["Rail-Steel Katana", "Tattered Haori"])).toBe("Rail-Steel Katana");
+  });
+
+  it("should clamp resource widgets and merge imported sheets without dropping nested fields", async () => {
+    const { clampResource, mergeImportedSheet } = await import("../lib/sheetMapper");
+    expect(clampResource(74, 74, 1)).toBe(74);
+    expect(clampResource(0, 74, -1)).toBe(0);
+    expect(clampResource(10, 20, 3)).toBe(13);
+
+    const current = {
+      name: "Gelbinor",
+      title: "Keeper",
+      player: "Keeper of Quiet",
+      sheet_style: "Gothic Dark Fantasy",
+      overview: { race: "Human", age: "28", gender: "Male", alignment: "TN", classRole: "Necromancer", level: "16", origin: "Karst", faction: "Ossuary" },
+      physical: { height: "6'1\"", weight: "130 lbs", build: "Lanky", eyes: "Milky", hair: "Black", skin: "Pale", marks: "Bone charms", scars: "Sigils", clothing: "Shroud", voice: "Mumbles", posture: "Hunched" },
+      signatureAttributes: { reputation: "Shy Grave", vice: "Apologies", virtue: "Mercy", fear: "Silence", obsession: "Names", tell: "Tassels", loyalty: "Dead", blindSpot: "Hostility", survivalInstinct: "Play dead", legacyFear: "Erasure" },
+      derivedStats: { hpCurrent: 74, hpMax: 74, ac: 14, initiative: "+1", speed: "30 ft", level: 16, resourceName: "Quiet", resourceCurrent: 6, resourceMax: 6, passives: ["Quiet"] },
+      lore: { backstory: "Born in Karst", childhood: "Library", formative: "Fire", motivations: "Catalog", secrets: "Lich book", world: "Karst" },
+      abilities: [{ name: "Shy Ward", desc: "Undead refuse", cooldown: "Passive", cost: "None", type: "Passive" }],
+      weaknesses: "Loud noises",
+      skills: [{ name: "Catalog", value: 98 }],
+      magic: "School of Quiet",
+      equipment: { primaryWeapon: "Mister Cracks", secondaryFocus: "Chime", armor: "Shroud", utilityTools: "Quill", consumables: "Tea", relics: "Skulls", currency: "Names", weapons: "Mister Cracks", items: "Tea" },
+      personality: { traits: "Shy", ideals: "Names", flaws: "Cannot say no", fears: "Alone", mannerisms: "Sleeves", speech: "Sorry" },
+      relationships: { allies: "Mirren", enemies: "Warlord", mentors: "Librarians", family: "Dead" },
+      stats: [
+        { key: "STR", label: "Strength", value: 8, desc: "Lanky" },
+        { key: "INT", label: "Intelligence", value: 22, desc: "Names" }
+      ]
+    };
+
+    const merged = mergeImportedSheet(current as any, {
+      name: "Vaelin",
+      sheet_style: "High Fantasy",
+      overview: { classRole: "Knight", hp: 90, ac: 18 },
+      stats: [{ key: "STR", value: 18 }],
+      inventory: ["Sanctified Bastard Sword", "Iron Heater Shield"]
+    });
+
+    expect(merged.name).toBe("Vaelin");
+    expect(merged.sheet_style).toBe("High Fantasy");
+    expect(merged.abilities[0].name).toBe("Shy Ward");
+    expect(merged.stats.find(s => s.key === "STR")?.value).toBe(18);
+    expect(merged.equipment.primaryWeapon).toBe("Sanctified Bastard Sword");
+    expect(merged.derivedStats.hpCurrent).toBe(90);
+  });
+
+  it("should emit a character-specific SVG plate instead of a stock photo", async () => {
+    const { buildProceduralPortrait } = await import("../lib/portraitFallback");
+    const svg = buildProceduralPortrait({
+      name: "Kaelen Vex",
+      charClass: "Netrunner",
+      style: "Cyberpunk",
+      distinguishingFeature: "Chrome ocular implant"
+    });
+    expect(svg.startsWith("data:image/svg+xml")).toBe(true);
+    expect(decodeURIComponent(svg)).toContain("Kaelen Vex");
+    expect(decodeURIComponent(svg)).toContain("Netrunner");
   });
 
   it("should calculate accurate baseline stats and comparison deltas for archetypes", async () => {

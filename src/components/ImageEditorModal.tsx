@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Sliders, X, Check, RefreshCcw, RotateCw, Sparkles, Upload, ArrowRight, Zap, Image as ImageIcon, ShieldAlert } from "lucide-react";
+import { Sliders, X, Check, RefreshCcw, RotateCw, Sparkles, Upload, Zap, Image as ImageIcon, ShieldAlert } from "lucide-react";
 import { nanoBananaImageAdapter } from "../lib/providers/nanobanana";
 
 interface ImageEditorModalProps {
@@ -16,8 +16,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
   characterName,
   sheetStyle = "Gothic Dark Fantasy",
   onSave,
-  onClose,
-  onGenerateSimilar
+  onClose
 }) => {
   const [activeTab, setActiveTab] = useState<"sideBySide" | "canvasTuning">("sideBySide");
 
@@ -189,8 +188,12 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
         prompt: promptToUse,
         negativePrompt: negativePrompt,
         style: sheetStyle,
+        aspectRatio: "3:4",
+        imageSize: "2K",
         referenceImage: uploadedRefImage || undefined,
+        referenceStrength: refStrength,
         seed: seed,
+        characterContext: { name: characterName, sheet_style: sheetStyle },
         idempotencyKey: `nanobanana_${Date.now()}`
       });
 

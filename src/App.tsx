@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  Shield, Sword, Sparkles, Compass, Scroll, User, Cpu, Skull, BookOpen, 
-  Download, RefreshCw, Sliders, CheckCircle2, Layers, Zap, Copy, Check, 
-  Bookmark, Eye, Terminal, Flame, Award, Heart, ShieldAlert, ChevronRight,
-  BookMarked, Beaker, Bone, ChartColumn, Cog, Crown, Dna, EyeOff, Feather,
-  FileWarning, Flower2, Map, Moon, Rocket, Truck, Users, FileSpreadsheet, LogIn, LogOut,
+  Shield, Sword, Sparkles, Compass, Scroll, User, Skull, BookOpen, 
+  Download, RefreshCw, Sliders, Zap, Copy, Check, 
+  Bookmark, Eye, Terminal, Flame, Award, Heart, ShieldAlert,
+  BookMarked, Beaker, ChartColumn, Cog, Crown, EyeOff, Feather,
+  Moon, Truck, Users, FileSpreadsheet, LogIn, LogOut,
   Star
 } from "lucide-react";
 import { CharacterSheetData, SheetPreset } from "./types";
@@ -16,6 +16,9 @@ import { nanoBananaProvider } from "./lib/providers/NanoBananaProvider";
 import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
+import { CANONICAL_SHEET_STYLES, canonicalizeSheetStyle, themeIdForStyle } from "./lib/themeMap";
+import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromptContext, UiSheetData } from "./lib/sheetMapper";
+import { buildProceduralPortrait } from "./lib/portraitFallback";
 
 const THEMES = [
   {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes", texture:"obsidian",
@@ -543,7 +546,7 @@ const PRESETS: SheetPreset[] = [
 ];
 
 export default function App() {
-  const [themeId, setThemeId] = useState("obsidianCult");
+  const [themeId, setThemeId] = useState("gothicDarkFantasy");
   const currentTheme = THEMES.find(t => t.id === themeId) || THEMES[0];
   const c = currentTheme.tokens;
 
@@ -614,6 +617,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageEngine, setImageEngine] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
@@ -622,7 +627,7 @@ export default function App() {
 
   // Google Workspace & Sheets state
   const [googleUser, setGoogleUser] = useState<any>(null);
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [, setGoogleToken] = useState<string | null>(null);
   const [isSigningInGoogle, setIsSigningInGoogle] = useState(false);
   const [sheetsStatusMsg, setSheetsStatusMsg] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -675,7 +680,10 @@ export default function App() {
     setSheetsStatusMsg("Importing character record from Google Sheets...");
     try {
       const data = await importCharacterFromGoogleSheet(spreadsheetIdInput.trim());
-      setSheetData(data);
+      setSheetData((prev) => mergeImportedSheet(prev as UiSheetData, data));
+      const importedStyle = canonicalizeSheetStyle(data.sheet_style);
+      setSheetStyle(importedStyle);
+      setThemeId(themeIdForStyle(importedStyle));
       setSheetsStatusMsg("Character imported successfully from Google Sheet!");
       setShowImportModal(false);
       setSpreadsheetIdInput("");
@@ -690,6 +698,7 @@ export default function App() {
     name: "Gelbinor",
     title: "The Shy Grave • Reluctant Necromancer / Ossuary Librarian",
     player: "Keeper of Quiet",
+    sheet_style: "Gothic Dark Fantasy",
     overview: {
       race: "Human Hollowed",
       age: "28 winters",
@@ -877,12 +886,14 @@ export default function App() {
   };
 
   const applyPreset = (preset: SheetPreset) => {
+    const style = canonicalizeSheetStyle(preset.style);
     setActivePresetName(preset.name);
     setCharacterName(preset.charName);
     setCharacterClass(preset.charClass);
     setCharacterLore(preset.lore);
     setInventoryItems(preset.items);
-    setSheetStyle(preset.style);
+    setSheetStyle(style);
+    setThemeId(themeIdForStyle(style));
   };
 
   const handleApplyBaselineToSheet = (baseline: StatBaseline) => {
@@ -901,12 +912,14 @@ export default function App() {
     setLoading(true);
     setRunState("validating");
     setCurrentStep(1);
-    
-    // State machine simulation sequence
-    setTimeout(() => setRunState("generating_text"), 300);
-    setTimeout(() => setRunState("generating_portrait"), 1200);
-    setTimeout(() => setRunState("generating_inventory"), 2000);
-    setTimeout(() => setRunState("generating_map"), 2800);
+    setImageError(null);
+
+    const timers = [
+      setTimeout(() => setRunState("generating_text"), 300),
+      setTimeout(() => setRunState("generating_portrait"), 1200),
+      setTimeout(() => setRunState("generating_inventory"), 2000),
+      setTimeout(() => setRunState("generating_map"), 2800),
+    ];
 
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev < 8 ? prev + 1 : prev));
@@ -922,165 +935,92 @@ export default function App() {
           character_level: characterLevel,
           character_lore: characterLore,
           inventory_items: inventoryItems,
-          sheet_style: sheetStyle
+          sheet_style: canonicalizeSheetStyle(sheetStyle)
         })
       });
+      if (!res.ok) {
+        throw new Error(`Summoner returned HTTP ${res.status}`);
+      }
       const data: CharacterSheetData = await res.json();
       clearInterval(interval);
+      timers.forEach(clearTimeout);
       setCurrentStep(9);
       setLoading(false);
-      setRunState("awaiting_approval");
+      setRunState("completed");
 
-      // Map generated CharacterSheetData to our sheetData structure
       if (data && data.character_data) {
-        const invArray = (data.character_data.inventory_items || "").split(",").map((s: string) => s.trim()).filter(Boolean);
-        const resSplit = (data.rpg_stats?.class_resource?.current_max || "20/20").split("/");
-        const resourceCurrent = parseInt(resSplit[0]) || 20;
-        const resourceMax = parseInt(resSplit[1]) || 20;
-
-        setSheetData({
-          name: data.character_data.character_name,
-          title: `${data.character_data.character_class} • Tier ${characterLevel}`,
-          player: characterName ? "Summoned Hero" : "Autonomous Inference",
-          sheet_style: sheetStyle,
-          overview: {
-            race: "Generated Entity",
-            age: "Timeless",
-            gender: "Various",
-            alignment: data.rpg_stats?.alignment_or_faction || "Neutral",
-            classRole: data.character_data.character_class,
-            level: `Level ${characterLevel}`,
-            origin: data.character_data.character_lore.slice(0, 40) + "...",
-            faction: data.rpg_stats?.alignment_or_faction || "None"
-          },
-          physical: {
-            height: data.character_data.physical_attributes?.height || "6'0\"",
-            weight: data.character_data.physical_attributes?.weight || "180 lbs",
-            build: data.character_data.physical_attributes?.build || "Athletic",
-            eyes: "Inferred from lore",
-            hair: "Coordinated with style",
-            skin: "Weathered",
-            marks: data.character_data.physical_attributes?.distinguishing_feature || "None",
-            scars: "Battle-tested",
-            clothing: `${sheetStyle} attire`,
-            voice: "Resonant",
-            posture: "Ready for combat"
-          },
-          signatureAttributes: {
-            reputation: data.signature_attributes?.reputation || "The Unseen",
-            vice: data.signature_attributes?.vice || "Gambling with fate",
-            virtue: data.signature_attributes?.virtue || "Mercy to the defenseless",
-            fear: data.signature_attributes?.fear || "Abyssal silence",
-            obsession: data.signature_attributes?.obsession || "Collecting names",
-            tell: data.signature_attributes?.tell || "Tapping fingers on scabbard",
-            loyalty: data.signature_attributes?.loyalty || "Sworn vanguard oath",
-            blindSpot: data.signature_attributes?.blind_spot || "Cannot perceive false allies",
-            survivalInstinct: data.signature_attributes?.survival_instinct || "Feigning submission",
-            legacyFear: data.signature_attributes?.legacy_fear || "Being forgotten in ash"
-          },
-          derivedStats: {
-            hpCurrent: data.rpg_stats?.derived_stats?.hp || 75,
-            hpMax: data.rpg_stats?.derived_stats?.hp || 75,
-            ac: data.rpg_stats?.derived_stats?.ac || 15,
-            initiative: data.rpg_stats?.derived_stats?.initiative || "+1",
-            speed: data.rpg_stats?.derived_stats?.speed || "30 ft",
-            level: Number(characterLevel) || 16,
-            resourceName: data.rpg_stats?.class_resource?.resource_type || "Energy / Focus",
-            resourceCurrent: resourceCurrent,
-            resourceMax: resourceMax,
-            passives: data.rpg_stats?.passive_skills || ["Core Specialty", "Combat Focus"]
-          },
-          lore: {
-            backstory: data.character_data.character_lore,
-            childhood: "Formative years in the frontier.",
-            formative: "Awakened by destiny and trial.",
-            motivations: data.signature_attributes?.obsession || "Seek truth and survival.",
-            secrets: data.signature_attributes?.fear || "Fears the unseen void.",
-            world: `Realm of ${sheetStyle}`
-          },
-          abilities: [
-            { name: "Core Specialization", desc: data.rpg_stats?.passive_skills?.[0] || "Mastery of discipline", cooldown: "Active", cost: "Focus", type: "Primary" },
-            { name: "Tactical Maneuver", desc: data.rpg_stats?.passive_skills?.[1] || "Defensive stance", cooldown: "Passive", cost: "None", type: "Passive" },
-            { name: "Ultimate Resolve", desc: data.rpg_stats?.passive_skills?.[2] || "Unshakable oath", cooldown: "1/day", cost: "Willpower", type: "Ultimate" }
-          ],
-          weaknesses: `Vulnerable when isolated; bound by the laws of ${sheetStyle}.`,
-          skills: [
-            { name: "Combat & Arms", value: 85 },
-            { name: "Lore & Arcana", value: 78 },
-            { name: "Stealth & Evasion", value: 70 },
-            { name: "Willpower", value: 90 }
-          ],
-          magic: `Resonates with ${sheetStyle} energies.`,
-          equipment: {
-            primaryWeapon: invArray[0] || "Primary Weapon",
-            secondaryFocus: invArray[1] || "Secondary Focus / Shield",
-            armor: invArray[2] || "Protective Armor / Robes",
-            utilityTools: invArray.slice(3, 5).join(", ") || "Utility Gear & Kits",
-            consumables: invArray.slice(5, 7).join(", ") || "Consumables & Elixirs",
-            relics: invArray.slice(7).join(", ") || "Relic Artifact",
-            currency: "Standard Coinage & Relics",
-            weapons: invArray[0] || "Primary Weapon",
-            items: data.character_data.inventory_items
-          },
-          personality: {
-            traits: data.signature_attributes?.virtue || "Brave",
-            ideals: data.signature_attributes?.loyalty || "Honor above all",
-            flaws: data.signature_attributes?.vice || "Stubborn",
-            fears: data.signature_attributes?.fear || "Darkness",
-            mannerisms: data.signature_attributes?.tell || "Observant",
-            speech: data.personal_quote?.text || "Determined."
-          },
-          relationships: {
-            allies: "Guild companions and loyal followers",
-            enemies: "Rivals of the faction",
-            mentors: "Ancient masters",
-            family: "Lost to history"
-          },
-          stats: [
-            { key: "STR", label: "Strength", value: data.rpg_stats?.core_attributes?.str || 14, desc: "Physical might" },
-            { key: "DEX", label: "Dexterity", value: data.rpg_stats?.core_attributes?.dex || 14, desc: "Agility & reflexes" },
-            { key: "CON", label: "Constitution", value: data.rpg_stats?.core_attributes?.con || 14, desc: "Vigor & health" },
-            { key: "INT", label: "Intelligence", value: data.rpg_stats?.core_attributes?.int || 14, desc: "Reason & lore" },
-            { key: "WIS", label: "Wisdom", value: data.rpg_stats?.core_attributes?.wis || 14, desc: "Perception & intuition" },
-            { key: "CHA", label: "Charisma", value: data.rpg_stats?.core_attributes?.cha || 14, desc: "Presence & resolve" }
-          ]
+        const nextSheet = mapGeneratedSheetToUi(data, {
+          characterLevel,
+          playerName: characterName,
+          sheetStyle,
         });
-      }
+        setSheetData(nextSheet);
+        setSheetStyle(nextSheet.sheet_style);
+        setThemeId(themeIdForStyle(nextSheet.sheet_style));
 
-      if (data.visual_prompts?.step_2_hero_portrait) {
-        generatePortraitImage(data.visual_prompts.step_2_hero_portrait, sheetStyle);
+        const portraitPrompt = [
+          compilePortraitPrompt(portraitPromptContext(nextSheet), nextSheet.sheet_style),
+          data.visual_prompts?.step_2_hero_portrait
+            ? `Director notes: ${data.visual_prompts.step_2_hero_portrait}`
+            : "",
+        ].filter(Boolean).join("\n");
+        generatePortraitImage(portraitPrompt, nextSheet.sheet_style, undefined, nextSheet);
       }
     } catch (e) {
       console.error(e);
       clearInterval(interval);
+      timers.forEach(clearTimeout);
       setLoading(false);
+      setRunState("draft");
+      setImageError("Sheet generation failed. Check the summoner service and try again.");
     }
   };
 
-  const generatePortraitImage = async (prompt: string, style: string, referenceImage?: string) => {
+  const generatePortraitImage = async (
+    prompt: string,
+    style: string,
+    referenceImage?: string,
+    contextOverride?: UiSheetData
+  ) => {
     setGeneratingImage(true);
+    setImageError(null);
     try {
+      const contextSheet = contextOverride || (sheetData as UiSheetData);
       const result = await nanoBananaProvider.generateImage({
         prompt,
-        style,
-        aspectRatio: "4:5",
-        outputMimeType: "image/jpeg",
-        characterContext: sheetData,
+        style: canonicalizeSheetStyle(style),
+        aspectRatio: "3:4",
+        imageSize: "2K",
+        outputMimeType: "image/png",
+        characterContext: portraitPromptContext(contextSheet),
         referenceImage
       });
       if (result.imageUrl) {
         setImageUrl(result.imageUrl);
+        setImageEngine(result.engine || "Nano Banana");
+      } else {
+        const fallback = buildProceduralPortrait({
+          name: contextSheet.name,
+          charClass: contextSheet.overview?.classRole,
+          style,
+          distinguishingFeature: contextSheet.physical?.marks,
+        });
+        setImageUrl(fallback);
+        setImageEngine("WorldVision Procedural Codex");
+        setImageError(result.error?.message || "Portrait model returned no image; showing dossier plate.");
       }
     } catch (e) {
       console.error("Portrait generation error:", e);
+      setImageError("Portrait synthesis failed. You can reroll or edit the asset.");
     } finally {
       setGeneratingImage(false);
     }
   };
 
   const handleRerollPortrait = () => {
-    const prompt = compilePortraitPrompt(sheetData as any, (sheetData as any).sheet_style || sheetStyle);
-    generatePortraitImage(prompt, (sheetData as any).sheet_style || sheetStyle);
+    const style = canonicalizeSheetStyle((sheetData as UiSheetData).sheet_style || sheetStyle);
+    const prompt = compilePortraitPrompt(portraitPromptContext(sheetData as UiSheetData), style);
+    generatePortraitImage(prompt, style, undefined, sheetData as UiSheetData);
   };
 
   const handleRandomizeStats = () => {
@@ -1118,7 +1058,12 @@ export default function App() {
     }
   };
 
-  const portraitSrc = imageUrl || "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80";
+  const portraitSrc = imageUrl || buildProceduralPortrait({
+    name: sheetData.name,
+    charClass: sheetData.overview.classRole,
+    style: (sheetData as UiSheetData).sheet_style || sheetStyle,
+    distinguishingFeature: sheetData.physical.marks,
+  });
 
   return (
     <div className="min-h-screen selection:bg-black/20" style={{ backgroundColor: c.bg, color: c.text, fontFamily: currentTheme.fonts.body }}>
@@ -1172,6 +1117,7 @@ export default function App() {
             ) : (
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleExportSheets}
                   className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
                   style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
@@ -1182,6 +1128,7 @@ export default function App() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setShowImportModal(true)}
                   className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
                   style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
@@ -1189,6 +1136,22 @@ export default function App() {
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
                   <span className="mono text-[11px]">Import Sheets</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                    setGoogleUser(null);
+                    setGoogleToken(null);
+                    setSheetsStatusMsg("Signed out of Google Workspace.");
+                  }}
+                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:opacity-90"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                  title={googleUser?.email || "Sign out"}
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                  <span className="mono text-[11px]">Sign out</span>
                 </button>
               </div>
             )}
@@ -1306,7 +1269,12 @@ export default function App() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setThemeId(item.id)}
+                  type="button"
+                  onClick={() => {
+                    setThemeId(item.id);
+                    setSheetStyle(item.name);
+                    setSheetData((prev) => ({ ...prev, sheet_style: item.name }));
+                  }}
                   className="relative group p-3 rounded-[14px] border text-left transition-all duration-200 flex flex-col justify-between"
                   style={{
                     backgroundColor: isSelected ? item.tokens.card2 : item.tokens.card,
@@ -1524,26 +1492,15 @@ export default function App() {
               <select
                 value={sheetStyle}
                 onChange={e => {
-                  const newStyle = e.target.value;
+                  const newStyle = canonicalizeSheetStyle(e.target.value);
                   setSheetStyle(newStyle);
-                  const themeMatch = THEMES.find(t => t.name === newStyle || t.id === newStyle || (t as any).alias === newStyle);
-                  if (themeMatch) setThemeId(themeMatch.id);
+                  setThemeId(themeIdForStyle(newStyle));
+                  setSheetData((prev) => ({ ...prev, sheet_style: newStyle }));
                 }}
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
                 style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}
               >
-                {[
-                  "Gothic Dark Fantasy",
-                  "Cyberpunk",
-                  "Steampunk",
-                  "8-Bit Retro RPG",
-                  "High Fantasy",
-                  "Cosmic Horror",
-                  "Samurai Era",
-                  "Post-Apocalyptic",
-                  "Eldritch Arcane",
-                  "Victorian Gothic"
-                ].map(s => (
+                {CANONICAL_SHEET_STYLES.map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
@@ -1790,7 +1747,17 @@ export default function App() {
                   {generatingImage && (
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />
-                      <span className="mono text-xs text-stone-200">Generating portrait...</span>
+                      <span className="mono text-xs text-stone-200">Rendering 2K portrait...</span>
+                    </div>
+                  )}
+                  {imageError && !generatingImage && (
+                    <div className="absolute bottom-0 inset-x-0 bg-black/75 px-3 py-2">
+                      <p className="mono text-[10px] text-amber-200 leading-snug">{imageError}</p>
+                    </div>
+                  )}
+                  {imageEngine && !generatingImage && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/70 border border-white/10">
+                      <span className="mono text-[9px] text-amber-200">{imageEngine}</span>
                     </div>
                   )}
                 </div>
@@ -2109,17 +2076,21 @@ export default function App() {
                   </span>
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => {
                         const cur = (sheetData as any).derivedStats?.hpCurrent ?? 74;
-                        updateField("derivedStats.hpCurrent", Math.max(0, cur - 1));
+                        const max = (sheetData as any).derivedStats?.hpMax ?? 74;
+                        updateField("derivedStats.hpCurrent", clampResource(cur, max, -1));
                       }}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
                     >-</button>
                     <button
+                      type="button"
                       onClick={() => {
                         const cur = (sheetData as any).derivedStats?.hpCurrent ?? 74;
-                        updateField("derivedStats.hpCurrent", cur + 1);
+                        const max = (sheetData as any).derivedStats?.hpMax ?? 74;
+                        updateField("derivedStats.hpCurrent", clampResource(cur, max, 1));
                       }}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
@@ -2187,17 +2158,21 @@ export default function App() {
                   </span>
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => {
                         const cur = (sheetData as any).derivedStats?.resourceCurrent ?? 6;
-                        updateField("derivedStats.resourceCurrent", Math.max(0, cur - 1));
+                        const max = (sheetData as any).derivedStats?.resourceMax ?? 6;
+                        updateField("derivedStats.resourceCurrent", clampResource(cur, max, -1));
                       }}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
                     >-</button>
                     <button
+                      type="button"
                       onClick={() => {
                         const cur = (sheetData as any).derivedStats?.resourceCurrent ?? 6;
-                        updateField("derivedStats.resourceCurrent", cur + 1);
+                        const max = (sheetData as any).derivedStats?.resourceMax ?? 6;
+                        updateField("derivedStats.resourceCurrent", clampResource(cur, max, 1));
                       }}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
@@ -2297,13 +2272,15 @@ export default function App() {
         <ImageEditorModal
           imageUrl={portraitSrc}
           characterName={sheetData.name}
+          sheetStyle={canonicalizeSheetStyle((sheetData as UiSheetData).sheet_style || sheetStyle)}
           onClose={() => setShowImageEditor(false)}
           onSave={(newUrl) => setImageUrl(newUrl)}
           onGenerateSimilar={async (customPrompt, refImage) => {
-            const promptText = customPrompt 
-              ? `Based on reference image and prompt: ${customPrompt}. Full-body cinematic character concept art of ${sheetData.name}, ${sheetData.title}, ${sheetData.overview.classRole}, with Nano Banana weapon core.`
-              : `Full-body cinematic character concept art of ${sheetData.name}, ${sheetData.title}, inspired by reference image.`;
-            await generatePortraitImage(promptText, sheetData.sheet_style || "High Fantasy", refImage);
+            const style = canonicalizeSheetStyle((sheetData as UiSheetData).sheet_style || sheetStyle);
+            const promptText = customPrompt
+              ? `${compilePortraitPrompt(portraitPromptContext(sheetData as UiSheetData), style)} Additional direction: ${customPrompt}`
+              : compilePortraitPrompt(portraitPromptContext(sheetData as UiSheetData), style);
+            await generatePortraitImage(promptText, style, refImage || undefined, sheetData as UiSheetData);
           }}
         />
       )}
@@ -2311,7 +2288,14 @@ export default function App() {
       {showChatModal && (
         <GeminiChatModal
           onClose={() => setShowChatModal(false)}
-          characterContext={sheetData}
+          characterContext={{
+            ...sheetData,
+            imageUrl: portraitSrc,
+            character_name: sheetData.name,
+            character_class: sheetData.overview.classRole,
+            character_lore: sheetData.lore.backstory,
+            signature_attributes: (sheetData as UiSheetData).signatureAttributes,
+          }}
         />
       )}
     </div>

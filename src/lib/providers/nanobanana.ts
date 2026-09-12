@@ -1,4 +1,5 @@
 import { ImageGenerationProvider, ImageGenerationRequest, GeneratedImage, ProviderResult } from '../../types/providers';
+import { buildProceduralPortrait } from '../portraitFallback';
 
 /**
  * LRU In-Memory Idempotency Cache for NanoBanana requests
@@ -53,7 +54,7 @@ export class NanoBananaImageAdapter implements ImageGenerationProvider {
   private readonly timeoutMs: number;
   private readonly lruCache: NanoBananaLRUCache;
 
-  constructor(endpointUrl: string = '/api/generate-image', timeoutMs: number = 15000) {
+  constructor(endpointUrl: string = '/api/generate-image', timeoutMs: number = 120000) {
     this.endpointUrl = endpointUrl;
     this.timeoutMs = timeoutMs;
     this.lruCache = new NanoBananaLRUCache(100);
@@ -156,8 +157,13 @@ export class NanoBananaImageAdapter implements ImageGenerationProvider {
         negativePrompt: standardNegativeConstraints.join(', '),
         style: request.style || request.stylePreset,
         aspectRatio: request.aspectRatio || '3:4',
+        imageSize: '2K',
+        quality: '2K',
+        width: request.width || 1536,
+        height: request.height || 2048,
         characterContext: request.characterContext,
         referenceImage: request.referenceImage,
+        referenceStrength: request.referenceStrength,
         seed: request.seed
       };
 
@@ -179,13 +185,13 @@ export class NanoBananaImageAdapter implements ImageGenerationProvider {
       }
 
       const body = await res.json();
-      const imageUrl = body.imageUrl || body.output_url || this.getThematicFallbackUrl(request.style || 'Gothic Dark Fantasy');
+      const imageUrl = body.imageUrl || body.output_url || this.getThematicFallbackUrl(request);
 
       const generated: GeneratedImage = {
         id: body.id || `img_${Date.now()}`,
         url: imageUrl,
-        width: request.width || 600,
-        height: request.height || 800,
+        width: request.width || 1536,
+        height: request.height || 2048,
         seed: body.seed_used || request.seed || 42,
         revisedPrompt: body.prompt || enhancedPrompt,
         provider: body.engine || 'NanoBanana AI Engine',
@@ -203,15 +209,15 @@ export class NanoBananaImageAdapter implements ImageGenerationProvider {
       clearTimeout(timeoutHandle);
       
       // Procedural thematic fallback
-      const fallbackUrl = this.getThematicFallbackUrl(request.style || 'Gothic Dark Fantasy');
+      const fallbackUrl = this.getThematicFallbackUrl(request);
       const fallbackImage: GeneratedImage = {
         id: `fallback_${Date.now()}`,
         url: fallbackUrl,
-        width: request.width || 600,
-        height: request.height || 800,
+        width: request.width || 1536,
+        height: request.height || 2048,
         seed: request.seed || 108,
         revisedPrompt: enhancedPrompt,
-        provider: 'NanoBanana Thematic Fallback',
+        provider: 'WorldVision Procedural Codex',
         createdAt: new Date().toISOString()
       };
 
@@ -221,30 +227,23 @@ export class NanoBananaImageAdapter implements ImageGenerationProvider {
         success: true,
         data: fallbackImage,
         error: err.name === 'AbortError' 
-          ? { code: 'TIMEOUT', message: 'Request timed out after 15s; engaged thematic fallback', retryable: true }
+          ? { code: 'TIMEOUT', message: 'Request timed out after 120s; engaged thematic fallback', retryable: true }
           : { code: 'NETWORK_ERROR', message: err.message, retryable: true }
       };
     }
   }
 
-  private getThematicFallbackUrl(style: string): string {
-    const s = (style || '').toLowerCase();
-    if (s.includes('cyberpunk') || s.includes('neon')) {
-      return 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80';
+  private getThematicFallbackUrl(request: ImageGenerationRequest | string): string {
+    if (typeof request === "string") {
+      return buildProceduralPortrait({ style: request });
     }
-    if (s.includes('steampunk') || s.includes('victorian')) {
-      return 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80';
-    }
-    if (s.includes('cosmic') || s.includes('horror') || s.includes('eldritch')) {
-      return 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=800&auto=format&fit=crop&q=80';
-    }
-    if (s.includes('samurai')) {
-      return 'https://images.unsplash.com/photo-1528164344705-475426879c0d?w=800&auto=format&fit=crop&q=80';
-    }
-    if (s.includes('post-apocalyptic') || s.includes('wasteland')) {
-      return 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80';
-    }
-    return 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80';
+    const ctx = request.characterContext || {};
+    return buildProceduralPortrait({
+      name: ctx.character_name || ctx.name,
+      charClass: ctx.character_class || ctx.overview?.classRole,
+      style: request.style || request.stylePreset || ctx.sheet_style,
+      distinguishingFeature: ctx.physical?.distinguishing_feature || ctx.physical?.marks,
+    });
   }
 }
 

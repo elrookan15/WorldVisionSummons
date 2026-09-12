@@ -3,13 +3,17 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import dotenv from "dotenv";
+import { compilePortraitPrompt } from "./src/lib/prompts/generators";
+import { canonicalizeSheetStyle } from "./src/lib/themeMap";
+import { buildProceduralPortrait } from "./src/lib/portraitFallback";
+import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "16mb" }));
 
 // Initialize Google Gen AI client safely
 const getAiClient = () => {
@@ -17,6 +21,53 @@ const getAiClient = () => {
   if (!apiKey) return null;
   return new GoogleGenAI({ apiKey });
 };
+
+function parseJsonPayload(text: string): Record<string, unknown> | null {
+  if (!text) return null;
+  const cleanText = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const jsonStart = cleanText.indexOf("{");
+  const jsonEnd = cleanText.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1) return null;
+  try {
+    return JSON.parse(cleanText.substring(jsonStart, jsonEnd + 1));
+  } catch {
+    return null;
+  }
+}
+
+function parseDataUrl(value?: string): { mimeType: string; data: string } | null {
+  if (!value || typeof value !== "string") return null;
+  const match = /^data:([^;]+);base64,(.+)$/s.exec(value.trim());
+  if (!match) return null;
+  return { mimeType: match[1], data: match[2] };
+}
+
+function extractInlineImage(response: any): string | null {
+  const parts = response?.candidates?.[0]?.content?.parts || [];
+  for (const part of parts) {
+    const inline = part?.inlineData || part?.inline_data;
+    if (inline?.data) {
+      const mime = inline.mimeType || inline.mime_type || "image/png";
+      return `data:${mime};base64,${inline.data}`;
+    }
+  }
+  return null;
+}
+
+function portraitContextFromBody(body: any) {
+  const ctx = body?.characterContext || {};
+  const style = canonicalizeSheetStyle(body?.style || ctx.sheet_style || ctx.sheetStyle || "Gothic Dark Fantasy");
+  return {
+    name: ctx.character_name || ctx.name || "Hero",
+    charClass: ctx.character_class || ctx.overview?.classRole || "Adventurer",
+    lore: ctx.character_lore || ctx.lore?.backstory || ctx.overview?.bio || "",
+    style,
+    height: ctx.physical?.height || "6'0\"",
+    build: ctx.physical?.build || "Athletic",
+    feature: ctx.physical?.distinguishing_feature || ctx.physical?.marks || "",
+    inventory: ctx.inventory_items || ctx.equipment?.items || ctx.equipment?.primaryWeapon || "",
+  };
+}
 
 // Procedural fallback generator for robust character generation when API key is missing or rate limited
 function generateFallbackSheet(params: {
@@ -190,7 +241,10 @@ You MUST output ONLY valid JSON matching this exact structure with no extra mark
 }`;
 
     const modelName = "models/gemini-3.5-flash";
-    const config: any = {};
+    const config: Record<string, unknown> = {
+      responseMimeType: "application/json",
+      temperature: 0.85,
+    };
     if (high_thinking) {
       config.thinkingConfig = {
         thinkingLevel: ThinkingLevel.HIGH
@@ -200,24 +254,15 @@ You MUST output ONLY valid JSON matching this exact structure with no extra mark
     const response = await ai.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: {
-        ...config,
-        tools: [{ googleSearch: {} }]
-      }
+      config
     });
 
     const text = response.text || "";
-    // Clean markdown code blocks if any
-    const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const jsonStart = cleanText.indexOf("{");
-    const jsonEnd = cleanText.lastIndexOf("}");
-    if (jsonStart !== -1 && jsonEnd !== -1) {
-      const jsonString = cleanText.substring(jsonStart, jsonEnd + 1);
-      const parsed = JSON.parse(jsonString);
-      return res.json(parsed);
-    } else {
+    const parsed = parseJsonPayload(text);
+    if (!parsed) {
       throw new Error("Failed to parse JSON from Gemini response");
     }
+    return res.json(parsed);
   } catch (error: any) {
     console.error("Gemini Generation Error:", error);
     // Fall back gracefully
@@ -231,79 +276,141 @@ You MUST output ONLY valid JSON matching this exact structure with no extra mark
 
 // Unified Image Handler for /api/generate-image and /api/summons/image
 const handleImageGeneration = async (req: express.Request, res: express.Response) => {
+  const ctx = portraitContextFromBody(req.body);
+  const incomingPrompt = String(req.body?.prompt || "").trim();
+  const negativePrompt = String(req.body?.negativePrompt || req.body?.negative_prompt || "").trim();
+  const aspectRatio = req.body?.aspectRatio || "3:4";
+  const imageSize = req.body?.imageSize || req.body?.quality || "2K";
+  const referenceImage = req.body?.referenceImage as string | undefined;
+  const referenceStrength = Number(req.body?.referenceStrength ?? 0.65);
+
+  const compiledPrompt = incomingPrompt || compilePortraitPrompt({
+    character_name: ctx.name,
+    character_class: ctx.charClass,
+    character_lore: ctx.lore,
+    sheet_style: ctx.style,
+    inventory_items: ctx.inventory,
+    physical: {
+      height: ctx.height,
+      build: ctx.build,
+      distinguishing_feature: ctx.feature,
+    },
+  }, ctx.style);
+
+  const qualityDirective = [
+    "Generate exactly one finished character portrait image.",
+    "Do not return UI mockups, stat panels, watermarks, captions, or split-screen collages.",
+    `Use a vertical ${aspectRatio} composition at ${imageSize} fidelity.`,
+    "Keep the full figure in frame, anatomically correct hands and feet, sharp costume detail.",
+    negativePrompt ? `Avoid: ${negativePrompt}` : "",
+    referenceImage ? `Honor the uploaded reference at strength ${Math.round(referenceStrength * 100)}% while remaining faithful to the character description.` : "",
+  ].filter(Boolean).join(" ");
+
+  const nanoBananaEnhancedPrompt = `${compiledPrompt}\n${qualityDirective}`;
+  const fallbackImage = buildProceduralPortrait({
+    name: ctx.name,
+    charClass: ctx.charClass,
+    style: ctx.style,
+    distinguishingFeature: ctx.feature,
+  });
+
   try {
-    const { prompt, style, characterContext, aspectRatio, outputMimeType, referenceImage } = req.body;
     const ai = getAiClient();
-    
-    const sheetStyle = style || characterContext?.sheet_style || 'Gothic Dark Fantasy';
-    const charName = characterContext?.character_name || characterContext?.name || 'Hero';
-    const charClass = characterContext?.character_class || characterContext?.overview?.classRole || 'Adventurer';
-
-    let atmosphericTokens = "masterwork character portrait illustration, highly detailed 8k resolution, cinematic lighting, rich textures, volumetric atmosphere, character consistency, sharp focus";
-    if (referenceImage) {
-      atmosphericTokens += ", incorporating composition and style guidance from uploaded reference image";
-    }
-    if (sheetStyle.toLowerCase().includes("gothic") || sheetStyle.toLowerCase().includes("dark fantasy")) {
-      atmosphericTokens += ", chiaroscuro lighting, desaturated oxblood and charcoal palette, heavy oil brushstrokes, haunting atmospheric depth";
-    } else if (sheetStyle.toLowerCase().includes("cyberpunk") || sheetStyle.toLowerCase().includes("neon")) {
-      atmosphericTokens += ", neon grid illumination, cybernetic ossuaries, cyan and magenta rim lighting, tactical sci-fi aesthetic";
-    } else if (sheetStyle.toLowerCase().includes("comic") || sheetStyle.toLowerCase().includes("retro")) {
-      atmosphericTokens += ", dynamic sequential art style, bold ink lines, graphic cel-shading, vibrant high-contrast chromatic inks";
-    } else if (sheetStyle.toLowerCase().includes("cosmic") || sheetStyle.toLowerCase().includes("horror")) {
-      atmosphericTokens += ", non-Euclidean geometry, ethereal void starlight, abyssal deep tones, eldritch whispers in shadows";
-    } else {
-      atmosphericTokens += ", majestic archival illumination, intricate gold filigree, epic noble composition";
-    }
-
-    // Enhance prompt with Nano Banana portrait synthesis styling & character metadata
-    const nanoBananaEnhancedPrompt = `[Nano Banana Engine | Style: ${sheetStyle} | Subject: ${charName}, ${charClass}]: ${prompt}, ${atmosphericTokens}`;
-
-    const getFallbackImageForStyle = (st: string) => {
-      const lower = (st || '').toLowerCase();
-      if (lower.includes('cyberpunk') || lower.includes('neon')) {
-        return "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80";
-      } else if (lower.includes('steampunk') || lower.includes('victorian')) {
-        return "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80";
-      } else if (lower.includes('cosmic') || lower.includes('horror')) {
-        return "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=800&auto=format&fit=crop&q=80";
-      } else if (lower.includes('samurai')) {
-        return "https://images.unsplash.com/photo-1528164344705-475426879c0d?w=800&auto=format&fit=crop&q=80";
-      } else {
-        return "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80";
-      }
-    };
-
     if (!ai) {
-      return res.json({ 
-        imageUrl: getFallbackImageForStyle(sheetStyle), 
-        prompt: nanoBananaEnhancedPrompt, 
-        engine: "Nano Banana Fallback" 
+      return res.json({
+        imageUrl: fallbackImage,
+        prompt: nanoBananaEnhancedPrompt,
+        engine: "WorldVision Procedural Codex",
+        fallback: true,
       });
     }
-    
-    // Try generating image with Nano Banana / Imagen model
-    try {
-      const response = await ai.models.generateImages({
-        model: 'models/imagen-3.0-generate-002',
-        prompt: nanoBananaEnhancedPrompt,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: outputMimeType || 'image/jpeg',
-          aspectRatio: aspectRatio || '3:4',
+
+    const refPart = parseDataUrl(referenceImage);
+    const userParts: Array<Record<string, unknown>> = [{ text: nanoBananaEnhancedPrompt }];
+    if (refPart) {
+      userParts.unshift({
+        inlineData: {
+          mimeType: refPart.mimeType,
+          data: refPart.data,
         },
       });
-      const base64Image = response.generatedImages?.[0]?.image?.imageBytes;
-      if (base64Image) {
-        return res.json({ imageUrl: `data:image/jpeg;base64,${base64Image}`, prompt: nanoBananaEnhancedPrompt, engine: "Nano Banana AI" });
-      }
-    } catch (imgErr) {
-      // Vertex AI / Imagen not available on standard consumer keys; use style-matched high-end concept art fallback
     }
 
-    return res.json({ imageUrl: getFallbackImageForStyle(sheetStyle), prompt: nanoBananaEnhancedPrompt, engine: "Nano Banana Fallback" });
+    const nanoBananaModels = [
+      { model: "gemini-3.1-flash-image", imageSize },
+      { model: "gemini-2.5-flash-image", imageSize: undefined },
+    ];
+
+    for (const candidate of nanoBananaModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model: candidate.model,
+          contents: [{ role: "user", parts: userParts }],
+          config: {
+            responseModalities: ["TEXT", "IMAGE"],
+            imageConfig: {
+              aspectRatio,
+              ...(candidate.imageSize ? { imageSize: candidate.imageSize } : {}),
+            },
+          },
+        });
+        const imageUrl = extractInlineImage(response);
+        if (imageUrl) {
+          return res.json({
+            imageUrl,
+            prompt: nanoBananaEnhancedPrompt,
+            engine: candidate.model.includes("3.1") ? "Nano Banana 2" : "Nano Banana",
+            model: candidate.model,
+            fallback: false,
+          });
+        }
+      } catch (modelErr: any) {
+        console.warn(`Image model ${candidate.model} failed:`, modelErr?.message || modelErr);
+      }
+    }
+
+    const imagenModels = ["imagen-4.0-generate-001", "imagen-3.0-generate-002"];
+    for (const model of imagenModels) {
+      try {
+        const response = await ai.models.generateImages({
+          model,
+          prompt: nanoBananaEnhancedPrompt,
+          config: {
+            numberOfImages: 1,
+            outputMimeType: req.body?.outputMimeType || "image/png",
+            aspectRatio,
+          },
+        });
+        const base64Image = response.generatedImages?.[0]?.image?.imageBytes;
+        if (base64Image) {
+          return res.json({
+            imageUrl: `data:image/png;base64,${base64Image}`,
+            prompt: nanoBananaEnhancedPrompt,
+            engine: "Imagen",
+            model,
+            fallback: false,
+          });
+        }
+      } catch (imgErr: any) {
+        console.warn(`Imagen model ${model} failed:`, imgErr?.message || imgErr);
+      }
+    }
+
+    return res.json({
+      imageUrl: fallbackImage,
+      prompt: nanoBananaEnhancedPrompt,
+      engine: "WorldVision Procedural Codex",
+      fallback: true,
+    });
   } catch (error: any) {
     console.error("Image generation error:", error);
-    res.status(500).json({ error: error.message });
+    return res.json({
+      imageUrl: fallbackImage,
+      prompt: nanoBananaEnhancedPrompt,
+      engine: "WorldVision Procedural Codex",
+      fallback: true,
+      error: error.message,
+    });
   }
 };
 
@@ -377,27 +484,25 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
     }
 
     const currentSeed = stochasticSeed || Math.floor(Math.random() * 1000000);
-    
-    // Build C-TRACES-GOAL system instruction
-    const systemInstruction = `[C-TRACES-GOAL PROMPT FRAMEWORK ACTIVE // FEDEROV SUMMONS CODEX]
-CONTEXT: You are operating within the WorldVision Summons multiverse under the ${sheetStyle} aesthetic canon.
-ROLE: You ARE ${charName}, a Level ${level} ${charClass}. Speak strictly in the FIRST PERSON ("I", "my steel", "my oath"). Never break character or refer to yourself as an artificial model.
-LORE GROUNDING: ${lore}
-EQUIPMENT: ${typeof inventory === 'string' ? inventory : JSON.stringify(inventory)}
-
-PSYCHOLOGICAL DNA & TONAL MATRIX (Vector #${currentSeed}):
-- Reputation: ${signature.reputation || 'Whispered name among desperate outcasts'}
-- Virtue: ${signature.virtue || signature.ideals || 'Unflinching loyalty in mortal peril'}
-- Vice: ${signature.vice || signature.flaws || 'Compulsive obsession with ancient debts'}
-- Fear: ${signature.fear || signature.fears || 'Being forgotten in the boundless dark'}
-- Tell: ${signature.tell || signature.mannerisms || 'Checking weapon balances when tense'}
-- Speech Cadence: ${signature.speech || 'Evocative, measured, and authentic to genre'}
-
-OPERATIONAL CONSTRAINTS:
-1. Speak strictly in character with authentic tactical weight.
-2. Incorporate concrete references to your weapons, scars, vices, and sworn faction.
-3. Keep replies punchy, evocative, and compelling (2 to 4 paragraphs, 60-180 words).
-4. Address tactical inquiries, campaign hooks, or lore secrets directly.`;
+    const compiled = buildCTracesGoalPrompt({
+      characterName: charName,
+      characterClass: charClass,
+      characterLevel: level,
+      sheetStyle,
+      lore,
+      reputation: signature.reputation,
+      vice: signature.vice || signature.flaws,
+      virtue: signature.virtue || signature.ideals,
+      fear: signature.fear || signature.fears,
+      obsession: signature.obsession,
+      tell: signature.tell || signature.mannerisms,
+      loyalty: signature.loyalty,
+      blindSpot: signature.blind_spot || signature.blindSpot,
+      survivalInstinct: signature.survival_instinct || signature.survivalInstinct,
+      legacyFear: signature.legacy_fear || signature.legacyFear,
+      primaryWeapon: typeof inventory === "string" ? inventory.split(",")[0] : "",
+    });
+    const systemInstruction = `${compiled.systemInstruction}\n\nSTOCHASTIC VECTOR: #${currentSeed}\nEQUIPMENT: ${typeof inventory === "string" ? inventory : JSON.stringify(inventory)}`;
 
     const contents = (messages || []).map((m: any) => ({
       role: m.role === "user" ? "user" : "model",
@@ -452,7 +557,12 @@ app.post("/api/chat", handleChatTurn);
 app.post("/api/summons/chat", handleChatTurn);
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "worldvision-summons-engine" });
+  res.json({
+    status: "ok",
+    service: "worldvision-summons-engine",
+    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    imageModels: ["gemini-3.1-flash-image", "gemini-2.5-flash-image"],
+  });
 });
 
 async function startServer() {

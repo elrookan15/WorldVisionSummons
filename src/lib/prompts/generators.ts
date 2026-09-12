@@ -202,18 +202,22 @@ export function compilePortraitPrompt(char: any, overrideStyle?: string): string
   const feat = char.physical?.distinguishing_feature || char.physical?.marks || "weathered battle marks";
 
   const negative = [
-    "cropped feet", "out of frame head", "cut-off boots", "extra arms", 
-    "duplicated hands", "malformed fingers", "blurry textures", "watermarks", 
-    "UI text", "borders", ...matrix.negativeConstraints
+    "cropped feet", "out of frame head", "cut-off boots", "extra arms",
+    "duplicated hands", "malformed fingers", "blurry textures", "watermarks",
+    "UI text", "borders", "infographic panels", "stat bars", "split screen",
+    "collage", "multiple characters", "low resolution",
+    ...matrix.negativeConstraints
   ].join(", ");
 
-  return `Full-body cinematic masterwork character portrait illustration of ${name}, a ${cls}, head-to-toe standing heroic pose, centerpiece visual codex asset for tabletop RPG.
+  return `Generate a single high-fidelity image: a full-body cinematic character portrait of ${name}, a ${cls}, standing in a heroic three-quarter pose, head-to-toe completely in frame.
+This is a finished tabletop RPG visual-codex illustration, not a collage and not a UI mockup.
 Lore Context: ${lore}
 Primary Focus & Weapon: Wielding ${primaryWeapon}, integrated organically with character stance and posture.
-Anatomy & Physical Grounds: Grounded athletic stance, full head-to-toe silhouette completely visible with boots firmly planted on the ground, zero cropping at feet or head. Physical profile: Height ${height}, weight ${weight}, ${build} build, distinguishing feature: ${feat}.
+Anatomy & Physical Grounds: Anatomically correct adult human proportions, grounded stance, boots planted, zero cropping at feet or head. Physical profile: Height ${height}, weight ${weight}, ${build} build, distinguishing feature: ${feat}.
 Atmospheric Matrix: ${matrix.palette}
 Lighting & Shadows: ${matrix.lighting}
-Render Fidelity: Masterful digital concept art, sharp focus, 8k resolution, hard-surface fidelity balanced with rich painterly fabric textures, volumetric atmosphere, Octane render aesthetic.
+Render Fidelity: Award-winning concept art, 2K resolution, sharp focus, rich material textures, volumetric atmosphere, cinematic color grading, octane-render realism with painterly costume detail.
+Output: one character, one scene, no captions, no watermarks, no HUD.
 Negative Constraints: ${negative}`;
 }
 

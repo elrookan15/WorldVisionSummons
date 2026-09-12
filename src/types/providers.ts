@@ -29,9 +29,12 @@ export interface ImageGenerationRequest {
   stylePreset?: string;
   style?: string;
   aspectRatio?: string;
+  imageSize?: string;
   outputMimeType?: string;
   characterContext?: any;
   referenceImage?: string;
+  referenceStrength?: number;
+  quality?: string;
 }
 
 export interface ImageGenerationProvider {
