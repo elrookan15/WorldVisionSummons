@@ -984,6 +984,7 @@ export default function App() {
   ) => {
     setGeneratingImage(true);
     setImageError(null);
+    const startedAt = Date.now();
     try {
       const contextSheet = contextOverride || (sheetData as UiSheetData);
       const result = await nanoBananaProvider.generateImage({
@@ -1013,6 +1014,10 @@ export default function App() {
       console.error("Portrait generation error:", e);
       setImageError("Portrait synthesis failed. You can reroll or edit the asset.");
     } finally {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 500) {
+        await new Promise((resolve) => setTimeout(resolve, 500 - elapsed));
+      }
       setGeneratingImage(false);
     }
   };

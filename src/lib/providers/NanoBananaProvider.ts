@@ -209,7 +209,7 @@ export class NanoBananaProvider implements ImageGenerationProvider {
         success: true,
         imageUrl,
         prompt: promptToUse,
-        engine: 'Nano Banana AI',
+        engine: payload.engine || 'Nano Banana AI',
         data: {
           id: payload.id || 'img-' + Date.now(),
           url: imageUrl || '',
