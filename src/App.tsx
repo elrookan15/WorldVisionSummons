@@ -21,34 +21,34 @@ import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromp
 import { buildProceduralPortrait } from "./lib/portraitFallback";
 
 const THEMES = [
-  {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes", texture:"obsidian",
+  {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes", texture:"obsidian", chrome:"arch", radius:"4px",
     tokens:{bg:"#070708",bg2:"#121212",card:"#111010",card2:"#1a1414",border:"#2a1a1a",borderStrong:"#8b0000",text:"#d8c9c9",muted:"#8a6a6a",muted2:"#5a4040",accent:"#8b0000",accent2:"#ff1a1a",accentText:"#f5d0d0",shadow:"rgba(0,0,0,0.9)"},
     fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'Cinzel', serif"}},
-  {id:"cyberpunk", alias:"neonRonin", name:"Cyberpunk", short:"CYB", icon:Zap, desc:"Neon grid, chrome & rain-slicked streets", texture:"neon",
+  {id:"cyberpunk", alias:"neonRonin", name:"Cyberpunk", short:"CYB", icon:Zap, desc:"Neon grid, chrome & rain-slicked streets", texture:"neon", chrome:"hud", radius:"0px",
     tokens:{bg:"#0c0a14",bg2:"#171222",card:"#1a1426",card2:"#221a32",border:"#3a2d4f",borderStrong:"#ff2a8a",text:"#e9ddff",muted:"#9d8ab8",muted2:"#6b5a85",accent:"#ff2a8a",accent2:"#00f0ff",accentText:"#0c0a14",shadow:"rgba(255,42,138,0.22)"},
     fonts:{display:"'Orbitron', sans-serif",body:"'IBM Plex Mono', monospace",mono:"'Orbitron', monospace"}},
-  {id:"steampunkTinkerer", alias:"steampunk", name:"Steampunk", short:"STM", icon:Cog, desc:"Brass gears, gaslight & riveted copper", texture:"steampunk",
+  {id:"steampunkTinkerer", alias:"steampunk", name:"Steampunk", short:"STM", icon:Cog, desc:"Brass gears, gaslight & riveted copper", texture:"steampunk", chrome:"rivet", radius:"10px",
     tokens:{bg:"#e8ddd0",bg2:"#d9cbb8",card:"#f5efe6",card2:"#efe6d6",border:"#c9b8a0",borderStrong:"#b87333",text:"#2e2118",muted:"#7a6654",muted2:"#a89886",accent:"#b87333",accent2:"#8a5a2b",accentText:"#fdf6ec",shadow:"rgba(46,33,24,0.15)"},
     fonts:{display:"'Philosopher', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}},
-  {id:"retro8Bit", alias:"8bitRetro", name:"8-Bit Retro RPG", short:"8BT", icon:Terminal, desc:"16-color dungeon chamber, arcade pixel glow", texture:"retro",
+  {id:"retro8Bit", alias:"8bitRetro", name:"8-Bit Retro RPG", short:"8BT", icon:Terminal, desc:"16-color dungeon chamber, arcade pixel glow", texture:"retro", chrome:"pixel", radius:"0px",
     tokens:{bg:"#0d1117",bg2:"#161b22",card:"#1b222d",card2:"#212836",border:"#30363d",borderStrong:"#2ea043",text:"#e6edf3",muted:"#8b949e",muted2:"#6e7681",accent:"#2ea043",accent2:"#f0883e",accentText:"#0d1117",shadow:"rgba(46,160,67,0.2)"},
     fonts:{display:"'JetBrains Mono', monospace",body:"'JetBrains Mono', monospace",mono:"'JetBrains Mono', monospace"}},
-  {id:"highFantasy", alias:"arcaneCodex", name:"High Fantasy", short:"HFA", icon:Crown, desc:"Gilded mythril, celestial radiance & grimoires", texture:"arcane",
+  {id:"highFantasy", alias:"arcaneCodex", name:"High Fantasy", short:"HFA", icon:Crown, desc:"Gilded mythril, celestial radiance & grimoires", texture:"arcane", chrome:"filigree", radius:"22px",
     tokens:{bg:"#0d0c0b",bg2:"#1a1620",card:"#151412",card2:"#1e1b2e",border:"#2a2438",borderStrong:"#d9c5a0",text:"#e8e1d3",muted:"#8a847a",muted2:"#5a5752",accent:"#d9c5a0",accent2:"#bfa67a",accentText:"#0d0c0b",shadow:"rgba(0,0,0,0.5)"},
     fonts:{display:"'Fraunces', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"cosmicHorror", alias:"cosmic", name:"Cosmic Horror", short:"CSM", icon:Eye, desc:"Non-Euclidean basalt, abyssal void & viridian", texture:"cosmic",
+  {id:"cosmicHorror", alias:"cosmic", name:"Cosmic Horror", short:"CSM", icon:Eye, desc:"Non-Euclidean basalt, abyssal void & viridian", texture:"cosmic", chrome:"rift", radius:"28px",
     tokens:{bg:"#06080d",bg2:"#0d121c",card:"#0f1724",card2:"#141f32",border:"#1c2d44",borderStrong:"#38bdf8",text:"#cbd5e1",muted:"#64748b",muted2:"#475569",accent:"#38bdf8",accent2:"#a855f7",accentText:"#06080d",shadow:"rgba(56,189,248,0.2)"},
     fonts:{display:"'Fraunces', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"samuraiEra", alias:"samurai", name:"Samurai Era", short:"SAM", icon:Sword, desc:"Sumi-e ink, bamboo mist & tamahagane steel", texture:"samurai",
+  {id:"samuraiEra", alias:"samurai", name:"Samurai Era", short:"SAM", icon:Sword, desc:"Sumi-e ink, bamboo mist & tamahagane steel", texture:"samurai", chrome:"scroll", radius:"2px",
     tokens:{bg:"#121010",bg2:"#1c1717",card:"#221d1d",card2:"#2c2424",border:"#423636",borderStrong:"#dc2626",text:"#f3ecec",muted:"#a89a9a",muted2:"#756767",accent:"#dc2626",accent2:"#eab308",accentText:"#ffffff",shadow:"rgba(220,38,38,0.2)"},
     fonts:{display:"'Philosopher', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"postApocalyptic", alias:"wastelandScavenger", name:"Post-Apocalyptic", short:"PST", icon:Truck, desc:"Irradiated ash, rusted corrugated iron & hazard stencils", texture:"wasteland",
+  {id:"postApocalyptic", alias:"wastelandScavenger", name:"Post-Apocalyptic", short:"PST", icon:Truck, desc:"Irradiated ash, rusted corrugated iron & hazard stencils", texture:"wasteland", chrome:"stencil", radius:"0px",
     tokens:{bg:"#d8c9a7",bg2:"#c9b896",card:"#e8dcc0",card2:"#e0d0a8",border:"#b89a6a",borderStrong:"#b8451b",text:"#2b1f14",muted:"#6b5a42",muted2:"#8a7a64",accent:"#b8451b",accent2:"#ff6b2a",accentText:"#fff0d6",shadow:"rgba(43,31,20,0.18)"},
     fonts:{display:"'Anton', sans-serif",body:"'Special Elite', cursive",mono:"'Special Elite', monospace"}},
-  {id:"eldritchArcane", alias:"eldritch", name:"Eldritch Arcane", short:"ELD", icon:BookOpen, desc:"Amethyst voids, floating runic shards & astral mist", texture:"eldritch",
+  {id:"eldritchArcane", alias:"eldritch", name:"Eldritch Arcane", short:"ELD", icon:BookOpen, desc:"Amethyst voids, floating runic shards & astral mist", texture:"eldritch", chrome:"crystal", radius:"26px",
     tokens:{bg:"#0b0813",bg2:"#151024",card:"#1b152e",card2:"#241c3d",border:"#3b2d61",borderStrong:"#c084fc",text:"#f3e8ff",muted:"#a855f7",muted2:"#7e22ce",accent:"#c084fc",accent2:"#38bdf8",accentText:"#0b0813",shadow:"rgba(192,132,252,0.25)"},
     fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"victorianGothic", alias:"victorian", name:"Victorian Gothic", short:"VIC", icon:Feather, desc:"Cobblestone alleys, gaslamps & mourning lace", texture:"victorian",
+  {id:"victorianGothic", alias:"victorian", name:"Victorian Gothic", short:"VIC", icon:Feather, desc:"Cobblestone alleys, gaslamps & mourning lace", texture:"victorian", chrome:"gazette", radius:"0px",
     tokens:{bg:"#0e1013",bg2:"#171a1f",card:"#1d2127",card2:"#252a32",border:"#333945",borderStrong:"#cbd5e1",text:"#e2e8f0",muted:"#94a3b8",muted2:"#64748b",accent:"#cbd5e1",accent2:"#f59e0b",accentText:"#0e1013",shadow:"rgba(0,0,0,0.7)"},
     fonts:{display:"'Newsreader', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}}
 ];
@@ -1070,8 +1070,30 @@ export default function App() {
     distinguishingFeature: sheetData.physical.marks,
   });
 
+  const themeVars = {
+    ["--wv-bg"]: c.bg,
+    ["--wv-bg2"]: c.bg2,
+    ["--wv-card"]: c.card,
+    ["--wv-card2"]: c.card2,
+    ["--wv-border"]: c.border,
+    ["--wv-border-strong"]: c.borderStrong,
+    ["--wv-text"]: c.text,
+    ["--wv-muted"]: c.muted,
+    ["--wv-muted2"]: c.muted2,
+    ["--wv-accent"]: c.accent,
+    ["--wv-accent2"]: c.accent2,
+    ["--wv-accent-text"]: c.accentText,
+    ["--wv-shadow"]: c.shadow,
+    ["--wv-radius"]: (currentTheme as any).radius || "18px",
+  } as React.CSSProperties;
+
   return (
-    <div className="min-h-screen selection:bg-black/20" style={{ backgroundColor: c.bg, color: c.text, fontFamily: currentTheme.fonts.body }}>
+    <div
+      className="sheet-app min-h-screen selection:bg-black/20"
+      data-sheet={currentTheme.id}
+      data-chrome={(currentTheme as any).chrome}
+      style={{ ...themeVars, backgroundColor: c.bg, color: c.text, fontFamily: currentTheme.fonts.body }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Anton&family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@400;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Orbitron:wght@400;600&family=Philosopher:wght@400;700&family=Pirata+One&family=Quicksand:wght@400;600&family=Share+Tech+Mono&family=Special+Elite&display=swap');
         .display { font-family: ${currentTheme.fonts.display}; }
@@ -1083,13 +1105,20 @@ export default function App() {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @media print { .no-print { display: none !important; } }
-        .texture-obsidian { background-image: linear-gradient(30deg, transparent 48%, ${c.border} 49%, ${c.border} 51%, transparent 52%), linear-gradient(-30deg, transparent 48%, ${c.border} 49%, ${c.border} 51%, transparent 52%); background-size: 80px 80px; opacity: 0.22; }
-        .texture-arcane { background-image: radial-gradient(ellipse at 30% 20%, rgba(217,197,160,0.1), transparent 60%); }
-        .texture-neon { background-image: linear-gradient(${c.border} 1px, transparent 1px); background-size: 100% 48px; opacity: 0.3; }
+        .texture-obsidian { background-image: linear-gradient(30deg, transparent 48%, ${c.border} 49%, ${c.border} 51%, transparent 52%), linear-gradient(-30deg, transparent 48%, ${c.border} 49%, ${c.border} 51%, transparent 52%); background-size: 80px 80px; opacity: 0.18; }
+        .texture-arcane { background-image: radial-gradient(ellipse at 30% 20%, rgba(217,197,160,0.12), transparent 60%); }
+        .texture-neon { background-image: linear-gradient(${c.border} 1px, transparent 1px); background-size: 100% 48px; opacity: 0.28; }
         .texture-steampunk { background-image: linear-gradient(${c.border}40 1px, transparent 1px), linear-gradient(90deg, ${c.border}40 1px, transparent 1px); background-size: 32px 32px; }
+        .texture-retro { background-image: repeating-linear-gradient(90deg, transparent 0 7px, ${c.accent}22 7px 8px); opacity: 0.25; }
+        .texture-cosmic { background-image: radial-gradient(circle at 20% 30%, ${c.accent}33, transparent 18%), radial-gradient(circle at 80% 70%, ${c.accent2}22, transparent 16%); }
+        .texture-samurai { background-image: radial-gradient(circle at 90% 8%, ${c.accent}55, transparent 16%); }
+        .texture-wasteland { background-image: repeating-linear-gradient(-32deg, ${c.accent}14 0 10px, transparent 10px 22px); }
+        .texture-eldritch { background-image: radial-gradient(circle at 40% 20%, ${c.accent}28, transparent 24%); }
+        .texture-victorian { background-image: repeating-linear-gradient(90deg, transparent 0 16px, ${c.accent}10 16px 17px); }
       `}</style>
 
       <div className={`pointer-events-none fixed inset-0 z-0 texture-${currentTheme.texture}`} />
+      <div className="sheet-bezel">
 
       {/* Top Header */}
       <header className="sticky top-0 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
@@ -1261,7 +1290,7 @@ export default function App() {
             <div className="flex items-center gap-3">
               <Sparkles className="w-4 h-4" style={{ color: c.accent }} />
               <span className="mono text-[11px] tracking-[0.18em] uppercase font-semibold" style={{ color: c.muted }}>
-                Theme Engine — 12 Cinematic Origins
+                Theme Engine — Cinematic Origins
               </span>
             </div>
             <span className="mono text-[10px]" style={{ color: c.muted2 }}>Click any theme to instantly restyle the entire dossier</span>
@@ -1586,8 +1615,13 @@ export default function App() {
 
       {/* Main Dossier Header */}
       <div className="max-w-[1600px] mx-auto px-5 md:px-10 pt-8 pb-8">
-        <div className="grid md:grid-cols-[1.2fr_0.8fr] gap-6 items-end border-b pb-10" style={{ borderColor: c.border }}>
-          <div>
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-end border-b pb-10" style={{ borderColor: c.border }}>
+          <div className="hero-cameo no-print">
+            <div className="portrait-frame">
+              <img src={portraitSrc} alt={`${sheetData.name} cameo`} />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
             <div className="mono text-[11px] tracking-[0.18em] uppercase mb-4 flex items-center gap-2" style={{ color: c.muted }}>
               <span className="w-8 h-px" style={{ background: c.border }} />
               Character Dossier • {currentTheme.name} Style
@@ -1621,9 +1655,9 @@ export default function App() {
             </div>
           </div>
 
-          <div className="md:text-right">
-            <div className="inline-flex flex-col items-start md:items-end gap-2 max-w-[42ch] md:ml-auto">
-              <p className="text-[16px] md:text-[17px] leading-[1.5] font-light text-left md:text-right" style={{ color: c.muted }}>
+          <div className="md:text-right lg:max-w-[38ch]">
+            <div className="inline-flex flex-col items-start md:items-end gap-2">
+              <p className="text-[16px] md:text-[17px] leading-[1.5] font-light text-left md:text-right line-clamp-5" style={{ color: c.muted }}>
                 {sheetData.lore.backstory}
               </p>
               <div className="flex gap-2 mono text-[9px]">
@@ -1640,7 +1674,7 @@ export default function App() {
                 <Sparkles className="w-3 h-3" /> CANON VERIFIED
               </span>
               <span className="px-3 py-1.5 rounded-full border tracking-wide" style={{ borderColor: c.border, color: c.muted }}>
-                ZOD VALIDATED
+                {currentTheme.name.toUpperCase()}
               </span>
             </div>
           </div>
@@ -1693,9 +1727,9 @@ export default function App() {
         <main className="space-y-12 md:space-y-14 min-w-0">
 
           {/* Overview */}
-          <section ref={(el) => { sectionRefs.current.overview = el; }} id="overview" className="scroll-mt-[88px]">
-            <SectionHeader k="01" title="Overview" subtitle="Identity, Lineage, and Faction Affiliation" c={c} currentTheme={currentTheme} />
-            <div className="grid md:grid-cols-3 gap-4 md:gap-5">
+          <section ref={(el) => { sectionRefs.current.overview = el; }} id="overview" className="sheet-page sheet-page--overview scroll-mt-[88px]">
+            <SectionHeader k="01" title="Identity Dossier" subtitle="Lineage, allegiance, and public face" c={c} currentTheme={currentTheme} />
+            <div className="overview-mosaic">
               {Object.entries({
                 race: "Race / Lineage",
                 age: "Age",
@@ -1706,7 +1740,7 @@ export default function App() {
                 origin: "Origin",
                 faction: "Faction / Order"
               }).map(([key, label]) => (
-                <div key={key} className="rounded-[18px] border p-5 transition" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div key={key} className="overview-tile sheet-card border p-5 transition" style={{ backgroundColor: c.card, borderColor: c.border }}>
                   <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3" style={{ color: c.muted }}>{label}</div>
                   <input
                     value={(sheetData.overview as any)[key]}
@@ -1716,17 +1750,27 @@ export default function App() {
                   />
                 </div>
               ))}
+              <div className="overview-quote sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.borderStrong, color: c.text }}>
+                <div className="mono text-[10px] tracking-[0.18em] uppercase mb-2" style={{ color: c.accent }}>Pull quote</div>
+                <textarea
+                  value={sheetData.personality.speech}
+                  onChange={(e) => updateField("personality.speech", e.target.value)}
+                  rows={2}
+                  className="w-full bg-transparent resize-none leading-relaxed"
+                  style={{ color: c.text }}
+                />
+              </div>
             </div>
           </section>
 
           {/* Physical */}
-          <section ref={(el) => { sectionRefs.current.physical = el; }} id="physical" className="scroll-mt-[88px]">
-            <SectionHeader k="02" title="Physical Traits" subtitle="Silhouette, Anatomy, and Visual Presence" c={c} currentTheme={currentTheme} />
-            <div className="grid lg:grid-cols-[380px_1fr] gap-5 items-start">
-              <div className="rounded-[24px] border p-3 lg:sticky lg:top-[112px] space-y-3" style={{ backgroundColor: c.card, borderColor: c.border }}>
-                <div className="flex items-center justify-between gap-2">
+          <section ref={(el) => { sectionRefs.current.physical = el; }} id="physical" className="sheet-page sheet-page--physical scroll-mt-[88px]">
+            <SectionHeader k="02" title="The Figure" subtitle="Cinematic silhouette — the sheet exists to frame this body" c={c} currentTheme={currentTheme} />
+            <div className="hero-spread">
+              <div className="portrait-stage space-y-3">
+                <div className="flex items-center justify-between gap-2 px-1">
                   <span className="mono text-[9px] tracking-[0.18em] uppercase flex items-center gap-1.5" style={{ color: c.muted }}>
-                    <span>🍌</span> HERO PORTRAIT ASSET
+                    Hero portrait
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -1747,8 +1791,8 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                <div className="rounded-[18px] border overflow-hidden relative aspect-[4/5] bg-black" style={{ borderColor: c.border }}>
-                  <img src={portraitSrc} alt="Hero Portrait" className="w-full h-full object-cover object-top" />
+                <div className="portrait-frame relative bg-black">
+                  <img src={portraitSrc} alt="Hero Portrait" />
                   {generatingImage && (
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />
@@ -1772,7 +1816,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="trait-rail">
                 {Object.entries({
                   build: "Build",
                   eyes: "Eyes",
@@ -1786,28 +1830,28 @@ export default function App() {
                 }).map(([key, label]) => {
                   const isAiPrioritized = ["build", "eyes", "hair", "marks", "clothing"].includes(key);
                   return (
-                    <div 
-                      key={key} 
-                      className="rounded-[18px] border p-5 relative transition" 
-                      style={{ 
-                        backgroundColor: c.card, 
+                    <div
+                      key={key}
+                      className="trait-chip sheet-card border relative"
+                      style={{
+                        backgroundColor: c.card,
                         borderColor: isAiPrioritized ? c.accent : c.border,
                         boxShadow: isAiPrioritized ? `0 0 20px ${c.accent}15` : undefined
                       }}
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div>
                         <div className="mono text-[10px] tracking-[0.14em] uppercase" style={{ color: c.muted }}>{label}</div>
                         {isAiPrioritized && (
-                          <span className="mono text-[8px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 tracking-wider shadow-sm" style={{ backgroundColor: c.accent, color: c.accentText || '#000' }}>
-                            <span>🎨</span> VISUAL PROMPT ANCHOR
+                          <span className="mono text-[8px] mt-1 inline-block px-2 py-0.5 rounded-full font-bold tracking-wider" style={{ backgroundColor: c.accent, color: c.accentText || '#000' }}>
+                            ANCHOR
                           </span>
                         )}
                       </div>
                       <textarea
                         value={(sheetData.physical as any)[key]}
                         onChange={(e) => updateField(`physical.${key}`, e.target.value)}
-                        rows={key === "clothing" || key === "posture" ? 3 : 2}
-                        className="w-full text-[15px] leading-[1.5] resize-none placeholder:opacity-30 bg-transparent"
+                        rows={2}
+                        className="w-full text-[15px] leading-[1.45] resize-none placeholder:opacity-30 bg-transparent"
                         style={{ color: c.text }}
                       />
                     </div>
@@ -1818,71 +1862,85 @@ export default function App() {
           </section>
 
           {/* Lore */}
-          <section ref={(el) => { sectionRefs.current.lore = el; }} id="lore" className="scroll-mt-[88px]">
-            <SectionHeader k="03" title="Lore & Backstory" subtitle="Origin, Conflict, and Oath" c={c} currentTheme={currentTheme} />
-            <div className="rounded-[24px] p-6 md:p-8 border" style={{ backgroundColor: c.card2, borderColor: c.border, color: c.text, boxShadow: `0 20px 60px ${c.shadow}` }}>
-              <div className="grid md:grid-cols-2 gap-8">
-                <TextAreaField label="Detailed Backstory" value={sheetData.lore.backstory} onChange={(v: string) => updateField("lore.backstory", v)} rows={6} c={c} />
-                <div className="space-y-6">
-                  <TextAreaField label="Childhood" value={sheetData.lore.childhood} onChange={(v: string) => updateField("lore.childhood", v)} rows={2} c={c} />
-                  <TextAreaField label="Formative Events" value={sheetData.lore.formative} onChange={(v: string) => updateField("lore.formative", v)} rows={2} c={c} />
+          <section ref={(el) => { sectionRefs.current.lore = el; }} id="lore" className="sheet-page sheet-page--lore scroll-mt-[88px]">
+            <SectionHeader k="03" title="Lore & Backstory" subtitle="A manuscript of origin, conflict, and oath" c={c} currentTheme={currentTheme} />
+            <div className="lore-manuscript">
+              <div className="lore-backstory sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.borderStrong, color: c.text, boxShadow: `0 24px 70px ${c.shadow}` }}>
+                <p className="lore-kicker mono text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: c.accent }}>Folio I · Recorded history</p>
+                <TextAreaField label="Detailed Backstory" value={sheetData.lore.backstory} onChange={(v: string) => updateField("lore.backstory", v)} rows={10} c={c} />
+              </div>
+              <div className="lore-stack">
+                <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <TextAreaField label="Childhood" value={sheetData.lore.childhood} onChange={(v: string) => updateField("lore.childhood", v)} rows={3} c={c} />
                 </div>
-                <TextAreaField label="Motivations" value={sheetData.lore.motivations} onChange={(v: string) => updateField("lore.motivations", v)} rows={2} c={c} />
-                <TextAreaField label="Secrets" value={sheetData.lore.secrets} onChange={(v: string) => updateField("lore.secrets", v)} rows={2} c={c} />
-                <div className="md:col-span-2">
-                  <TextAreaField label="World Context" value={sheetData.lore.world} onChange={(v: string) => updateField("lore.world", v)} rows={2} c={c} />
+                <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <TextAreaField label="Formative Events" value={sheetData.lore.formative} onChange={(v: string) => updateField("lore.formative", v)} rows={3} c={c} />
                 </div>
+              </div>
+            </div>
+            <div className="lore-footer">
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <TextAreaField label="Motivations" value={sheetData.lore.motivations} onChange={(v: string) => updateField("lore.motivations", v)} rows={3} c={c} />
+              </div>
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <TextAreaField label="Secrets" value={sheetData.lore.secrets} onChange={(v: string) => updateField("lore.secrets", v)} rows={3} c={c} />
+              </div>
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <TextAreaField label="World Context" value={sheetData.lore.world} onChange={(v: string) => updateField("lore.world", v)} rows={3} c={c} />
               </div>
             </div>
           </section>
 
           {/* Abilities */}
-          <section ref={(el) => { sectionRefs.current.abilities = el; }} id="abilities" className="scroll-mt-[88px]">
-            <SectionHeader k="04" title="Abilities & Skills" subtitle="Powers, Proficiencies, and System Mechanics" c={c} currentTheme={currentTheme} />
-            <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4">
-              <div className="space-y-4">
+          <section ref={(el) => { sectionRefs.current.abilities = el; }} id="abilities" className="sheet-page sheet-page--abilities scroll-mt-[88px]">
+            <SectionHeader k="04" title="Abilities & Skills" subtitle="Spell cards, proficiencies, and system mechanics" c={c} currentTheme={currentTheme} />
+            <div className="ability-layout">
+              <div className="ability-stack">
                 {sheetData.abilities.map((ability, idx) => (
-                  <div key={idx} className="rounded-[18px] border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="mono text-[10px] tracking-[0.14em] uppercase" style={{ color: c.muted }}>Ability {idx + 1}</span>
+                  <div key={idx} className="ability-card sheet-card border" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                    <div className="ability-rail" aria-hidden="true" />
+                    <div className="ability-body">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="mono text-[10px] tracking-[0.22em] uppercase" style={{ color: c.muted }}>Manifestation {String(idx + 1).padStart(2, "0")}</span>
+                        <input
+                          value={ability.type}
+                          onChange={(e) => {
+                            let ab = [...sheetData.abilities];
+                            ab[idx] = { ...ab[idx], type: e.target.value };
+                            updateField("abilities", ab);
+                          }}
+                          className="mono text-[10px] border rounded-full px-2.5 py-0.5"
+                          style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.accent }}
+                        />
+                      </div>
                       <input
-                        value={ability.type}
+                        value={ability.name}
                         onChange={(e) => {
                           let ab = [...sheetData.abilities];
-                          ab[idx] = { ...ab[idx], type: e.target.value };
+                          ab[idx] = { ...ab[idx], name: e.target.value };
                           updateField("abilities", ab);
                         }}
-                        className="mono text-[10px] border rounded-full px-2.5 py-0.5"
-                        style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.accent }}
+                        className="w-full display text-[22px] mb-2 border-b pb-1"
+                        style={{ fontFamily: currentTheme.fonts.display, borderColor: c.border, color: c.text }}
+                      />
+                      <textarea
+                        value={ability.desc}
+                        onChange={(e) => {
+                          let ab = [...sheetData.abilities];
+                          ab[idx] = { ...ab[idx], desc: e.target.value };
+                          updateField("abilities", ab);
+                        }}
+                        rows={2}
+                        className="w-full text-[14px] leading-[1.55] resize-none bg-transparent"
+                        style={{ color: c.muted }}
                       />
                     </div>
-                    <input
-                      value={ability.name}
-                      onChange={(e) => {
-                        let ab = [...sheetData.abilities];
-                        ab[idx] = { ...ab[idx], name: e.target.value };
-                        updateField("abilities", ab);
-                      }}
-                      className="w-full display text-[20px] mb-2 border-b pb-1"
-                      style={{ fontFamily: currentTheme.fonts.display, borderColor: c.border, color: c.text }}
-                    />
-                    <textarea
-                      value={ability.desc}
-                      onChange={(e) => {
-                        let ab = [...sheetData.abilities];
-                        ab[idx] = { ...ab[idx], desc: e.target.value };
-                        updateField("abilities", ab);
-                      }}
-                      rows={2}
-                      className="w-full text-[14px] leading-[1.5] resize-none bg-transparent"
-                      style={{ color: c.muted }}
-                    />
                   </div>
                 ))}
               </div>
 
-              <div className="space-y-4">
-                <div className="rounded-[18px] border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="skill-column">
+                <div className="skill-panel sheet-card border" style={{ backgroundColor: c.card, borderColor: c.border }}>
                   <div className="mono text-[10px] tracking-[0.14em] uppercase mb-4 flex items-center gap-2" style={{ color: c.muted }}>
                     <ChartColumn className="w-3.5 h-3.5" /> Skill Proficiencies
                   </div>
@@ -1916,7 +1974,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="rounded-[18px] border p-5" style={{ backgroundColor: c.card2, borderColor: c.border }}>
+                <div className="skill-panel sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.border }}>
                   <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3" style={{ color: c.muted }}>System & Magic Rules</div>
                   <textarea
                     value={sheetData.magic}
@@ -1931,9 +1989,9 @@ export default function App() {
           </section>
 
           {/* Equipment */}
-          <section ref={(el) => { sectionRefs.current.equipment = el; }} id="equipment" className="scroll-mt-[88px]">
-            <SectionHeader k="05" title="Equipment & Inventory Architecture" subtitle="6 Categorized Slots: Weapons, Foci, Armor, Tools, Consumables, and Relics" c={c} currentTheme={currentTheme} />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section ref={(el) => { sectionRefs.current.equipment = el; }} id="equipment" className="sheet-page sheet-page--equipment scroll-mt-[88px]">
+            <SectionHeader k="05" title="Equipment & Inventory Architecture" subtitle="Loadout slots — weapons, foci, armor, kits, and relics" c={c} currentTheme={currentTheme} />
+            <div className="gear-grid">
               {[
                 { k: "primaryWeapon", fallbackKey: "weapons", label: "Primary Weapons & Catalysts", icon: Sword, desc: "Main offensive arms, staves, or focus implements" },
                 { k: "secondaryFocus", fallbackKey: "weapons", label: "Secondary Foci & Off-Hand", icon: Zap, desc: "Shields, spell foci, parrying daggers, or sidearms" },
@@ -1942,13 +2000,14 @@ export default function App() {
                 { k: "consumables", fallbackKey: "items", label: "Consumables & Elixirs", icon: Beaker, desc: "Potions, serums, rations, ammo, or field bandages" },
                 { k: "relics", fallbackKey: "items", label: "Relics & Quest Artifacts", icon: Scroll, desc: "Attuned magical items, ancient sigils, or lore charms" },
                 { k: "currency", fallbackKey: "currency", label: "Currency, Barter & Debts", icon: BookMarked, desc: "Coins, credits, soul gems, promissory notes, or debts" }
-              ].map((item) => {
+              ].map((item, i) => {
                 let IconC = item.icon;
                 const val = (sheetData.equipment as any)[item.k] || (item.fallbackKey ? (sheetData.equipment as any)[item.fallbackKey] : "") || "";
                 return (
-                  <div key={item.k} className="rounded-[18px] border p-5 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <div key={item.k} className="gear-slot sheet-card border p-5 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                    <span className="slot-index" style={{ color: c.accent, fontFamily: currentTheme.fonts.display }}>{String(i + 1).padStart(2, "0")}</span>
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center justify-between mb-1.5 pr-8">
                         <div className="flex items-center gap-2 mono text-[10px] tracking-[0.14em] uppercase font-bold" style={{ color: c.text }}>
                           <IconC className="w-3.5 h-3.5" style={{ color: c.accent }} /> {item.label}
                         </div>
@@ -1969,51 +2028,51 @@ export default function App() {
           </section>
 
           {/* Personality */}
-          <section ref={(el) => { sectionRefs.current.personality = el; }} id="personality" className="scroll-mt-[88px]">
-            <SectionHeader k="06" title="Personality & Psychology" subtitle="10 Psychological DNA Traits, Ideals, Flaws, and Mannerisms" c={c} currentTheme={currentTheme} />
-            
-            {/* 10 Psychological DNA Traits */}
-            <div className="mb-6 rounded-[20px] border p-5" style={{ backgroundColor: c.card2, borderColor: c.border }}>
-              <div className="mono text-[11px] tracking-[0.18em] uppercase font-bold mb-4 flex items-center justify-between" style={{ color: c.accent }}>
-                <span className="flex items-center gap-2"><span>🧬</span> 10 PSYCHOLOGICAL DNA TRAITS</span>
+          <section ref={(el) => { sectionRefs.current.personality = el; }} id="personality" className="sheet-page sheet-page--personality scroll-mt-[88px]">
+            <SectionHeader k="06" title="Personality & Psychology" subtitle="Sealed DNA traits, ideals, flaws, and mannerisms" c={c} currentTheme={currentTheme} />
+
+            <div className="dna-banner sheet-card border p-5 mb-2" style={{ backgroundColor: c.card2, borderColor: c.border }}>
+              <div className="mono text-[11px] tracking-[0.18em] uppercase font-bold flex items-center justify-between" style={{ color: c.accent }}>
+                <span>10 Psychological DNA Traits</span>
                 <span className="mono text-[9px] px-2 py-0.5 rounded border" style={{ borderColor: c.borderStrong, color: c.text }}>IMMUTABLE CANON</span>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {[
-                  { k: "reputation", label: "Reputation", sub: "Public myth or infamy", icon: Award },
-                  { k: "vice", label: "Vice", sub: "Moral flaw / craving", icon: Flame },
-                  { k: "virtue", label: "Virtue", sub: "Unwavering principle", icon: Heart },
-                  { k: "fear", label: "Fear", sub: "Paralyzing primal terror", icon: Skull },
-                  { k: "obsession", label: "Obsession", sub: "Compulsive fixation", icon: Eye },
-                  { k: "tell", label: "Tell", sub: "Involuntary physical tic", icon: Zap },
-                  { k: "loyalty", label: "Loyalty", sub: "Sworn faction / mentor", icon: Bookmark },
-                  { k: "blindSpot", label: "Blind Spot", sub: "Perceptual blind spot", icon: EyeOff },
-                  { k: "survivalInstinct", label: "Survival Instinct", sub: "Reflex under mortal threat", icon: ShieldAlert },
-                  { k: "legacyFear", label: "Legacy Fear", sub: "Existential oblivion", icon: Moon }
-                ].map(trait => {
-                  const TraitIcon = trait.icon;
-                  const val = (sheetData as any).signatureAttributes?.[trait.k] || "";
-                  return (
-                    <div key={trait.k} className="rounded-[16px] border p-3.5 transition" style={{ backgroundColor: c.card, borderColor: c.border }}>
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <TraitIcon className="w-3.5 h-3.5 shrink-0" style={{ color: c.accent }} />
-                        <div className="mono text-[10px] font-bold uppercase tracking-wider truncate" style={{ color: c.text }}>{trait.label}</div>
-                      </div>
-                      <div className="mono text-[8px] mb-2 truncate" style={{ color: c.muted2 }}>{trait.sub}</div>
-                      <textarea
-                        value={val}
-                        onChange={e => updateField(`signatureAttributes.${trait.k}`, e.target.value)}
-                        rows={2}
-                        className="w-full text-[13px] leading-tight resize-none bg-transparent"
-                        style={{ color: c.text }}
-                      />
+            </div>
+            <div className="dna-grid">
+              {[
+                { k: "reputation", label: "Reputation", sub: "Public myth or infamy", icon: Award },
+                { k: "vice", label: "Vice", sub: "Moral flaw / craving", icon: Flame },
+                { k: "virtue", label: "Virtue", sub: "Unwavering principle", icon: Heart },
+                { k: "fear", label: "Fear", sub: "Paralyzing primal terror", icon: Skull },
+                { k: "obsession", label: "Obsession", sub: "Compulsive fixation", icon: Eye },
+                { k: "tell", label: "Tell", sub: "Involuntary physical tic", icon: Zap },
+                { k: "loyalty", label: "Loyalty", sub: "Sworn faction / mentor", icon: Bookmark },
+                { k: "blindSpot", label: "Blind Spot", sub: "Perceptual blind spot", icon: EyeOff },
+                { k: "survivalInstinct", label: "Survival Instinct", sub: "Reflex under mortal threat", icon: ShieldAlert },
+                { k: "legacyFear", label: "Legacy Fear", sub: "Existential oblivion", icon: Moon }
+              ].map((trait, i) => {
+                const TraitIcon = trait.icon;
+                const val = (sheetData as any).signatureAttributes?.[trait.k] || "";
+                return (
+                  <div key={trait.k} className="dna-seal sheet-card border p-3.5 transition" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                    <div className="dna-index" style={{ color: c.accent }}>{String(i + 1).padStart(2, "0")}</div>
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                      <TraitIcon className="w-3.5 h-3.5 shrink-0" style={{ color: c.accent }} />
+                      <div className="mono text-[10px] font-bold uppercase tracking-wider truncate" style={{ color: c.text }}>{trait.label}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="mono text-[8px] mb-2" style={{ color: c.muted2 }}>{trait.sub}</div>
+                    <textarea
+                      value={val}
+                      onChange={e => updateField(`signatureAttributes.${trait.k}`, e.target.value)}
+                      rows={2}
+                      className="w-full text-[13px] leading-tight resize-none bg-transparent text-center"
+                      style={{ color: c.text }}
+                    />
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="persona-grid">
               {[
                 { k: "traits", label: "Core Traits" },
                 { k: "ideals", label: "Ideals & Axioms" },
@@ -2022,7 +2081,7 @@ export default function App() {
                 { k: "mannerisms", label: "Mannerisms & Habits" },
                 { k: "speech", label: "First-Person Quote & Voice" }
               ].map((item) => (
-                <div key={item.k} className="rounded-[18px] border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div key={item.k} className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
                   <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3 font-semibold" style={{ color: c.muted }}>{item.label}</div>
                   <textarea
                     value={(sheetData.personality as any)[item.k]}
@@ -2037,21 +2096,22 @@ export default function App() {
           </section>
 
           {/* Relationships */}
-          <section ref={(el) => { sectionRefs.current.relationships = el; }} id="relationships" className="scroll-mt-[88px]">
-            <SectionHeader k="07" title="Relationships & Bonds" subtitle="Allies, Rivals, Mentors, and Kin" c={c} currentTheme={currentTheme} />
-            <div className="grid md:grid-cols-2 gap-4">
+          <section ref={(el) => { sectionRefs.current.relationships = el; }} id="relationships" className="sheet-page sheet-page--relationships scroll-mt-[88px]">
+            <SectionHeader k="07" title="Relationships & Bonds" subtitle="Case files for allies, rivals, mentors, and kin" c={c} currentTheme={currentTheme} />
+            <div className="bond-grid">
               {[
-                { k: "allies", label: "Allies & Companions" },
-                { k: "enemies", label: "Enemies & Rivals" },
-                { k: "mentors", label: "Mentors & Patrons" },
-                { k: "family", label: "Family, Kin & Sworn Oaths" }
+                { k: "allies", label: "Allies & Companions", tab: "ALLY" },
+                { k: "enemies", label: "Enemies & Rivals", tab: "RIVAL" },
+                { k: "mentors", label: "Mentors & Patrons", tab: "PATRON" },
+                { k: "family", label: "Family, Kin & Sworn Oaths", tab: "KIN" }
               ].map((item) => (
-                <div key={item.k} className="rounded-[18px] border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div key={item.k} className="bond-file sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <span className="bond-tab mono" style={{ backgroundColor: c.accent, color: c.accentText }}>{item.tab}</span>
                   <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3 font-semibold" style={{ color: c.muted }}>{item.label}</div>
                   <textarea
                     value={(sheetData.relationships as any)[item.k]}
                     onChange={(e) => updateField(`relationships.${item.k}`, e.target.value)}
-                    rows={4}
+                    rows={5}
                     className="w-full text-[14px] leading-[1.6] resize-none bg-transparent"
                     style={{ color: c.text }}
                   />
@@ -2061,13 +2121,14 @@ export default function App() {
           </section>
 
           {/* Stats */}
-          <section ref={(el) => { sectionRefs.current.stats = el; }} id="stats" className="scroll-mt-[88px]">
-            <SectionHeader k="08" title="Stats & Attributes" subtitle="Derived Combat Matrix, Core 1-20 Attributes, and Class Resources" c={c} currentTheme={currentTheme} />
+          <section ref={(el) => { sectionRefs.current.stats = el; }} id="stats" className="sheet-page sheet-page--stats scroll-mt-[88px]">
+            <SectionHeader k="08" title="Stats & Attributes" subtitle="Combat HUD, core attributes, and class resources" c={c} currentTheme={currentTheme} />
+            <div className="stat-hud">
 
             {/* Derived Combat Matrix */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+            <div className="combat-orbs">
               {/* HP */}
-              <div className="rounded-[18px] border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
                 <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
                   <span>Hit Points (HP)</span>
                   <Heart className="w-3.5 h-3.5 text-rose-500" />
@@ -2113,7 +2174,7 @@ export default function App() {
               </div>
 
               {/* Armor Class */}
-              <div className="rounded-[18px] border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
                 <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
                   <span>Armor Class (AC)</span>
                   <Shield className="w-3.5 h-3.5 text-sky-400" />
@@ -2125,7 +2186,7 @@ export default function App() {
               </div>
 
               {/* Initiative */}
-              <div className="rounded-[18px] border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
                 <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
                   <span>Initiative</span>
                   <Zap className="w-3.5 h-3.5 text-amber-400" />
@@ -2137,7 +2198,7 @@ export default function App() {
               </div>
 
               {/* Speed */}
-              <div className="rounded-[18px] border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
                 <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
                   <span>Movement Speed</span>
                   <Compass className="w-3.5 h-3.5 text-emerald-400" />
@@ -2149,7 +2210,7 @@ export default function App() {
               </div>
 
               {/* Class Resource Tracker */}
-              <div className="rounded-[18px] border p-4 col-span-2 sm:col-span-1 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
                 <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
                   <span className="truncate">{(sheetData as any).derivedStats?.resourceName ?? "Class Resource"}</span>
                   <Sparkles className="w-3.5 h-3.5" style={{ color: c.accent }} />
@@ -2208,9 +2269,9 @@ export default function App() {
               onApplyBaselineToSheet={handleApplyBaselineToSheet}
             />
 
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="attr-grid">
               {sheetData.stats.map((st, idx) => (
-                <div key={st.key} className="rounded-[20px] border p-5 relative overflow-hidden group" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div key={st.key} className="attr-cell sheet-card border p-5 relative overflow-hidden group" style={{ backgroundColor: c.card, borderColor: c.border }}>
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <div className="mono text-[10px] tracking-[0.2em] uppercase" style={{ color: c.muted }}>{st.key}</div>
@@ -2250,7 +2311,7 @@ export default function App() {
 
             {/* Passive Skills and Class Specialization */}
             {((sheetData as any).derivedStats?.passives || []).length > 0 && (
-              <div className="rounded-[18px] border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
                 <div className="mono text-[10px] tracking-[0.14em] uppercase font-bold mb-3 flex items-center gap-2" style={{ color: c.accent }}>
                   <Award className="w-4 h-4" /> PASSIVE SKILLS & SPECIALIZATIONS
                 </div>
@@ -2263,6 +2324,7 @@ export default function App() {
                 </div>
               </div>
             )}
+            </div>
           </section>
 
         </main>
@@ -2272,6 +2334,7 @@ export default function App() {
       <footer className="pt-10 pb-12 border-t text-center mono text-[11px] tracking-wider" style={{ borderColor: c.border, color: c.muted2 }}>
         WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
       </footer>
+      </div>
 
       {showImageEditor && (
         <ImageEditorModal
@@ -2309,7 +2372,7 @@ export default function App() {
 
 function SectionHeader({ k, title, subtitle, c, currentTheme }: { k: string; title: string; subtitle: string; c: any; currentTheme: any }) {
   return (
-    <div className="flex items-baseline gap-4 mb-5">
+    <div className="section-kicker">
       <span className="mono text-[11px] tracking-[0.18em] border px-2.5 py-1 rounded-full" style={{ color: c.accent, borderColor: c.border, backgroundColor: c.card }}>
         {k}
       </span>
