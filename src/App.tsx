@@ -8,14 +8,27 @@ import {
   Star
 } from "lucide-react";
 import { CharacterSheetData, SheetPreset } from "./types";
+import { DossierSheet } from "./types/dossier";
 import StatsRadarComparison from "./components/StatsRadarComparison";
 import { StatBaseline } from "./lib/statBaselines";
 import ImageEditorModal from "./components/ImageEditorModal";
 import GeminiChatModal from "./components/GeminiChatModal";
+import CharacterCodex from "./components/CharacterCodex";
+import DiceTray from "./components/DiceTray";
 import { nanoBananaProvider } from "./lib/providers/NanoBananaProvider";
 import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
+import { cloneSheet, DEFAULT_GELBINOR } from "./lib/defaultSheet";
+import { normalizeSheet } from "./lib/normalizeSheet";
+import { resolveThemeId } from "./lib/themeAliases";
+import {
+  CodexEntry,
+  deleteCodexEntry,
+  duplicateCodexEntry,
+  loadCodex,
+  upsertCodexEntry
+} from "./lib/characterCodex";
 
 const THEMES = [
   {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes", texture:"obsidian",
@@ -543,8 +556,8 @@ const PRESETS: SheetPreset[] = [
 ];
 
 export default function App() {
-  const [themeId, setThemeId] = useState("obsidianCult");
-  const currentTheme = THEMES.find(t => t.id === themeId) || THEMES[0];
+  const [themeId, setThemeId] = useState("gothicDarkFantasy");
+  const currentTheme = THEMES.find(t => t.id === themeId || t.alias === themeId) || THEMES[0];
   const c = currentTheme.tokens;
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -659,6 +672,13 @@ export default function App() {
     }
   };
 
+  const handleGoogleSignOut = async () => {
+    await logout();
+    setGoogleUser(null);
+    setGoogleToken(null);
+    setSheetsStatusMsg("Signed out of Google Workspace.");
+  };
+
   const handleExportSheets = async () => {
     setSheetsStatusMsg("Exporting character record to Google Sheets...");
     try {
@@ -675,7 +695,11 @@ export default function App() {
     setSheetsStatusMsg("Importing character record from Google Sheets...");
     try {
       const data = await importCharacterFromGoogleSheet(spreadsheetIdInput.trim());
-      setSheetData(data);
+      const normalized = normalizeSheet(data);
+      setSheetData(normalized);
+      setActiveCodexId(null);
+      const importedTheme = resolveThemeId(normalized.sheet_style, THEMES);
+      if (importedTheme) setThemeId(importedTheme);
       setSheetsStatusMsg("Character imported successfully from Google Sheet!");
       setShowImportModal(false);
       setSpreadsheetIdInput("");
@@ -684,119 +708,37 @@ export default function App() {
     }
   };
   const [runState, setRunState] = useState<string>("draft"); // draft | validating | generating_text | generating_portrait | generating_inventory | generating_map | composing | awaiting_approval | revised | approved | exporting | completed
+  const [sheetData, setSheetData] = useState<DossierSheet>(() => cloneSheet(DEFAULT_GELBINOR));
+  const [codexEntries, setCodexEntries] = useState<CodexEntry[]>(() => loadCodex());
+  const [activeCodexId, setActiveCodexId] = useState<string | null>(null);
+  const [showCodex, setShowCodex] = useState(false);
 
-  // Default editable character state initialized with Gelbinor
-  const [sheetData, setSheetData] = useState({
-    name: "Gelbinor",
-    title: "The Shy Grave • Reluctant Necromancer / Ossuary Librarian",
-    player: "Keeper of Quiet",
-    overview: {
-      race: "Human Hollowed",
-      age: "28 winters",
-      gender: "Male (he/him, avoids eye contact)",
-      alignment: "True Neutral — shy, not cruel",
-      classRole: "Necromancer 16 — School of Quiet",
-      level: "16 — Keeper of Unclaimed Dead",
-      origin: "Charnel Library of Karst — city over mass grave",
-      faction: "Keeper of Unclaimed Dead — Ossuary Librarian"
-    },
-    physical: {
-      height: '6\'1" (hunches to 5\'9")',
-      weight: "130 lbs, lanky, translucent",
-      build: "Lanky, pale translucent, greyish-blue veins visible, cold to touch. Bone charms sewn at collarbone.",
-      eyes: "Milky white with pinprick pupils, avoids eye contact, stares at floor.",
-      hair: "Long stringy black, covers face like curtain, never cut.",
-      skin: "Pale translucent, greyish, blue veins like river map.",
-      marks: "Bone charms sewn at collarbone — finger bones, teeth, tiny warding sigils.",
-      scars: "Self-stitched warding sigils around collarbone and throat.",
-      clothing: "Tattered oversized funeral shroud robe, patches warding sigils.",
-      voice: "Mumbles, apologizes to corpses, doors, chairs.",
-      posture: "Hunches to be smaller, fidgets hem, hides behind Mister Cracks."
-    },
-    lore: {
-      backstory: "Born in Karst — a city built over a mass grave that never stopped whispering. The ground is paper-thin veil. Other kids heard wind; Gelbinor heard names. Raised by the Charnel Librarians who catalog the unclaimed dead.",
-      childhood: "Raised among shelves of unclaimed dead. Taught to write names so no one is forgotten.",
-      formative: "Age 12 — Warlord burned the Charnel Library. Gelbinor went silent for 3 days and whispered apologies, causing the army to peacefully walk away.",
-      motivations: "Wants a quiet corner, cold tea that never goes cold, and to finish cataloging the 10,000 nameless.",
-      secrets: "Mister Cracks is a child lich who stayed as a book. Deranged form: hair floats, eyes twin moons, too-wide smile.",
-      world: "Karst — city built over mass grave, streets whisper at dusk. Charnel Library vaulted ossuary."
-    },
-    abilities: [
-      { name: "Shy Ward", desc: "Undead refuse to harm him unless directly controlled. Skeletons step aside, zombies bow heads.", cooldown: "Passive", cost: "Being small", type: "Passive" },
-      { name: "Whisper Catalog", desc: "Holds a bone, hears its final memory and gives them a name.", cooldown: "At will", cost: "1 min + apology", type: "Primary" },
-      { name: "Mister Cracks Grimoire", desc: "Cracked skull grimoire containing 10,000 names. Casts necromancy up to 6th level when asked nicely.", cooldown: "Ask nicely", cost: "Politeness", type: "Primary" }
-    ],
-    weaknesses: "Loud noises cause anxiety disadvantage, crowds cause stammer. Sunlight migraines. Iron Sanctum bells stun for 1 round.",
-    skills: [
-      { name: "Ossuary Catalog / True Names", value: 98 },
-      { name: "Listening to Final Memories", value: 94 },
-      { name: "Apologetic Diplomacy", value: 89 },
-      { name: "Being Small / Unnoticed", value: 87 },
-      { name: "Containing The Quiet", value: 68 }
-    ],
-    magic: "School of Quiet — necromancy by asking, not commanding. Veil is paper-thin where he stands.",
-    equipment: {
-      primaryWeapon: "Mister Cracks — cracked skull grimoire, child lich who stayed as book",
-      secondaryFocus: "Bone-carved chime of quiet warding",
-      armor: "Bone tassel robe — tattered oversized funeral shroud",
-      utilityTools: "Cataloging quill, jar of grave-binding wax, iron shears, bone needle",
-      consumables: "Satchel of grave dirt, cold tea thermos, 12 pre-written apology notes",
-      relics: "Three duckling skulls, shard of Karst foundation stone, finger-bone rosary",
-      currency: "No coin — trades in burials and names",
-      weapons: "Mister Cracks — cracked skull grimoire",
-      items: "Satchel of grave dirt, cold tea thermos"
-    },
-    signatureAttributes: {
-      reputation: "The Shy Grave — whispered legend of the Karst ossuary",
-      vice: "Compulsive, paralyzing apologies to the dead",
-      virtue: "Refuses to raise corpses as thralls; remembers the forgotten",
-      fear: "That Mister Cracks will finally close and leave him alone",
-      obsession: "Cataloging every soul among the 10,000 nameless dead",
-      tell: "Counting finger-bone tassels sewn along his collar",
-      loyalty: "The Charnel Librarians and the peaceful dead",
-      blindSpot: "Cannot perceive living hostility until struck physically",
-      survivalInstinct: "Playing dead and fading into background dust",
-      legacyFear: "Being erased from the library records without a true name"
-    },
-    derivedStats: {
-      hpCurrent: 74,
-      hpMax: 74,
-      ac: 14,
-      initiative: "+1",
-      speed: "30 ft",
-      level: 16,
-      resourceName: "Quiet Solace",
-      resourceCurrent: 6,
-      resourceMax: 6,
-      passives: [
-        "School of Quiet: Undead refuse to initiate attacks",
-        "Ossuary Recall: Touch bones to witness final memories",
-        "Apologetic Aura: Hostile humanoids pause before striking"
-      ]
-    },
-    personality: {
-      traits: "Shy, stammers, fidgets hem, hides behind Mister Cracks, apologizes to doors and chairs.",
-      ideals: "Everyone deserves a name. Remembering is kinder than raising.",
-      flaws: "Would rather die than be rude — cannot say no, easily exploited.",
-      fears: "That he is actually a monster. That Mister Cracks will finally leave.",
-      mannerisms: "Pulls sleeves over hands, hides face with hair, counts bone tassels when nervous.",
-      speech: "Mumbles, stammers 'S-sorry— may I—?', long pauses, asks permission from corpses."
-    },
-    relationships: {
-      allies: "Mister Cracks, 3 Floating Skulls, Children's Wing skulls, Archivist Mirren.",
-      enemies: "Warlord who burned library, Sanctum of Iron Bell.",
-      mentors: "Charnel Librarians, The Dead Themselves, Mister Cracks.",
-      family: "Found as baby on shelf 0. Considers all unclaimed dead family."
-    },
-    stats: [
-      { key: "STR", label: "Strength", value: 8, desc: "130lbs, lanky, can't lift heavy coffins" },
-      { key: "DEX", label: "Dexterity", value: 12, desc: "Precise with bone beads, clumsy when stared at" },
-      { key: "CON", label: "Constitution", value: 14, desc: "Cold tea and grave dust diet" },
-      { key: "INT", label: "Intelligence", value: 22, desc: "Knows 7,341 names and last memories" },
-      { key: "WIS", label: "Wisdom", value: 19, desc: "Listens to dead, hears unfinished business" },
-      { key: "CHA", label: "Charisma", value: 7, desc: "Shy 7, Deranged 18" }
-    ]
-  });
+  const persistToCodex = (asNew: boolean) => {
+    const result = upsertCodexEntry({
+      existingId: asNew ? null : activeCodexId,
+      sheetData,
+      themeId: currentTheme.id,
+      portraitUrl: imageUrl
+    });
+    setCodexEntries(result.entries);
+    setActiveCodexId(result.entry.id);
+    setSheetsStatusMsg(
+      result.droppedPortraits
+        ? `Saved ${result.entry.name} to the Codex (portrait omitted — storage limit).`
+        : `Saved ${result.entry.name} to the Codex.`
+    );
+  };
+
+  const loadFromCodex = (entry: CodexEntry) => {
+    const normalized = normalizeSheet(entry.sheetData);
+    setSheetData(normalized);
+    setActiveCodexId(entry.id);
+    setImageUrl(entry.portraitUrl);
+    const theme = resolveThemeId(entry.themeId, THEMES) || resolveThemeId(entry.sheetStyle, THEMES);
+    if (theme) setThemeId(theme);
+    setShowCodex(false);
+    setSheetsStatusMsg(`Loaded ${entry.name} from the Codex.`);
+  };
 
   const idempotencyKey = `worldvision_run_${btoa(encodeURIComponent(`${characterName || "Gelbinor"}-${characterClass || "Necromancer"}-${sheetStyle}`))}`;
 
@@ -806,7 +748,7 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.currentStep !== undefined) setCurrentStep(parsed.currentStep);
-        if (parsed.sheetData) setSheetData(parsed.sheetData);
+        if (parsed.sheetData) setSheetData(normalizeSheet(parsed.sheetData));
         if (parsed.runState) setRunState(parsed.runState);
       }
     } catch (e) {
@@ -883,6 +825,8 @@ export default function App() {
     setCharacterLore(preset.lore);
     setInventoryItems(preset.items);
     setSheetStyle(preset.style);
+    const theme = resolveThemeId(preset.style, THEMES);
+    if (theme) setThemeId(theme);
   };
 
   const handleApplyBaselineToSheet = (baseline: StatBaseline) => {
@@ -930,6 +874,7 @@ export default function App() {
       setCurrentStep(9);
       setLoading(false);
       setRunState("awaiting_approval");
+      setActiveCodexId(null);
 
       // Map generated CharacterSheetData to our sheetData structure
       if (data && data.character_data) {
@@ -938,7 +883,7 @@ export default function App() {
         const resourceCurrent = parseInt(resSplit[0]) || 20;
         const resourceMax = parseInt(resSplit[1]) || 20;
 
-        setSheetData({
+        setSheetData(normalizeSheet({
           name: data.character_data.character_name,
           title: `${data.character_data.character_class} • Tier ${characterLevel}`,
           player: characterName ? "Summoned Hero" : "Autonomous Inference",
@@ -1044,7 +989,7 @@ export default function App() {
             { key: "WIS", label: "Wisdom", value: data.rpg_stats?.core_attributes?.wis || 14, desc: "Perception & intuition" },
             { key: "CHA", label: "Charisma", value: data.rpg_stats?.core_attributes?.cha || 14, desc: "Presence & resolve" }
           ]
-        });
+        }));
       }
 
       if (data.visual_prompts?.step_2_hero_portrait) {
@@ -1054,6 +999,8 @@ export default function App() {
       console.error(e);
       clearInterval(interval);
       setLoading(false);
+      setRunState("draft");
+      setSheetsStatusMsg("Summon failed. The engine could not complete this request — try again or fill more parameters.");
     }
   };
 
@@ -1190,8 +1137,28 @@ export default function App() {
                   <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
                   <span className="mono text-[11px]">Import Sheets</span>
                 </button>
+
+                <button
+                  onClick={handleGoogleSignOut}
+                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                  title="Sign out of Google"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="mono text-[11px]">Sign out</span>
+                </button>
               </div>
             )}
+
+            <button
+              onClick={() => setShowCodex(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+              title="Open Character Codex"
+            >
+              <BookMarked className="w-3.5 h-3.5" style={{ color: c.accent }} />
+              <span className="mono text-[11px]">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
+            </button>
 
             <button
               id="copy-character-json-btn"
@@ -1293,7 +1260,7 @@ export default function App() {
             <div className="flex items-center gap-3">
               <Sparkles className="w-4 h-4" style={{ color: c.accent }} />
               <span className="mono text-[11px] tracking-[0.18em] uppercase font-semibold" style={{ color: c.muted }}>
-                Theme Engine — 12 Cinematic Origins
+                Theme Engine — 10 Cinematic Origins
               </span>
             </div>
             <span className="mono text-[10px]" style={{ color: c.muted2 }}>Click any theme to instantly restyle the entire dossier</span>
@@ -2290,7 +2257,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="pt-10 pb-12 border-t text-center mono text-[11px] tracking-wider" style={{ borderColor: c.border, color: c.muted2 }}>
-        WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
+        WORLDVISION SUMMONS ENGINE • LOCAL CHARACTER CODEX • GEMINI AI
       </footer>
 
       {showImageEditor && (
@@ -2303,7 +2270,7 @@ export default function App() {
             const promptText = customPrompt 
               ? `Based on reference image and prompt: ${customPrompt}. Full-body cinematic character concept art of ${sheetData.name}, ${sheetData.title}, ${sheetData.overview.classRole}, with Nano Banana weapon core.`
               : `Full-body cinematic character concept art of ${sheetData.name}, ${sheetData.title}, inspired by reference image.`;
-            await generatePortraitImage(promptText, sheetData.sheet_style || "High Fantasy", refImage);
+            await generatePortraitImage(promptText, sheetData.sheet_style || sheetStyle, refImage);
           }}
         />
       )}
@@ -2314,6 +2281,30 @@ export default function App() {
           characterContext={sheetData}
         />
       )}
+
+      <CharacterCodex
+        open={showCodex}
+        onClose={() => setShowCodex(false)}
+        entries={codexEntries}
+        activeId={activeCodexId}
+        c={c}
+        fonts={currentTheme.fonts}
+        onSaveCurrent={() => persistToCodex(false)}
+        onSaveAsNew={() => persistToCodex(true)}
+        onLoad={loadFromCodex}
+        onDelete={(id) => {
+          const next = deleteCodexEntry(id);
+          setCodexEntries(next);
+          if (activeCodexId === id) setActiveCodexId(null);
+        }}
+        onDuplicate={(id) => {
+          const { entries, entry } = duplicateCodexEntry(id);
+          setCodexEntries(entries);
+          if (entry) setSheetsStatusMsg(`Duplicated ${entry.name} in the Codex.`);
+        }}
+      />
+
+      <DiceTray sheet={sheetData} c={c} fonts={currentTheme.fonts} />
     </div>
   );
 }

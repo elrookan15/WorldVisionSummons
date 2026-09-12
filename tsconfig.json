@@ -22,5 +22,13 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "middleware.ts",
+    "next.config.js",
+    "next-env.d.ts",
+    "neon.ts"
+  ]
 }

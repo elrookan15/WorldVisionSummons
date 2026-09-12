@@ -1,47 +1,114 @@
 # WorldVision Summons
 
-WorldVision Summons is a multi-genre RPG lore architect, statistical engine, and AI-powered visual codex generator tailored for tabletop roleplaying game masters, players, and worldbuilders. It bridges narrative backstory generation, quantitative stat block calculation, and high-fidelity concept art synthesis into a unified platform.
+WorldVision Summons is a multi-genre TTRPG dossier studio for game masters, players, and worldbuilders. It turns a name, class, lore snippet, and genre into a full character sheet: identity, physical presence, psychological DNA, derived combat stats, equipment architecture, portrait art, and an in-character chat persona.
+
+The problem it solves is fragmentation. Most tables bounce between a notes app, a stat calculator, Midjourney, and a chatbot. This app keeps lore, numbers, and visuals in one themed dossier that you can edit, print, export, and (now) keep as a local campaign roster.
 
 ---
 
-## Core System Modules
+## Core features
 
-| Module | Purpose & Capabilities |
+| Module | What it does |
 | :--- | :--- |
-| **Character Architecture** | • Generates canonical character names, archetypes, and 2–3 sentence lore backstories detailing origins, core conflicts, and active oaths.<br>• Synthesizes biometric data, including height, weight, build, and distinguishing features.<br>• Organizes structured inventory loadouts across primary weapons, secondary foci, armor, utility tools, consumables, and relics. |
-| **Statistical Engine** | • Calculates core attributes (STR, DEX, CON, INT, WIS, CHA) on a 1–20 scale balanced around the character archetype.<br>• Computes derived combat statistics: Hit Points (HP), Armor Class (AC), initiative modifiers, movement speed, and level scaling.<br>• Allocates specialized class-based resources (Mana, Ki Points, Energy Cells, Rage Charges, Grit, or Spell Slots).<br>• Tracks passive skill proficiencies and faction or moral alignments. |
-| **Persona & Dialogue System** | • Generates 10 concrete psychological traits: reputation, vice, virtue, fear, obsession, tell, loyalty, blind spot, survival instinct, and legacy fear.<br>• Formats inputs using the C-TRACES-GOAL prompt framework to ground tone, style, and constraints.<br>• Integrates an interactive Gemini-powered lore chat to let users converse directly with the summoned character persona regarding tactical choices and campaign hooks. |
-| **Visual Codex & Theming** | • Implements 10 genre aesthetics: Gothic Dark Fantasy, Cyberpunk, Steampunk, Cosmic Horror, Samurai Era, High Fantasy, 8-Bit Retro RPG, Post-Apocalyptic, Eldritch Arcane, and Victorian Gothic.<br>• Adjusts typographic scales, tokenized color palettes, and thematic borders dynamically based on the chosen theme.<br>• Structures layouts using responsive cards, stat bars, and pull-quote callouts. |
-| **Asset Generation Pipeline** | • Drives full-body concept art synthesis via the NanoBanana diffusion adapter with automated request timeouts and idempotency tracking.<br>• Injects style-specific lighting and atmospheric matrices (e.g., chiaroscuro and oxblood for Gothic Dark Fantasy; neon rim lighting and rain-slick asphalt for Cyberpunk).<br>• Appends negative prompt constraints to prevent cropped limbs, malformed anatomy, and anachronistic artifacts.<br>• Includes an image-to-image reference suite with drag-and-drop uploads and a side-by-side comparison pane. |
+| **Summon engine** | `POST /api/generate-sheet` asks Gemini for a structured JSON sheet, or falls back to a procedural generator when `GEMINI_API_KEY` is missing. |
+| **Editable dossier** | Overview, physical, lore, abilities, gear, psyche, bonds, and STR–CHA stats with HP / class-resource trackers. |
+| **Visual Codex** | Ten cinematic themes restyle typography and color tokens. Portrait synthesis goes through the NanoBanana / Imagen proxy with Unsplash fallbacks, plus an image editor (filters, crop, img2img). |
+| **Persona chat** | “Ask Federov AI” opens a first-person chat grounded in the live sheet (C-TRACES-GOAL prompt on the server). |
+| **Presets** | 50+ archetypes with search, category tabs, and localStorage favorites. |
+| **Character Codex** | Save, load, duplicate, and delete summons on-device so a GM can keep a party / NPC roster instead of overwriting the last generate. |
+| **Dice tray** | Tabletop d4–d100 plus ability checks and initiative using the loaded character’s modifiers, with advantage / disadvantage and a short roll history. |
+| **Export** | Copy JSON, print, and Google Sheets import/export (Sheets now maps the live dossier fields: `derivedStats`, `signatureAttributes`, `equipment`). |
 
 ---
 
-## Technical Architecture
+## Tech stack & architecture
 
 ```text
-                       ┌────────────────────────────────────────┐
-                       │          React Frontend (Vite)         │
-                       │  • App.tsx (State, Themes, Workflow)   │
-                       │  • ImageEditorModal & GeminiChatModal  │
-                       │  • Strongly Typed Interfaces           │
-                       └───────────────────┬────────────────────┘
-                                           │
-                                  API Requests (JSON)
-                                           │
-                                           ▼
-                       ┌────────────────────────────────────────┐
-                       │             Express Backend            │
-                       │  • Secure Proxy & Secret Isolation     │
-                       │  • Error Resilience & Fallbacks        │
-                       └──────┬──────────────────────────┬──────┘
-                              │                          │
-                              ▼                          ▼
-                     ┌──────────────────┐      ┌───────────────────┐
-                     │  Gemini AI API   │      │ NanoBanana Neural │
-                     │  (Lore & Chat)   │      │ (Image Synthesis) │
-                     └──────────────────┘      └───────────────────┘
+Browser (React 19 + Vite 6 + Tailwind 4)
+  App.tsx dossier + themes + summon form
+  CharacterCodex  ·  DiceTray  ·  GeminiChatModal  ·  ImageEditorModal
+           │  JSON fetch
+           ▼
+Express (server.ts :3000)
+  /api/generate-sheet   lore + stats JSON
+  /api/generate-image   Imagen / Unsplash
+  /api/chat             persona turn
+  /api/health
+           │
+     Gemini  ·  Imagen
 ```
 
-- **Frontend Layer**: Built with React and Vite, styled via Tailwind CSS. Manages local state, theme switching, interactive modals (`ImageEditorModal`, `GeminiChatModal`), and image provider adapters (`NanoBananaProvider`) within a strictly typed TypeScript environment.
-- **Backend Layer**: Powered by Express to act as a secure proxy. Isolates Gemini AI and NanoBanana API keys from the client, enforces procedural generation fallbacks, and manages API error handling.
-- **Build & Deployment**: Packaged using `esbuild` and optimized for containerized hosting on Google Cloud Run. Persistent codex management supports saving, updating, and exporting completed summon records.
+- **UI:** React 19, Vite 6, TypeScript, Tailwind CSS 4, lucide-react, recharts, motion
+- **Server:** Express + `tsx` in dev; `esbuild` bundle (`dist/server.cjs`) in prod
+- **AI:** `@google/genai` (Gemini text, Imagen portraits). Keys stay on the server.
+- **Auth / Sheets:** Firebase Google popup with Sheets + Drive scopes (browser-side)
+- **Persistence:** browser `localStorage` (favorites, last run snapshot, Codex roster)
+- **Tests:** Vitest
+
+Prisma, Neon, and a Clerk-style `middleware.ts` exist as unused scaffolding. Express does not mount a database. The footer no longer claims Prisma persistence.
+
+---
+
+## How it runs
+
+### Install
+
+```bash
+npm install
+# or: bun install
+```
+
+### Environment
+
+Copy `.env.example` to `.env` (dotenv loads `.env` by default):
+
+| Variable | Required | Purpose |
+| :--- | :--- | :--- |
+| `GEMINI_API_KEY` | No | Real Gemini / Imagen calls. Without it, sheet, chat, and images still work via procedural / Unsplash fallbacks. |
+| `DATABASE_URL` | No | Only if you later wire Prisma. Unused by the live server. |
+| `DISABLE_HMR` | No | Turns off Vite HMR/watch. |
+| `VITE_NANO_BANANA_API_URL` / `VITE_NANO_BANANA_API_KEY` | No | Optional client image-provider override. |
+
+### Scripts
+
+```bash
+npm run dev      # http://localhost:3000  (tsx server.ts + Vite middleware)
+npm run test     # vitest run
+npm run lint     # tsc --noEmit
+npm run build    # vite build + esbuild server.ts → dist/server.cjs
+npm run start    # NODE_ENV=production node dist/server.cjs
+```
+
+Production serves `dist/` statically from Express. The original packaging target is containerized hosting (e.g. Cloud Run).
+
+---
+
+## Functional audit (this pass)
+
+**Works as intended**
+
+- Theme tiles, preset search / favorites / apply, summon form, dossier field edits, nav scroll, HP and resource ±, stat sliders, radar overlay + adopt baseline, copy JSON, print, chat modal, image editor / reroll, Google sign-in buttons.
+
+**Fixed in this pass**
+
+- Default theme id did not match any tile (`obsidianCult` vs `gothicDarkFantasy`), so no theme appeared selected on load.
+- Google Sheets export/import used a different schema than the live dossier (`overview.hp`, `stats.label`, `traits.*`), which left exports empty and could break the stats radar after import.
+- Portrait reroll ignored live `equipment.primaryWeapon` and fell back to a generic staff.
+- Preset styles like “Wasteland Scavenger” / “Neon Ronin” did not switch the theme.
+- Summon failures failed silently. Sign-out existed in code but had no button.
+- Copy claimed 12 themes and Prisma persistence.
+
+**Still unwired / leftover**
+
+- `CharacterSheetApproval` is never mounted; `/api/character/:id` and `/api/orchestrator/*` do not exist.
+- `src/lib/pipeline/persist-adapter-prisma.ts`, `neon.ts`, `middleware.ts`, and `next.config.js` are unused.
+- Prisma client (`^7`) and CLI (`8 rc`) are version-skewed; skip them unless you wire a real database.
+- Express `/api/*` has no auth. Do not expose a keyed instance to the public internet without a gateway.
+- Firebase web config is committed in `firebase-applet-config.json` (expected for a Firebase web app, but it is still a client identifier).
+
+---
+
+## New in this branch
+
+1. **Character Codex** — header **Codex** opens a local roster. Save the current dossier, load another NPC, duplicate, or delete. Storage is `localStorage` (`worldvision_character_codex`), capped at 32 entries; oversized base64 portraits are dropped if quota is hit.
+2. **Dice tray** — floating **Dice Tray** rolls polyhedral dice and ability / initiative checks from the loaded sheet, with advantage, disadvantage, crit/fail callouts, and history.

@@ -193,8 +193,13 @@ export function compilePortraitPrompt(char: any, overrideStyle?: string): string
 
   const items = Array.isArray(char.inventory_items) 
     ? char.inventory_items.map((it: any) => esc(it.name || it)).join(", ")
-    : (typeof char.inventory_items === "string" ? char.inventory_items : "Obsidian Catalyst Staff");
-  const primaryWeapon = items.split(",")[0]?.trim() || "Obsidian Catalyst Staff";
+    : (typeof char.inventory_items === "string" ? char.inventory_items : "");
+  const primaryWeapon = esc(
+    char.equipment?.primaryWeapon ||
+    char.equipment?.weapons ||
+    items.split(",")[0] ||
+    "Obsidian Catalyst Staff"
+  );
 
   const height = char.physical?.height || "6'0\"";
   const weight = char.physical?.weight || "180 lbs";
