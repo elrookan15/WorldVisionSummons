@@ -92,6 +92,7 @@ Production serves `dist/` statically from Express. The original packaging target
 **Fixed in this pass**
 
 - Default theme id did not match any tile (`obsidianCult` vs `gothicDarkFantasy`), so no theme appeared selected on load.
+- `postcss.config.js` used CommonJS `module.exports` while `package.json` is `"type": "module"`, so Vite threw a full-screen overlay and the SPA never hydrated. The unused PostCSS file was removed (`@tailwindcss/vite` already processes CSS).
 - Google Sheets export/import used a different schema than the live dossier (`overview.hp`, `stats.label`, `traits.*`), which left exports empty and could break the stats radar after import.
 - Portrait reroll ignored live `equipment.primaryWeapon` and fell back to a generic staff.
 - Preset styles like “Wasteland Scavenger” / “Neon Ronin” did not switch the theme.

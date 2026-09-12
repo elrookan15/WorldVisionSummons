@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dices, RotateCcw, X, Sparkles } from "lucide-react";
+import { RotateCcw, X, Sparkles } from "lucide-react";
 import {
   DiceMode,
   DiceRollResult,
@@ -15,12 +15,13 @@ const DICE: DieSize[] = [4, 6, 8, 10, 12, 20, 100];
 
 interface DiceTrayProps {
   sheet: DossierSheet;
+  open: boolean;
+  onToggle: () => void;
   c: Record<string, string>;
   fonts: { display: string; body: string; mono: string };
 }
 
-export default function DiceTray({ sheet, c, fonts }: DiceTrayProps) {
-  const [open, setOpen] = useState(false);
+export default function DiceTray({ sheet, open, onToggle, c, fonts }: DiceTrayProps) {
   const [mode, setMode] = useState<DiceMode>("normal");
   const [history, setHistory] = useState<DiceRollResult[]>([]);
   const [last, setLast] = useState<DiceRollResult | null>(null);
@@ -54,7 +55,7 @@ export default function DiceTray({ sheet, c, fonts }: DiceTrayProps) {
               <div className="display text-lg leading-tight" style={{ fontFamily: fonts.display }}>Dice & Checks</div>
             </div>
             <button
-              onClick={() => setOpen(false)}
+              onClick={onToggle}
               className="w-8 h-8 rounded-full border grid place-items-center"
               style={{ borderColor: c.border }}
               aria-label="Collapse dice tray"
@@ -170,17 +171,6 @@ export default function DiceTray({ sheet, c, fonts }: DiceTrayProps) {
           </div>
         </div>
       )}
-
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="h-12 px-4 rounded-full border shadow-xl flex items-center gap-2 font-bold text-sm"
-        style={{ backgroundColor: c.accent, color: c.accentText, borderColor: c.borderStrong }}
-        aria-expanded={open}
-        aria-label="Toggle dice tray"
-      >
-        <Dices className="w-4 h-4" />
-        Dice Tray
-      </button>
     </div>
   );
 }

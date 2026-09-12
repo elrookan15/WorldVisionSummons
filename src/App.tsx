@@ -4,8 +4,8 @@ import {
   Download, RefreshCw, Sliders, CheckCircle2, Layers, Zap, Copy, Check, 
   Bookmark, Eye, Terminal, Flame, Award, Heart, ShieldAlert, ChevronRight,
   BookMarked, Beaker, Bone, ChartColumn, Cog, Crown, Dna, EyeOff, Feather,
-  FileWarning, Flower2, Map, Moon, Rocket, Truck, Users, FileSpreadsheet, LogIn, LogOut,
-  Star
+  FileWarning, Flower2, Map, Moon, Rocket, Truck, Users,   FileSpreadsheet, LogIn, LogOut,
+  Star, Dices
 } from "lucide-react";
 import { CharacterSheetData, SheetPreset } from "./types";
 import { DossierSheet } from "./types/dossier";
@@ -712,6 +712,7 @@ export default function App() {
   const [codexEntries, setCodexEntries] = useState<CodexEntry[]>(() => loadCodex());
   const [activeCodexId, setActiveCodexId] = useState<string | null>(null);
   const [showCodex, setShowCodex] = useState(false);
+  const [showDiceTray, setShowDiceTray] = useState(false);
 
   const persistToCodex = (asNew: boolean) => {
     const result = upsertCodexEntry({
@@ -1158,6 +1159,21 @@ export default function App() {
             >
               <BookMarked className="w-3.5 h-3.5" style={{ color: c.accent }} />
               <span className="mono text-[11px]">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
+            </button>
+
+            <button
+              onClick={() => setShowDiceTray((v) => !v)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{
+                backgroundColor: showDiceTray ? c.accent : c.card,
+                borderColor: showDiceTray ? c.borderStrong : c.border,
+                color: showDiceTray ? c.accentText : c.text
+              }}
+              title="Open tabletop dice tray"
+              aria-expanded={showDiceTray}
+            >
+              <Dices className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Dice Tray</span>
             </button>
 
             <button
@@ -2304,7 +2320,13 @@ export default function App() {
         }}
       />
 
-      <DiceTray sheet={sheetData} c={c} fonts={currentTheme.fonts} />
+      <DiceTray
+        sheet={sheetData}
+        open={showDiceTray}
+        onToggle={() => setShowDiceTray((v) => !v)}
+        c={c}
+        fonts={currentTheme.fonts}
+      />
     </div>
   );
 }
