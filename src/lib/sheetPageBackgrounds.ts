@@ -235,7 +235,7 @@ function noiseLayer(seed: number, opacity: number): string {
       <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="${seed}" stitchTiles="stitch"/>
       <feColorMatrix type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 ${opacity} 0"/>
     </filter>
-    <rect width="1200" height="800" filter="url(#grain${seed})" opacity="0.55"/>`;
+    <rect width="1200" height="800" filter="url(#grain${seed})" opacity="0.7"/>`;
 }
 
 function pageSeed(page: SheetPageId): number {
@@ -265,8 +265,8 @@ export function buildSheetPageBackground(page: SheetPageId, themeId: string): st
       <stop offset="100%" stop-color="${p.bg}"/>
     </linearGradient>
     <radialGradient id="vignette" cx="50%" cy="40%" r="65%">
-      <stop offset="0%" stop-color="${p.accent}" stop-opacity="0.18"/>
-      <stop offset="55%" stop-color="${p.bg2}" stop-opacity="0.05"/>
+      <stop offset="0%" stop-color="${p.accent}" stop-opacity="0.28"/>
+      <stop offset="55%" stop-color="${p.bg2}" stop-opacity="0.08"/>
       <stop offset="100%" stop-color="${p.bg}" stop-opacity="0"/>
     </radialGradient>
   </defs>
