@@ -17,6 +17,7 @@ import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
 import { CANONICAL_SHEET_STYLES, canonicalizeSheetStyle, themeIdForStyle } from "./lib/themeMap";
+import { sheetPageBackgroundCssVars } from "./lib/sheetPageBackgrounds";
 import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromptContext, UiSheetData } from "./lib/sheetMapper";
 import { buildProceduralPortrait } from "./lib/portraitFallback";
 
@@ -1085,6 +1086,7 @@ export default function App() {
     ["--wv-accent-text"]: c.accentText,
     ["--wv-shadow"]: c.shadow,
     ["--wv-radius"]: (currentTheme as any).radius || "18px",
+    ...sheetPageBackgroundCssVars(currentTheme.id),
   } as React.CSSProperties;
 
   return (
