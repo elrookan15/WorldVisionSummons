@@ -762,3 +762,428 @@
     mix-blend-mode: normal;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Genre STRUCTURE — not just chrome. Each theme is a different document type. */
+/* Marked with --sheet-layout for regression tests.                            */
+/* -------------------------------------------------------------------------- */
+
+/* Gothic Dark Fantasy — illuminated manuscript: centered folio, portrait left */
+[data-sheet="gothicDarkFantasy"] {
+  --sheet-layout: gothic-manuscript;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: repeat(6, 1fr);
+  max-width: 920px;
+  margin-inline: auto;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--overview .overview-tile {
+  grid-column: span 3;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--overview .overview-quote {
+  grid-column: 1 / -1;
+  border-left: 6px solid var(--wv-accent);
+  text-align: center;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1fr;
+  max-width: 760px;
+  margin-inline: auto;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--lore .lore-footer {
+  grid-template-columns: 1fr;
+  max-width: 760px;
+  margin-inline: auto;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--stats .combat-orbs {
+  grid-template-columns: repeat(3, 1fr);
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--stats .attr-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Cyberpunk — HUD: asymmetric columns, portrait docked right, terminal lore */
+[data-sheet="cyberpunk"] {
+  --sheet-layout: cyber-hud;
+}
+[data-sheet="cyberpunk"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+}
+[data-sheet="cyberpunk"] .sheet-page--overview .overview-tile:nth-child(1) {
+  grid-column: 1;
+  grid-row: span 2;
+}
+[data-sheet="cyberpunk"] .sheet-page--overview .overview-tile {
+  grid-column: auto;
+}
+[data-sheet="cyberpunk"] .sheet-page--overview .overview-quote {
+  grid-column: 1 / -1;
+  font-family: var(--wv-font-mono, "IBM Plex Mono", monospace);
+  border-top: 2px solid var(--wv-accent);
+  border-left: 0;
+}
+[data-sheet="cyberpunk"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  direction: rtl;
+}
+[data-sheet="cyberpunk"] .sheet-page--physical .hero-spread > * {
+  direction: ltr;
+}
+[data-sheet="cyberpunk"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+[data-sheet="cyberpunk"] .sheet-page--lore .lore-backstory,
+[data-sheet="cyberpunk"] .sheet-page--lore .lore-stack .sheet-card {
+  font-family: var(--wv-font-mono, "IBM Plex Mono", monospace);
+  border-radius: 0 !important;
+}
+[data-sheet="cyberpunk"] .sheet-page--abilities .ability-layout {
+  grid-template-columns: 1fr 1fr;
+}
+[data-sheet="cyberpunk"] .sheet-page--stats .stat-hud {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 12px;
+}
+[data-sheet="cyberpunk"] .sheet-page--stats .combat-orbs {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Steampunk — blueprint: full-bleed portrait band, then riveted trait rows */
+[data-sheet="steampunkTinkerer"] {
+  --sheet-layout: steam-blueprint;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: repeat(4, 1fr);
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--overview .overview-tile {
+  grid-column: span 1;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--physical .hero-spread {
+  grid-template-columns: 1fr;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--physical .portrait-stage {
+  position: relative;
+  top: auto;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--physical .portrait-frame {
+  min-height: 420px;
+  max-width: 640px;
+  margin-inline: auto;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--physical .trait-rail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--equipment .gear-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--equipment .gear-slot {
+  grid-column: span 1 !important;
+}
+
+/* 8-Bit — chunky two-column cartridge UI, no sticky, hard gaps */
+[data-sheet="retro8Bit"] {
+  --sheet-layout: pixel-cartridge;
+}
+[data-sheet="retro8Bit"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+[data-sheet="retro8Bit"] .sheet-page--overview .overview-tile,
+[data-sheet="retro8Bit"] .sheet-page--overview .overview-quote {
+  grid-column: span 1;
+}
+[data-sheet="retro8Bit"] .sheet-page--overview .overview-quote {
+  grid-column: 1 / -1;
+}
+[data-sheet="retro8Bit"] .sheet-page--physical .hero-spread {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+[data-sheet="retro8Bit"] .sheet-page--physical .portrait-stage {
+  position: relative;
+  top: auto;
+}
+[data-sheet="retro8Bit"] .sheet-page--physical .portrait-frame {
+  min-height: 360px;
+  image-rendering: pixelated;
+}
+[data-sheet="retro8Bit"] .sheet-page--lore .lore-manuscript,
+[data-sheet="retro8Bit"] .sheet-page--abilities .ability-layout {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+[data-sheet="retro8Bit"] .sheet-page--personality .dna-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+[data-sheet="retro8Bit"] .sheet-page--stats .combat-orbs,
+[data-sheet="retro8Bit"] .sheet-page--stats .attr-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+/* High Fantasy — heraldic triptych: traits flank a centered portrait */
+[data-sheet="highFantasy"] {
+  --sheet-layout: heraldic-triptych;
+}
+[data-sheet="highFantasy"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: repeat(3, 1fr);
+}
+[data-sheet="highFantasy"] .sheet-page--overview .overview-tile {
+  grid-column: span 1;
+}
+[data-sheet="highFantasy"] .sheet-page--overview .overview-quote {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 1.25rem;
+}
+[data-sheet="highFantasy"] .sheet-page--physical .hero-spread {
+  grid-template-columns: 1fr minmax(300px, 0.9fr) 1fr;
+  align-items: start;
+}
+[data-sheet="highFantasy"] .sheet-page--physical .portrait-stage {
+  order: 0;
+  grid-column: 2;
+  position: relative;
+  top: auto;
+}
+[data-sheet="highFantasy"] .sheet-page--physical .trait-rail {
+  display: contents;
+}
+[data-sheet="highFantasy"] .sheet-page--physical .trait-chip:nth-child(odd) {
+  grid-column: 1;
+}
+[data-sheet="highFantasy"] .sheet-page--physical .trait-chip:nth-child(even) {
+  grid-column: 3;
+}
+[data-sheet="highFantasy"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1fr;
+  max-width: 820px;
+  margin-inline: auto;
+}
+[data-sheet="highFantasy"] .sheet-page--relationships .bond-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Cosmic Horror — non-Euclidean asymmetry, warped stacks */
+[data-sheet="cosmicHorror"] {
+  --sheet-layout: non-euclidean;
+}
+[data-sheet="cosmicHorror"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 1.6fr 0.8fr 1.2fr;
+  gap: 18px 10px;
+}
+[data-sheet="cosmicHorror"] .sheet-page--overview .overview-tile:nth-child(3n) {
+  transform: rotate(0.6deg);
+}
+[data-sheet="cosmicHorror"] .sheet-page--overview .overview-tile:nth-child(3n + 1) {
+  transform: rotate(-0.5deg);
+}
+[data-sheet="cosmicHorror"] .sheet-page--physical .hero-spread {
+  grid-template-columns: 0.7fr 1.3fr;
+}
+[data-sheet="cosmicHorror"] .sheet-page--physical .portrait-frame {
+  aspect-ratio: 4 / 5;
+  border-radius: 42% 58% 40% 60% / 45% 35% 65% 55%;
+}
+[data-sheet="cosmicHorror"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 0.85fr 1.15fr;
+  transform: rotate(-0.35deg);
+}
+[data-sheet="cosmicHorror"] .sheet-page--stats .combat-orbs {
+  grid-template-columns: repeat(3, 1fr);
+}
+[data-sheet="cosmicHorror"] .sheet-page--stats .combat-orbs .orb:nth-child(2) {
+  transform: translateY(18px);
+}
+[data-sheet="cosmicHorror"] .sheet-page--stats .attr-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Samurai Era — vertical kakemono scroll: narrow portrait column, stacked lore */
+[data-sheet="samuraiEra"] {
+  --sheet-layout: kakemono-scroll;
+}
+[data-sheet="samuraiEra"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 1fr;
+  max-width: 640px;
+  margin-inline: auto;
+  gap: 10px;
+}
+[data-sheet="samuraiEra"] .sheet-page--overview .overview-tile,
+[data-sheet="samuraiEra"] .sheet-page--overview .overview-quote {
+  grid-column: 1 / -1;
+}
+[data-sheet="samuraiEra"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(200px, 0.55fr) minmax(0, 1.45fr);
+  gap: 36px;
+}
+[data-sheet="samuraiEra"] .sheet-page--physical .portrait-frame {
+  aspect-ratio: 2 / 5;
+  min-height: 560px;
+}
+[data-sheet="samuraiEra"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1fr 220px;
+}
+[data-sheet="samuraiEra"] .sheet-page--lore .lore-footer {
+  grid-template-columns: 1fr;
+  max-width: 720px;
+}
+[data-sheet="samuraiEra"] .sheet-page--relationships .bond-grid {
+  grid-template-columns: 1fr;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+/* Post-Apocalyptic — scrap board: uneven stencil grid, portrait on top */
+[data-sheet="postApocalyptic"] {
+  --sheet-layout: scrap-board;
+}
+[data-sheet="postApocalyptic"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 1.4fr 1fr 1.2fr;
+  gap: 10px;
+}
+[data-sheet="postApocalyptic"] .sheet-page--overview .overview-tile:nth-child(odd) {
+  transform: rotate(-0.4deg);
+}
+[data-sheet="postApocalyptic"] .sheet-page--overview .overview-tile:nth-child(even) {
+  transform: rotate(0.35deg);
+}
+[data-sheet="postApocalyptic"] .sheet-page--physical .hero-spread {
+  grid-template-columns: 1fr;
+}
+[data-sheet="postApocalyptic"] .sheet-page--physical .portrait-stage {
+  position: relative;
+  top: auto;
+}
+[data-sheet="postApocalyptic"] .sheet-page--physical .trait-rail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+[data-sheet="postApocalyptic"] .sheet-page--equipment .gear-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+[data-sheet="postApocalyptic"] .sheet-page--equipment .gear-slot {
+  grid-column: span 1 !important;
+}
+[data-sheet="postApocalyptic"] .sheet-page--stats .combat-orbs {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Eldritch Arcane — crystal lattice: quote-centered mosaic, radial seals */
+[data-sheet="eldritchArcane"] {
+  --sheet-layout: crystal-lattice;
+}
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-areas:
+    "a a b c"
+    "d q q e"
+    "f g h h";
+}
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(1) { grid-area: a; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(2) { grid-area: b; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(3) { grid-area: c; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(4) { grid-area: d; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(5) { grid-area: e; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(6) { grid-area: f; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(7) { grid-area: g; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile:nth-child(8) { grid-area: h; }
+[data-sheet="eldritchArcane"] .sheet-page--overview .overview-quote {
+  grid-area: q;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+[data-sheet="eldritchArcane"] .sheet-page--personality .dna-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+[data-sheet="eldritchArcane"] .sheet-page--abilities .ability-layout {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+[data-sheet="eldritchArcane"] .sheet-page--stats .attr-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Victorian Gothic — broadsheet: dense newspaper columns + cameo portrait */
+[data-sheet="victorianGothic"] {
+  --sheet-layout: broadsheet-gazette;
+}
+[data-sheet="victorianGothic"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 18px;
+  column-rule: 1px solid color-mix(in srgb, var(--wv-border) 80%, transparent);
+}
+[data-sheet="victorianGothic"] .sheet-page--overview .overview-tile {
+  grid-column: span 1;
+  padding-block: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--wv-border) 70%, transparent);
+}
+[data-sheet="victorianGothic"] .sheet-page--overview .overview-quote {
+  grid-column: 1 / -1;
+  columns: 2;
+  column-gap: 28px;
+  font-size: 1.05rem;
+}
+[data-sheet="victorianGothic"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(0, 1.35fr) minmax(200px, 0.65fr);
+}
+[data-sheet="victorianGothic"] .sheet-page--physical .portrait-stage {
+  order: 2;
+  position: relative;
+  top: auto;
+}
+[data-sheet="victorianGothic"] .sheet-page--physical .portrait-frame {
+  aspect-ratio: 1 / 1;
+  min-height: 240px;
+  max-width: 280px;
+  margin-inline: auto;
+  border-radius: 50%;
+}
+[data-sheet="victorianGothic"] .sheet-page--physical .trait-rail {
+  order: 1;
+}
+[data-sheet="victorianGothic"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1fr 1fr;
+}
+[data-sheet="victorianGothic"] .sheet-page--relationships .bond-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 1024px) {
+  [data-sheet="cyberpunk"] .sheet-page--physical .hero-spread,
+  [data-sheet="highFantasy"] .sheet-page--physical .hero-spread,
+  [data-sheet="eldritchArcane"] .sheet-page--overview .overview-mosaic,
+  [data-sheet="victorianGothic"] .sheet-page--overview .overview-quote {
+    direction: ltr;
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+    columns: auto;
+  }
+  [data-sheet="highFantasy"] .sheet-page--physical .portrait-stage,
+  [data-sheet="highFantasy"] .sheet-page--physical .trait-chip:nth-child(odd),
+  [data-sheet="highFantasy"] .sheet-page--physical .trait-chip:nth-child(even),
+  [data-sheet="eldritchArcane"] .sheet-page--overview .overview-tile,
+  [data-sheet="eldritchArcane"] .sheet-page--overview .overview-quote {
+    grid-column: auto;
+    grid-area: auto;
+  }
+  [data-sheet="highFantasy"] .sheet-page--physical .trait-rail {
+    display: flex;
+    flex-direction: column;
+  }
+  [data-sheet="steampunkTinkerer"] .sheet-page--physical .trait-rail,
+  [data-sheet="postApocalyptic"] .sheet-page--physical .trait-rail,
+  [data-sheet="highFantasy"] .sheet-page--relationships .bond-grid {
+    grid-template-columns: 1fr;
+  }
+}
