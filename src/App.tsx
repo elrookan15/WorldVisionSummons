@@ -874,6 +874,26 @@ export default function App() {
     });
   };
 
+  /** Functional adjust so rapid +/- clicks don't collapse on a stale sheetData closure. */
+  const adjustDerivedResource = (
+    currentKey: "hpCurrent" | "resourceCurrent",
+    maxKey: "hpMax" | "resourceMax",
+    delta: number,
+    fallbackCurrent: number,
+    fallbackMax: number
+  ) => {
+    setSheetData((prev) => {
+      const copy = JSON.parse(JSON.stringify(prev)) as typeof prev & {
+        derivedStats?: Record<string, number | string | string[]>;
+      };
+      if (!copy.derivedStats) copy.derivedStats = {};
+      const cur = Number(copy.derivedStats[currentKey] ?? fallbackCurrent);
+      const max = Number(copy.derivedStats[maxKey] ?? fallbackMax);
+      copy.derivedStats[currentKey] = clampResource(cur, max, delta);
+      return copy;
+    });
+  };
+
   const handleStatChange = (idx: number, val: number) => {
     let stats = [...sheetData.stats];
     stats[idx] = { ...stats[idx], value: Math.max(1, Math.min(24, val)) };
@@ -2145,21 +2165,15 @@ export default function App() {
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => {
-                        const cur = (sheetData as any).derivedStats?.hpCurrent ?? 74;
-                        const max = (sheetData as any).derivedStats?.hpMax ?? 74;
-                        updateField("derivedStats.hpCurrent", clampResource(cur, max, -1));
-                      }}
+                      aria-label="Decrease hit points"
+                      onClick={() => adjustDerivedResource("hpCurrent", "hpMax", -1, 74, 74)}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
                     >-</button>
                     <button
                       type="button"
-                      onClick={() => {
-                        const cur = (sheetData as any).derivedStats?.hpCurrent ?? 74;
-                        const max = (sheetData as any).derivedStats?.hpMax ?? 74;
-                        updateField("derivedStats.hpCurrent", clampResource(cur, max, 1));
-                      }}
+                      aria-label="Increase hit points"
+                      onClick={() => adjustDerivedResource("hpCurrent", "hpMax", 1, 74, 74)}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
                     >+</button>
@@ -2227,21 +2241,15 @@ export default function App() {
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => {
-                        const cur = (sheetData as any).derivedStats?.resourceCurrent ?? 6;
-                        const max = (sheetData as any).derivedStats?.resourceMax ?? 6;
-                        updateField("derivedStats.resourceCurrent", clampResource(cur, max, -1));
-                      }}
+                      aria-label="Decrease class resource"
+                      onClick={() => adjustDerivedResource("resourceCurrent", "resourceMax", -1, 6, 6)}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
                     >-</button>
                     <button
                       type="button"
-                      onClick={() => {
-                        const cur = (sheetData as any).derivedStats?.resourceCurrent ?? 6;
-                        const max = (sheetData as any).derivedStats?.resourceMax ?? 6;
-                        updateField("derivedStats.resourceCurrent", clampResource(cur, max, 1));
-                      }}
+                      aria-label="Increase class resource"
+                      onClick={() => adjustDerivedResource("resourceCurrent", "resourceMax", 1, 6, 6)}
                       className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
                       style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
                     >+</button>
