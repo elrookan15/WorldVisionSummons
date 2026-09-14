@@ -1020,6 +1020,13 @@ export default function App() {
       if (result.imageUrl) {
         setImageUrl(result.imageUrl);
         setImageEngine(result.engine || "Nano Banana");
+        // Server may return a procedural SVG with fallback:true — surface why live raster failed.
+        if (result.fallback || (result.engine || "").includes("Procedural")) {
+          setImageError(
+            result.error?.message ||
+              "Live portrait unavailable (quota/billing or model). Showing dossier plate — enable Gemini image billing, then reroll."
+          );
+        }
       } else {
         const fallback = buildProceduralPortrait({
           name: contextSheet.name,

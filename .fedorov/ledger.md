@@ -2,9 +2,23 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-14 | Live portrait silent fallback (quota limit 0) | provider-integration | integration | Active |
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-14] Live portrait silent fallback (quota limit 0)
+- Category: provider-integration
+- Persona: integration
+- File(s): server.ts, src/lib/geminiImageErrors.ts, src/lib/providers/NanoBananaProvider.ts, src/App.tsx
+- Root Cause: `/api/generate-image` swallowed Gemini 429 RESOURCE_EXHAUSTED (free-tier `limit: 0` on image models) and returned a procedural SVG without `error`, so the UI treated the dossier plate as a successful live portrait. Imagen retries also ran against AI Studio keys (Vertex-only) and wasted latency.
+- Patch: Classify image failures; short-circuit on billing/auth; skip Imagen unless Vertex project env set; return `fallback` + structured `error`; provider + App surface message under the portrait.
+- Red Test: Live `/api/generate-image` returned Procedural Codex with no error field while Gemini image models returned limit:0.
+- Green Test: Vitest `geminiImageErrors.test.ts`; API response includes `error.code=BILLING_REQUIRED` and `fallback:true`.
+- Regression Guard: Unit tests for quota-zero / retryable quota / vertex-only / auth classifiers; health lists Nano Banana model cascade.
+- Residual Risk: Live raster still requires billed Gemini image quota — no code path can mint Nano Banana pixels on free-tier limit 0.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-14] HP/resource +/- stale-closure under rapid clicks
 - Category: ui-state
