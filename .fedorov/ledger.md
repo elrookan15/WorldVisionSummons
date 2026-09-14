@@ -2,8 +2,22 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-14] HP/resource +/- stale-closure under rapid clicks
+- Category: ui-state
+- Persona: frontend
+- File(s): src/App.tsx
+- Root Cause: HP and class-resource buttons read `sheetData` from the render closure, so burst clicks all applied against the same stale current value (only ±1 landed).
+- Patch: `adjustDerivedResource` uses functional `setSheetData` so each click chains off latest state; clamps still via `clampResource`.
+- Red Test: Five rapid `-` clicks left HP at 73 instead of 69.
+- Green Test: Puppeteer burst → HP 74→69→0→74; Quiet Solace 6→3→0→6.
+- Regression Guard: Existing `clampResource` unit tests; core-feature browser matrix.
+- Residual Risk: Other delta widgets using closed-over state could share the pattern (none found for combat orbs).
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-14] Lore/Stats blend presence too quiet
 - Category: ui-theming
