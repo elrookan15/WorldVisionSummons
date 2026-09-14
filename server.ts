@@ -7,6 +7,14 @@ import { compilePortraitPrompt } from "./src/lib/prompts/generators";
 import { canonicalizeSheetStyle } from "./src/lib/themeMap";
 import { buildProceduralPortrait } from "./src/lib/portraitFallback";
 import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
+import {
+  classifyGeminiImageError,
+  emptyImageResponseError,
+  IMAGEN_MODELS,
+  NANO_BANANA_IMAGE_MODELS,
+  shouldAttemptImagen,
+  type ClassifiedGeminiImageError,
+} from "./src/lib/geminiImageErrors";
 
 dotenv.config();
 
@@ -274,6 +282,32 @@ You MUST output ONLY valid JSON matching this exact structure with no extra mark
   }
 });
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function proceduralImagePayload(
+  fallbackImage: string,
+  prompt: string,
+  classified: ClassifiedGeminiImageError,
+  attemptedModels: string[]
+) {
+  return {
+    imageUrl: fallbackImage,
+    prompt,
+    engine: "WorldVision Procedural Codex",
+    fallback: true,
+    attemptedModels,
+    error: {
+      code: classified.code,
+      kind: classified.kind,
+      message: classified.message,
+      retryable: classified.retryable,
+      retryAfterMs: classified.retryAfterMs,
+    },
+  };
+}
+
 // Unified Image Handler for /api/generate-image and /api/summons/image
 const handleImageGeneration = async (req: express.Request, res: express.Response) => {
   const ctx = portraitContextFromBody(req.body);
@@ -313,16 +347,30 @@ const handleImageGeneration = async (req: express.Request, res: express.Response
     style: ctx.style,
     distinguishingFeature: ctx.feature,
   });
+  const attemptedModels: string[] = [];
+  let lastFailure: ClassifiedGeminiImageError = {
+    kind: "unknown",
+    code: "NO_IMAGE_PROVIDER",
+    message: "No image provider succeeded.",
+    retryable: false,
+  };
 
   try {
     const ai = getAiClient();
     if (!ai) {
-      return res.json({
-        imageUrl: fallbackImage,
-        prompt: nanoBananaEnhancedPrompt,
-        engine: "WorldVision Procedural Codex",
-        fallback: true,
-      });
+      return res.json(
+        proceduralImagePayload(
+          fallbackImage,
+          nanoBananaEnhancedPrompt,
+          {
+            kind: "auth",
+            code: "MISSING_API_KEY",
+            message: "GEMINI_API_KEY is not configured. Add a billed Google AI Studio key to enable live portraits.",
+            retryable: false,
+          },
+          attemptedModels
+        )
+      );
     }
 
     const refPart = parseDataUrl(referenceImage);
@@ -336,81 +384,107 @@ const handleImageGeneration = async (req: express.Request, res: express.Response
       });
     }
 
-    const nanoBananaModels = [
-      { model: "gemini-3.1-flash-image", imageSize },
-      { model: "gemini-2.5-flash-image", imageSize: undefined },
-    ];
-
-    for (const candidate of nanoBananaModels) {
-      try {
-        const response = await ai.models.generateContent({
-          model: candidate.model,
-          contents: [{ role: "user", parts: userParts }],
-          config: {
-            responseModalities: ["TEXT", "IMAGE"],
-            imageConfig: {
-              aspectRatio,
-              ...(candidate.imageSize ? { imageSize: candidate.imageSize } : {}),
-            },
-          },
-        });
-        const imageUrl = extractInlineImage(response);
-        if (imageUrl) {
-          return res.json({
-            imageUrl,
-            prompt: nanoBananaEnhancedPrompt,
-            engine: candidate.model.includes("3.1") ? "Nano Banana 2" : "Nano Banana",
+    for (const candidate of NANO_BANANA_IMAGE_MODELS) {
+      attemptedModels.push(candidate.model);
+      const maxAttempts = 2;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const response = await ai.models.generateContent({
             model: candidate.model,
-            fallback: false,
+            contents: [{ role: "user", parts: userParts }],
+            config: {
+              responseModalities: ["TEXT", "IMAGE"],
+              imageConfig: {
+                aspectRatio,
+                ...(candidate.supportsImageSize ? { imageSize } : {}),
+              },
+            },
           });
+          const imageUrl = extractInlineImage(response);
+          if (imageUrl) {
+            return res.json({
+              imageUrl,
+              prompt: nanoBananaEnhancedPrompt,
+              engine: candidate.engine,
+              model: candidate.model,
+              fallback: false,
+            });
+          }
+          lastFailure = emptyImageResponseError();
+          break;
+        } catch (modelErr: unknown) {
+          const classified = classifyGeminiImageError(modelErr);
+          lastFailure = classified;
+          console.warn(
+            `Image model ${candidate.model} failed (${classified.code}):`,
+            classified.message
+          );
+          // Free-tier limit 0 / billing gate: same for the whole Nano Banana family — stop burning calls.
+          if (classified.kind === "billing_required" || classified.kind === "auth") {
+            return res.json(
+              proceduralImagePayload(fallbackImage, nanoBananaEnhancedPrompt, classified, attemptedModels)
+            );
+          }
+          if (classified.retryable && attempt === 0) {
+            await sleep(classified.retryAfterMs ?? 1500);
+            continue;
+          }
+          break;
         }
-      } catch (modelErr: any) {
-        console.warn(`Image model ${candidate.model} failed:`, modelErr?.message || modelErr);
       }
     }
 
-    const imagenModels = ["imagen-4.0-generate-001", "imagen-3.0-generate-002"];
-    for (const model of imagenModels) {
-      try {
-        const response = await ai.models.generateImages({
-          model,
-          prompt: nanoBananaEnhancedPrompt,
-          config: {
-            numberOfImages: 1,
-            outputMimeType: req.body?.outputMimeType || "image/png",
-            aspectRatio,
-          },
-        });
-        const base64Image = response.generatedImages?.[0]?.image?.imageBytes;
-        if (base64Image) {
-          return res.json({
-            imageUrl: `data:image/png;base64,${base64Image}`,
-            prompt: nanoBananaEnhancedPrompt,
-            engine: "Imagen",
+    if (shouldAttemptImagen()) {
+      for (const model of IMAGEN_MODELS) {
+        attemptedModels.push(model);
+        try {
+          const response = await ai.models.generateImages({
             model,
-            fallback: false,
+            prompt: nanoBananaEnhancedPrompt,
+            config: {
+              numberOfImages: 1,
+              outputMimeType: req.body?.outputMimeType || "image/png",
+              aspectRatio,
+            },
           });
+          const base64Image = response.generatedImages?.[0]?.image?.imageBytes;
+          if (base64Image) {
+            return res.json({
+              imageUrl: `data:image/png;base64,${base64Image}`,
+              prompt: nanoBananaEnhancedPrompt,
+              engine: "Imagen",
+              model,
+              fallback: false,
+            });
+          }
+          lastFailure = emptyImageResponseError();
+        } catch (imgErr: unknown) {
+          lastFailure = classifyGeminiImageError(imgErr);
+          console.warn(`Imagen model ${model} failed (${lastFailure.code}):`, lastFailure.message);
+          if (lastFailure.kind === "vertex_only" || lastFailure.kind === "billing_required") {
+            break;
+          }
         }
-      } catch (imgErr: any) {
-        console.warn(`Imagen model ${model} failed:`, imgErr?.message || imgErr);
       }
+    } else if (lastFailure.kind === "unknown" || lastFailure.kind === "model_unavailable") {
+      // Document why Imagen was skipped so operators do not chase Vertex errors on AI Studio keys.
+      lastFailure = {
+        ...lastFailure,
+        message:
+          lastFailure.message +
+          " Imagen skipped (AI Studio key). Set GOOGLE_CLOUD_PROJECT or GEMINI_USE_IMAGEN=1 for Vertex Imagen.",
+      };
     }
 
-    return res.json({
-      imageUrl: fallbackImage,
-      prompt: nanoBananaEnhancedPrompt,
-      engine: "WorldVision Procedural Codex",
-      fallback: true,
-    });
-  } catch (error: any) {
+    return res.json(
+      proceduralImagePayload(fallbackImage, nanoBananaEnhancedPrompt, lastFailure, attemptedModels)
+    );
+  } catch (error: unknown) {
     console.error("Image generation error:", error);
-    return res.json({
-      imageUrl: fallbackImage,
-      prompt: nanoBananaEnhancedPrompt,
-      engine: "WorldVision Procedural Codex",
-      fallback: true,
-      error: error.message,
-    });
+    const classified = classifyGeminiImageError(error);
+    return res.json(
+      proceduralImagePayload(fallbackImage, nanoBananaEnhancedPrompt, classified, attemptedModels)
+    );
   }
 };
 
@@ -561,7 +635,8 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     service: "worldvision-summons-engine",
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
-    imageModels: ["gemini-3.1-flash-image", "gemini-2.5-flash-image"],
+    imageModels: NANO_BANANA_IMAGE_MODELS.map((m) => m.model),
+    imagenEnabled: shouldAttemptImagen(),
   });
 });
 

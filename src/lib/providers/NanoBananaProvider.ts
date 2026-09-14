@@ -19,6 +19,16 @@ interface NanoBananaApiResponse {
   seed_used?: number;
   prompt?: string;
   engine?: string;
+  fallback?: boolean;
+  model?: string;
+  attemptedModels?: string[];
+  error?: {
+    code?: string;
+    kind?: string;
+    message?: string;
+    retryable?: boolean;
+    retryAfterMs?: number;
+  };
 }
 
 export class NanoBananaProvider implements ImageGenerationProvider {
@@ -120,7 +130,13 @@ export class NanoBananaProvider implements ImageGenerationProvider {
     }
   }
 
-  public async generateImage(request: ImageGenerationRequest): Promise<ProviderResult<GeneratedImage> & { imageUrl: string | null; prompt: string; engine: string }> {
+  public async generateImage(request: ImageGenerationRequest): Promise<ProviderResult<GeneratedImage> & {
+    imageUrl: string | null;
+    prompt: string;
+    engine: string;
+    fallback?: boolean;
+    model?: string;
+  }> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.defaultTimeoutMs);
 
@@ -204,19 +220,30 @@ export class NanoBananaProvider implements ImageGenerationProvider {
 
       const payload = (await response.json()) as NanoBananaApiResponse;
       const imageUrl = payload.output_url || payload.imageUrl || null;
+      const isFallback = Boolean(payload.fallback) || (payload.engine || '').includes('Procedural');
+      const upstreamError = payload.error?.message
+        ? {
+            code: payload.error.code || 'IMAGE_FALLBACK',
+            message: payload.error.message,
+            retryable: Boolean(payload.error.retryable),
+          }
+        : undefined;
 
       const successResult = {
-        success: true,
+        success: Boolean(imageUrl) && !isFallback,
         imageUrl,
         prompt: promptToUse,
         engine: payload.engine || 'Nano Banana AI',
+        fallback: isFallback,
+        model: payload.model,
+        error: upstreamError,
         data: {
           id: payload.id || 'img-' + Date.now(),
           url: imageUrl || '',
           width: payload.dimensions?.width || request.width || 1024,
           height: payload.dimensions?.height || request.height || 1280,
           seed: payload.seed_used || request.seed,
-          provider: this.providerId,
+          provider: isFallback ? 'WorldVision Procedural Codex' : this.providerId,
           createdAt: new Date().toISOString()
         }
       };
