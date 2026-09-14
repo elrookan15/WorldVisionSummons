@@ -223,6 +223,25 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(physicalSvg).toContain("stop-opacity=\"0.28\"");
   });
 
+  it("should give every genre a distinct structural sheet layout token", async () => {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const css = await fs.readFile(path.resolve("src/sheet-themes.css"), "utf8");
+    const { SHEET_THEME_IDS } = await import("../lib/sheetPageBackgrounds");
+
+    const layouts = new Set<string>();
+    for (const theme of SHEET_THEME_IDS) {
+      expect(css).toContain(`[data-sheet="${theme}"]`);
+      const match = css.match(
+        new RegExp(`\\[data-sheet="${theme}"\\]\\s*\\{[^}]*--sheet-layout:\\s*([^;]+);`, "m")
+      );
+      expect(match?.[1]?.trim()).toBeTruthy();
+      layouts.add(match![1].trim());
+    }
+    // Structural differentiation: one unique layout token per genre
+    expect(layouts.size).toBe(SHEET_THEME_IDS.length);
+  });
+
   it("should calculate accurate baseline stats and comparison deltas for archetypes", async () => {
     const { getArchetypeBaseline } = await import("../lib/statBaselines");
 

@@ -2,10 +2,38 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-14 | Genres shared one dossier grid (palette-only) | ui-theming | frontend | Active |
+| 2026-09-14 | Dead Clerk middleware + orphan approval UI | build-config | frontend | Active |
 | 2026-09-14 | Live portrait silent fallback (quota limit 0) | provider-integration | integration | Active |
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-14] Genres shared one dossier grid (palette-only)
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/sheet-themes.css, src/__tests__/summons.test.ts
+- Root Cause: Genre chrome changed frames/borders/atmosphere but Overview→Stats kept one shared CSS grid, so themes felt like recolors of the same document.
+- Patch: Per-theme structural layout tokens (`--sheet-layout`) and grid overrides (manuscript, HUD, blueprint, cartridge, triptych, non-Euclidean, kakemono, scrap board, crystal lattice, broadsheet).
+- Red Test: Ten themes resolving to the same default mosaic/hero/lore grids.
+- Green Test: Vitest asserts unique `--sheet-layout` token per `SHEET_THEME_IDS` entry.
+- Regression Guard: `should give every genre a distinct structural sheet layout token`.
+- Residual Risk: High-Fantasy `display:contents` triptych depends on trait chip DOM order; mobile collapses to single column.
+- Recurrence Count: 1
+- Status: Active
+
+## [2026-09-14] Dead Clerk middleware + orphan approval UI
+- Category: build-config
+- Persona: frontend
+- File(s): middleware.ts (deleted), src/components/CharacterSheetApproval.tsx (deleted)
+- Root Cause: Next.js/Clerk middleware and unwired approval modal remained in a Vite+Express app, breaking `tsc --noEmit` and implying auth routes that do not exist.
+- Patch: Delete both orphans; add `.cursor/environment.json`, expand `.gitignore`, document Gemini image billing in `.env.example`.
+- Red Test: `npm run lint` failed on missing `@clerk/nextjs/server` / `next/server`.
+- Green Test: `npm run lint` clean; no imports reference deleted modules.
+- Regression Guard: Lint in CI/dev; ledger entry.
+- Residual Risk: If product later needs OAuth approval flow, rebuild against Express routes — do not resurrect Next middleware.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-14] Live portrait silent fallback (quota limit 0)
 - Category: provider-integration
