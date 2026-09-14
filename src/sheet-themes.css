@@ -59,6 +59,143 @@
 
 .sheet-page {
   position: relative;
+  isolation: isolate;
+  --page-bg-opacity: 0.28;
+  --page-bg-blend: soft-light;
+}
+
+/* Soft atmospheric plate behind each dossier page — never wallpaper */
+.sheet-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--page-bg-opacity);
+  mix-blend-mode: var(--page-bg-blend);
+  background-image: var(--page-bg-image, none);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  /* Fade so texture dissolves into the sheet instead of reading as a photo */
+  -webkit-mask-image:
+    linear-gradient(180deg, transparent 0%, #000 10%, #000 72%, transparent 100%),
+    radial-gradient(ellipse 88% 78% at 50% 38%, #000 25%, transparent 78%);
+  mask-image:
+    linear-gradient(180deg, transparent 0%, #000 10%, #000 72%, transparent 100%),
+    radial-gradient(ellipse 88% 78% at 50% 38%, #000 25%, transparent 78%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.sheet-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sheet-page--overview {
+  --page-bg-image: var(--sheet-bg-overview);
+  --page-bg-opacity: 0.28;
+}
+.sheet-page--physical {
+  --page-bg-image: var(--sheet-bg-physical);
+  --page-bg-opacity: 0.16;
+}
+.sheet-page--lore {
+  --page-bg-image: var(--sheet-bg-lore);
+  /* Louder manuscript atmosphere (PR #8 feedback) — still masked/blended */
+  --page-bg-opacity: 0.5;
+}
+.sheet-page--abilities {
+  --page-bg-image: var(--sheet-bg-abilities);
+  --page-bg-opacity: 0.28;
+}
+.sheet-page--equipment {
+  --page-bg-image: var(--sheet-bg-equipment);
+  --page-bg-opacity: 0.28;
+}
+.sheet-page--personality {
+  --page-bg-image: var(--sheet-bg-personality);
+  --page-bg-opacity: 0.28;
+}
+.sheet-page--relationships {
+  --page-bg-image: var(--sheet-bg-relationships);
+  --page-bg-opacity: 0.28;
+}
+.sheet-page--stats {
+  --page-bg-image: var(--sheet-bg-stats);
+  /* Louder combat-HUD atmosphere (PR #8 feedback) — still masked/blended */
+  --page-bg-opacity: 0.52;
+}
+
+/* Genre blend modes — keep atmospheres quiet against theme color */
+[data-sheet="gothicDarkFantasy"] .sheet-page,
+[data-sheet="samuraiEra"] .sheet-page,
+[data-sheet="postApocalyptic"] .sheet-page,
+[data-sheet="victorianGothic"] .sheet-page {
+  --page-bg-blend: soft-light;
+}
+[data-sheet="cyberpunk"] .sheet-page,
+[data-sheet="retro8Bit"] .sheet-page {
+  --page-bg-blend: screen;
+  --page-bg-opacity: 0.18;
+}
+/* Screen blends wash out plates — restore Lore/Stats presence without raising every page */
+[data-sheet="cyberpunk"] .sheet-page--lore,
+[data-sheet="retro8Bit"] .sheet-page--lore {
+  --page-bg-opacity: 0.42;
+}
+[data-sheet="cyberpunk"] .sheet-page--stats,
+[data-sheet="retro8Bit"] .sheet-page--stats {
+  --page-bg-opacity: 0.46;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page,
+[data-sheet="highFantasy"] .sheet-page {
+  --page-bg-blend: multiply;
+  --page-bg-opacity: 0.34;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--lore,
+[data-sheet="highFantasy"] .sheet-page--lore {
+  --page-bg-opacity: 0.48;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--stats,
+[data-sheet="highFantasy"] .sheet-page--stats {
+  --page-bg-opacity: 0.5;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--physical,
+[data-sheet="highFantasy"] .sheet-page--physical {
+  --page-bg-opacity: 0.18;
+}
+[data-sheet="cosmicHorror"] .sheet-page,
+[data-sheet="eldritchArcane"] .sheet-page {
+  --page-bg-blend: soft-light;
+  --page-bg-opacity: 0.3;
+}
+[data-sheet="cosmicHorror"] .sheet-page--lore,
+[data-sheet="eldritchArcane"] .sheet-page--lore {
+  --page-bg-opacity: 0.5;
+}
+[data-sheet="cosmicHorror"] .sheet-page--stats,
+[data-sheet="eldritchArcane"] .sheet-page--stats {
+  --page-bg-opacity: 0.52;
+}
+[data-sheet="cosmicHorror"] .sheet-page--physical,
+[data-sheet="eldritchArcane"] .sheet-page--physical,
+[data-sheet="gothicDarkFantasy"] .sheet-page--physical,
+[data-sheet="samuraiEra"] .sheet-page--physical {
+  --page-bg-opacity: 0.14;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--lore,
+[data-sheet="samuraiEra"] .sheet-page--lore,
+[data-sheet="postApocalyptic"] .sheet-page--lore,
+[data-sheet="victorianGothic"] .sheet-page--lore {
+  --page-bg-opacity: 0.5;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--stats,
+[data-sheet="samuraiEra"] .sheet-page--stats,
+[data-sheet="postApocalyptic"] .sheet-page--stats,
+[data-sheet="victorianGothic"] .sheet-page--stats {
+  --page-bg-opacity: 0.52;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -613,7 +750,15 @@
 @media print {
   .sheet-app::before,
   .sheet-bezel::before,
-  .sheet-bezel::after {
+  .sheet-bezel::after,
+  .sheet-page::before {
     display: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-page::before {
+    opacity: 0.08;
+    mix-blend-mode: normal;
   }
 }

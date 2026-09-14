@@ -163,6 +163,66 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(decodeURIComponent(svg)).toContain("Netrunner");
   });
 
+  it("should build blended local SVG atmospheres for every dossier page × genre", async () => {
+    const {
+      SHEET_PAGE_IDS,
+      SHEET_THEME_IDS,
+      buildSheetPageBackground,
+      sheetPageBackgroundCssVars,
+    } = await import("../lib/sheetPageBackgrounds");
+
+    expect(SHEET_PAGE_IDS).toHaveLength(8);
+    expect(SHEET_THEME_IDS).toHaveLength(10);
+
+    for (const theme of SHEET_THEME_IDS) {
+      const vars = sheetPageBackgroundCssVars(theme);
+      for (const page of SHEET_PAGE_IDS) {
+        const url = buildSheetPageBackground(page, theme);
+        expect(url.startsWith("data:image/svg+xml")).toBe(true);
+        expect(url.toLowerCase()).not.toContain("unsplash");
+        expect(url).not.toContain("http://");
+        expect(url).not.toContain("https://");
+
+        const decoded = decodeURIComponent(url);
+        expect(decoded).toContain(`data-sheet-bg="${theme}"`);
+        expect(decoded).toContain(`data-page-bg="${page}"`);
+        expect(decoded).toContain("data-artifact=");
+        expect(decoded).toContain("data-metaphor=");
+
+        expect(vars[`--sheet-bg-${page}`]).toContain("data:image/svg+xml");
+      }
+    }
+
+    const gothic = decodeURIComponent(buildSheetPageBackground("lore", "gothicDarkFantasy"));
+    const cyber = decodeURIComponent(buildSheetPageBackground("lore", "cyberpunk"));
+    const eightBit = decodeURIComponent(buildSheetPageBackground("stats", "retro8Bit"));
+    const samurai = decodeURIComponent(buildSheetPageBackground("overview", "samuraiEra"));
+    expect(gothic).toContain('data-artifact="cathedral-stone"');
+    expect(cyber).toContain('data-artifact="neon-hud"');
+    expect(eightBit).toContain('data-artifact="pixel-grid"');
+    expect(samurai).toContain('data-artifact="sumi-washi"');
+
+    const overview = decodeURIComponent(buildSheetPageBackground("overview", "gothicDarkFantasy"));
+    const physical = decodeURIComponent(buildSheetPageBackground("physical", "gothicDarkFantasy"));
+    expect(overview).toContain('data-metaphor="identity-seal"');
+    expect(physical).toContain('data-metaphor="figure-stage"');
+    expect(overview).not.toBe(physical);
+
+    // Lore/Stats louder presence; Physical stays quiet (PR #8 blend feedback)
+    const { sheetPageBackgroundOpacity } = await import("../lib/sheetPageBackgrounds");
+    expect(sheetPageBackgroundOpacity("lore")).toBeGreaterThanOrEqual(0.45);
+    expect(sheetPageBackgroundOpacity("stats")).toBeGreaterThanOrEqual(0.45);
+    expect(sheetPageBackgroundOpacity("physical")).toBeLessThanOrEqual(0.16);
+    expect(sheetPageBackgroundOpacity("overview")).toBeLessThan(sheetPageBackgroundOpacity("lore"));
+
+    const loreSvg = decodeURIComponent(buildSheetPageBackground("lore", "gothicDarkFantasy"));
+    const statsSvg = decodeURIComponent(buildSheetPageBackground("stats", "cyberpunk"));
+    const physicalSvg = decodeURIComponent(buildSheetPageBackground("physical", "gothicDarkFantasy"));
+    expect(loreSvg).toContain("stop-opacity=\"0.42\"");
+    expect(statsSvg).toContain("stop-opacity=\"0.42\"");
+    expect(physicalSvg).toContain("stop-opacity=\"0.28\"");
+  });
+
   it("should calculate accurate baseline stats and comparison deltas for archetypes", async () => {
     const { getArchetypeBaseline } = await import("../lib/statBaselines");
 
