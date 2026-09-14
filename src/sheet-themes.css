@@ -103,7 +103,8 @@
 }
 .sheet-page--lore {
   --page-bg-image: var(--sheet-bg-lore);
-  --page-bg-opacity: 0.3;
+  /* Louder manuscript atmosphere (PR #8 feedback) — still masked/blended */
+  --page-bg-opacity: 0.5;
 }
 .sheet-page--abilities {
   --page-bg-image: var(--sheet-bg-abilities);
@@ -123,7 +124,8 @@
 }
 .sheet-page--stats {
   --page-bg-image: var(--sheet-bg-stats);
-  --page-bg-opacity: 0.32;
+  /* Louder combat-HUD atmosphere (PR #8 feedback) — still masked/blended */
+  --page-bg-opacity: 0.52;
 }
 
 /* Genre blend modes — keep atmospheres quiet against theme color */
@@ -138,14 +140,27 @@
   --page-bg-blend: screen;
   --page-bg-opacity: 0.18;
 }
+/* Screen blends wash out plates — restore Lore/Stats presence without raising every page */
+[data-sheet="cyberpunk"] .sheet-page--lore,
+[data-sheet="retro8Bit"] .sheet-page--lore {
+  --page-bg-opacity: 0.42;
+}
 [data-sheet="cyberpunk"] .sheet-page--stats,
 [data-sheet="retro8Bit"] .sheet-page--stats {
-  --page-bg-opacity: 0.22;
+  --page-bg-opacity: 0.46;
 }
 [data-sheet="steampunkTinkerer"] .sheet-page,
 [data-sheet="highFantasy"] .sheet-page {
   --page-bg-blend: multiply;
   --page-bg-opacity: 0.34;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--lore,
+[data-sheet="highFantasy"] .sheet-page--lore {
+  --page-bg-opacity: 0.48;
+}
+[data-sheet="steampunkTinkerer"] .sheet-page--stats,
+[data-sheet="highFantasy"] .sheet-page--stats {
+  --page-bg-opacity: 0.5;
 }
 [data-sheet="steampunkTinkerer"] .sheet-page--physical,
 [data-sheet="highFantasy"] .sheet-page--physical {
@@ -156,11 +171,31 @@
   --page-bg-blend: soft-light;
   --page-bg-opacity: 0.3;
 }
+[data-sheet="cosmicHorror"] .sheet-page--lore,
+[data-sheet="eldritchArcane"] .sheet-page--lore {
+  --page-bg-opacity: 0.5;
+}
+[data-sheet="cosmicHorror"] .sheet-page--stats,
+[data-sheet="eldritchArcane"] .sheet-page--stats {
+  --page-bg-opacity: 0.52;
+}
 [data-sheet="cosmicHorror"] .sheet-page--physical,
 [data-sheet="eldritchArcane"] .sheet-page--physical,
 [data-sheet="gothicDarkFantasy"] .sheet-page--physical,
 [data-sheet="samuraiEra"] .sheet-page--physical {
   --page-bg-opacity: 0.14;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--lore,
+[data-sheet="samuraiEra"] .sheet-page--lore,
+[data-sheet="postApocalyptic"] .sheet-page--lore,
+[data-sheet="victorianGothic"] .sheet-page--lore {
+  --page-bg-opacity: 0.5;
+}
+[data-sheet="gothicDarkFantasy"] .sheet-page--stats,
+[data-sheet="samuraiEra"] .sheet-page--stats,
+[data-sheet="postApocalyptic"] .sheet-page--stats,
+[data-sheet="victorianGothic"] .sheet-page--stats {
+  --page-bg-opacity: 0.52;
 }
 
 /* -------------------------------------------------------------------------- */

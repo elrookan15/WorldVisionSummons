@@ -207,6 +207,20 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(overview).toContain('data-metaphor="identity-seal"');
     expect(physical).toContain('data-metaphor="figure-stage"');
     expect(overview).not.toBe(physical);
+
+    // Lore/Stats louder presence; Physical stays quiet (PR #8 blend feedback)
+    const { sheetPageBackgroundOpacity } = await import("../lib/sheetPageBackgrounds");
+    expect(sheetPageBackgroundOpacity("lore")).toBeGreaterThanOrEqual(0.45);
+    expect(sheetPageBackgroundOpacity("stats")).toBeGreaterThanOrEqual(0.45);
+    expect(sheetPageBackgroundOpacity("physical")).toBeLessThanOrEqual(0.16);
+    expect(sheetPageBackgroundOpacity("overview")).toBeLessThan(sheetPageBackgroundOpacity("lore"));
+
+    const loreSvg = decodeURIComponent(buildSheetPageBackground("lore", "gothicDarkFantasy"));
+    const statsSvg = decodeURIComponent(buildSheetPageBackground("stats", "cyberpunk"));
+    const physicalSvg = decodeURIComponent(buildSheetPageBackground("physical", "gothicDarkFantasy"));
+    expect(loreSvg).toContain("stop-opacity=\"0.42\"");
+    expect(statsSvg).toContain("stop-opacity=\"0.42\"");
+    expect(physicalSvg).toContain("stop-opacity=\"0.28\"");
   });
 
   it("should calculate accurate baseline stats and comparison deltas for archetypes", async () => {

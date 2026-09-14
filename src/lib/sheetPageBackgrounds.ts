@@ -172,12 +172,14 @@ function pageComposition(page: SheetPageId, p: BgPalette): string {
         <path d="M700 120 H1100 M700 200 H1050 M700 280 H1000" stroke="${p.accent}" stroke-width="1" opacity="0.14"/>`;
     case "lore":
       return `
-        <path d="M180 80 V720 M220 80 V720" stroke="${p.accent}" stroke-width="2" opacity="0.14"/>
-        <g stroke="${p.accent2}" stroke-width="1" opacity="0.12">
+        <path d="M180 80 V720 M220 80 V720" stroke="${p.accent}" stroke-width="3" opacity="0.32"/>
+        <g stroke="${p.accent2}" stroke-width="1.4" opacity="0.28">
           <path d="M260 140 H1040 M260 190 H1000 M260 240 H1020 M260 290 H980 M260 340 H1010"/>
           <path d="M260 420 H1040 M260 470 H990 M260 520 H1030 M260 570 H970 M260 620 H1000"/>
         </g>
-        <text x="200" y="120" font-family="Georgia, serif" font-size="48" fill="${p.accent}" opacity="0.18">¶</text>`;
+        <path d="M240 100 H1080 V700 H240 Z" fill="none" stroke="${p.accent}" stroke-width="1.5" opacity="0.22"/>
+        <text x="200" y="120" font-family="Georgia, serif" font-size="56" fill="${p.accent}" opacity="0.36">¶</text>
+        <text x="980" y="680" font-family="Georgia, serif" font-size="28" fill="${p.accent2}" opacity="0.24">※</text>`;
     case "abilities":
       return `
         <path d="M200 400 L400 200 L600 400 L800 200 L1000 400" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.2"/>
@@ -218,14 +220,17 @@ function pageComposition(page: SheetPageId, p: BgPalette): string {
           stroke="${p.accent2}" stroke-width="1.5" opacity="0.2"/>`;
     case "stats":
       return `
-        <rect x="80" y="80" width="1040" height="640" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.16"/>
-        <path d="M80 160 H1120 M80 80 V160 M1120 80 V160" stroke="${p.accent2}" stroke-width="1.5" opacity="0.2"/>
-        <circle cx="200" cy="400" r="70" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.22"/>
-        <circle cx="420" cy="400" r="70" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.18"/>
-        <circle cx="640" cy="400" r="70" fill="none" stroke="${p.accent2}" stroke-width="2" opacity="0.2"/>
-        <circle cx="860" cy="400" r="70" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.18"/>
-        <circle cx="1040" cy="400" r="50" fill="none" stroke="${p.accent2}" stroke-width="2" opacity="0.2"/>
-        <path d="M140 640 H1060" stroke="${p.accent}" stroke-width="1" opacity="0.14" stroke-dasharray="4 8"/>`;
+        <rect x="80" y="80" width="1040" height="640" fill="none" stroke="${p.accent}" stroke-width="2.5" opacity="0.34"/>
+        <path d="M80 160 H1120 M80 80 V160 M1120 80 V160" stroke="${p.accent2}" stroke-width="2" opacity="0.38"/>
+        <circle cx="200" cy="400" r="70" fill="none" stroke="${p.accent}" stroke-width="2.5" opacity="0.4"/>
+        <circle cx="420" cy="400" r="70" fill="none" stroke="${p.accent}" stroke-width="2.5" opacity="0.34"/>
+        <circle cx="640" cy="400" r="70" fill="none" stroke="${p.accent2}" stroke-width="2.5" opacity="0.38"/>
+        <circle cx="860" cy="400" r="70" fill="none" stroke="${p.accent}" stroke-width="2.5" opacity="0.34"/>
+        <circle cx="1040" cy="400" r="50" fill="none" stroke="${p.accent2}" stroke-width="2.5" opacity="0.38"/>
+        <path d="M200 400 L420 400 L640 400 L860 400 L1040 400" stroke="${p.accent2}" stroke-width="1" opacity="0.22"/>
+        <path d="M140 640 H1060" stroke="${p.accent}" stroke-width="1.5" opacity="0.28" stroke-dasharray="4 8"/>
+        <path d="M100 100 L140 100 L140 140" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.36"/>
+        <path d="M1100 700 L1060 700 L1060 660" fill="none" stroke="${p.accent2}" stroke-width="2" opacity="0.36"/>`;
   }
 }
 
@@ -255,6 +260,9 @@ export function buildSheetPageBackground(page: SheetPageId, themeId: string): st
   const metaphor = PAGE_METAPHOR[page];
   const seed = pageSeed(page);
 
+  const accentWash = page === "lore" || page === "stats" ? "0.42" : "0.28";
+  const midWash = page === "lore" || page === "stats" ? "0.14" : "0.08";
+
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-hidden="true"
   data-sheet-bg="${theme}" data-page-bg="${page}" data-artifact="${artifact}" data-metaphor="${metaphor}">
@@ -265,14 +273,14 @@ export function buildSheetPageBackground(page: SheetPageId, themeId: string): st
       <stop offset="100%" stop-color="${p.bg}"/>
     </linearGradient>
     <radialGradient id="vignette" cx="50%" cy="40%" r="65%">
-      <stop offset="0%" stop-color="${p.accent}" stop-opacity="0.28"/>
-      <stop offset="55%" stop-color="${p.bg2}" stop-opacity="0.08"/>
+      <stop offset="0%" stop-color="${p.accent}" stop-opacity="${accentWash}"/>
+      <stop offset="55%" stop-color="${p.bg2}" stop-opacity="${midWash}"/>
       <stop offset="100%" stop-color="${p.bg}" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="1200" height="800" fill="url(#wash)"/>
   <rect width="1200" height="800" fill="url(#vignette)"/>
-  ${noiseLayer(seed, 0.045)}
+  ${noiseLayer(seed, page === "lore" || page === "stats" ? 0.06 : 0.045)}
   ${genreOrnaments(theme, p)}
   ${pageComposition(page, p)}
 </svg>`;
@@ -290,14 +298,15 @@ export function sheetPageBackgroundCssVars(themeId: string): Record<string, stri
 }
 
 export function sheetPageBackgroundOpacity(page: SheetPageId): number {
-  // Physical keeps the portrait dominant; stats/HUD can take a touch more presence.
+  // Physical stays quiet (portrait-first). Lore/Stats are intentionally louder
+  // atmospheres per PR #8 feedback — still meant for CSS soft blend, not wallpaper.
   switch (page) {
     case "physical":
       return 0.14;
     case "stats":
-      return 0.26;
+      return 0.52;
     case "lore":
-      return 0.22;
+      return 0.5;
     default:
       return 0.2;
   }
