@@ -81,9 +81,26 @@ export default function GeminiChatModal({ onClose, characterContext }: GeminiCha
     const transcript = messages
       .map((m) => `[${m.role === "user" ? "SUMMONER" : charName.toUpperCase()}]: ${m.text}`)
       .join("\n\n");
-    navigator.clipboard.writeText(transcript);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const write = async () => {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(transcript);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = transcript;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
+    };
+    write()
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => console.error("Failed to copy transcript:", err));
   };
 
   // Quick prompt pills specified in C-TRACES-GOAL specification

@@ -29,7 +29,24 @@ export async function exportCharacterToGoogleSheet(sheetData: any): Promise<{ sp
   const spreadsheetId = spreadsheet.spreadsheetId;
   const spreadsheetUrl = spreadsheet.spreadsheetUrl;
 
-  // 2. Prepare data rows
+  // 2. Prepare data rows from the live dossier shape
+  const statValue = (key: string, fallback: number) => {
+    const match = sheetData.stats?.find((s: any) =>
+      s?.key === key || String(s?.label || "").toUpperCase().includes(key)
+    );
+    return match?.value ?? fallback;
+  };
+  const inventoryItems = sheetData.equipment?.items
+    ? String(sheetData.equipment.items).split(",").map((s: string) => s.trim()).filter(Boolean)
+    : [
+        sheetData.equipment?.primaryWeapon,
+        sheetData.equipment?.secondaryFocus,
+        sheetData.equipment?.armor,
+        sheetData.equipment?.utilityTools,
+        sheetData.equipment?.consumables,
+        sheetData.equipment?.relics,
+      ].filter(Boolean);
+
   const rows = [
     ["WORLDVISION SUMMONS - CHARACTER RECORD"],
     ["Name", sheetData.name],
@@ -37,41 +54,41 @@ export async function exportCharacterToGoogleSheet(sheetData: any): Promise<{ sp
     ["Class Role", sheetData.overview?.classRole],
     ["Style", sheetData.sheet_style],
     ["Alignment", sheetData.overview?.alignment],
-    ["Level", sheetData.overview?.level],
-    ["HP", sheetData.overview?.hp],
-    ["AC", sheetData.overview?.ac],
-    ["Speed", sheetData.overview?.speed],
-    ["Initiative", sheetData.overview?.initiative],
-    ["Bio / Lore", sheetData.overview?.bio],
+    ["Level", sheetData.overview?.level || sheetData.derivedStats?.level],
+    ["HP", sheetData.derivedStats?.hpCurrent ?? sheetData.derivedStats?.hpMax],
+    ["AC", sheetData.derivedStats?.ac],
+    ["Speed", sheetData.derivedStats?.speed],
+    ["Initiative", sheetData.derivedStats?.initiative],
+    ["Bio / Lore", sheetData.lore?.backstory || sheetData.overview?.bio],
     [],
     ["PHYSICAL ATTRIBUTES"],
     ["Height", sheetData.physical?.height],
     ["Weight", sheetData.physical?.weight],
     ["Build", sheetData.physical?.build],
-    ["Distinguishing Feature", sheetData.physical?.distinguishing_feature],
+    ["Distinguishing Feature", sheetData.physical?.marks || sheetData.physical?.distinguishing_feature],
     [],
     ["CORE ATTRIBUTES"],
-    ["Strength", sheetData.stats?.find((s: any) => s.label.includes("STR"))?.value || 12],
-    ["Dexterity", sheetData.stats?.find((s: any) => s.label.includes("DEX"))?.value || 14],
-    ["Constitution", sheetData.stats?.find((s: any) => s.label.includes("CON"))?.value || 13],
-    ["Intelligence", sheetData.stats?.find((s: any) => s.label.includes("INT"))?.value || 10],
-    ["Wisdom", sheetData.stats?.find((s: any) => s.label.includes("WIS"))?.value || 11],
-    ["Charisma", sheetData.stats?.find((s: any) => s.label.includes("CHA"))?.value || 10],
+    ["Strength", statValue("STR", 12)],
+    ["Dexterity", statValue("DEX", 14)],
+    ["Constitution", statValue("CON", 13)],
+    ["Intelligence", statValue("INT", 10)],
+    ["Wisdom", statValue("WIS", 11)],
+    ["Charisma", statValue("CHA", 10)],
     [],
     ["INVENTORY ITEMS"],
-    ...(sheetData.inventory || []).map((item: string, idx: number) => [`Item ${idx + 1}`, item]),
+    ...inventoryItems.map((item: string, idx: number) => [`Item ${idx + 1}`, item]),
     [],
     ["PSYCHOLOGICAL TRAITS (DNA)"],
-    ["Reputation", sheetData.traits?.reputation],
-    ["Vice", sheetData.traits?.vice],
-    ["Virtue", sheetData.traits?.virtue],
-    ["Fear", sheetData.traits?.fear],
-    ["Obsession", sheetData.traits?.obsession],
-    ["Tell", sheetData.traits?.tell],
-    ["Loyalty", sheetData.traits?.loyalty],
-    ["Blind Spot", sheetData.traits?.blind_spot],
-    ["Survival Instinct", sheetData.traits?.survival_instinct],
-    ["Legacy Fear", sheetData.traits?.legacy_fear]
+    ["Reputation", sheetData.signatureAttributes?.reputation || sheetData.traits?.reputation],
+    ["Vice", sheetData.signatureAttributes?.vice || sheetData.traits?.vice],
+    ["Virtue", sheetData.signatureAttributes?.virtue || sheetData.traits?.virtue],
+    ["Fear", sheetData.signatureAttributes?.fear || sheetData.traits?.fear],
+    ["Obsession", sheetData.signatureAttributes?.obsession || sheetData.traits?.obsession],
+    ["Tell", sheetData.signatureAttributes?.tell || sheetData.traits?.tell],
+    ["Loyalty", sheetData.signatureAttributes?.loyalty || sheetData.traits?.loyalty],
+    ["Blind Spot", sheetData.signatureAttributes?.blindSpot || sheetData.traits?.blind_spot],
+    ["Survival Instinct", sheetData.signatureAttributes?.survivalInstinct || sheetData.traits?.survival_instinct],
+    ["Legacy Fear", sheetData.signatureAttributes?.legacyFear || sheetData.traits?.legacy_fear]
   ];
 
   // 3. Write values to Sheet1!A1
