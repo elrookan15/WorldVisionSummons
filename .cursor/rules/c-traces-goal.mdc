@@ -1,0 +1,83 @@
+---
+description: C-TRACES-GOAL operating system from The Universal Persona Prompt Book v2.0 — complements FEDOROV; does not replace Correction Kernel, Disproof Gate, or ledger.
+alwaysApply: true
+---
+
+# C-TRACES-GOAL (Prompt Book OS)
+
+Layers **under** `fedorov-core.mdc`. FEDOROV remains the spine: Correction Kernel, Disproof Gate, `.fedorov/ledger.md`, and persona modules win on conflict. This rule installs the Prompt Book's prompt anatomy, verification gates, and agentic loop for WorldVision Summons (React + Vite + Express — **not** Next.js).
+
+## Coexistence
+
+- Do **not** weaken or skip FEDOROV's Correction Contract / Disproof Gate on code changes.
+- Do **not** paste Neon Blue / Next.js App Router / shadcn defaults into this repo.
+- In-app character dialogue already uses C-TRACES-GOAL via `src/lib/prompts/cTracesGoal.ts` — align Cursor work with that framework; do not invent a competing prompt schema for summon personas.
+
+## Master formula (9 slots)
+
+Use the smallest high-signal set per turn. Missing slots are a common failure mode:
+
+| Slot | Meaning |
+|------|---------|
+| **C** Context | `@file` refs, library versions, theme/genre constraints — not the whole repo |
+| **T** Task | One verb, one narrow objective |
+| **R** Role | FEDOROV persona or Prompt Book `persona-*.mdc` |
+| **A** Acceptance | Testable definition of done |
+| **C** Constraints | Do / don't / out of scope |
+| **E** Examples | Prefer 1–5 few-shots over long prose rule lists |
+| **S** Schema | Exact output shape (table, JSON, code fence) |
+| **G** Gate | Command the agent must run and paste evidence from |
+| **OAL** Output / Assumptions / Limits | Shape, load-bearing assumptions, when to stop and ask |
+
+## Quality mandates
+
+- **Format-First** — end plans/prompts with the exact output format.
+- **Cite-Every-Claim** — file:line or URL for grounded claims; mark `[INFERRED — UNVERIFIED]` otherwise (FEDOROV Grounding Rule).
+- **Show-Evidence-Not-Assertions** — paste `npm test` / `npm run lint` / build output; do not ship "done" without proof.
+- **Diagnose-Before-Rewrite** — root cause before patch.
+- **Smallest-High-Signal-Context** — `@file` and just-in-time retrieval; never dump the tree.
+
+## Agentic loop
+
+1. **Explore** — read/reproduce; no edits.
+2. **Plan** — step list; edit plan before coding (skip only for one-sentence trivial fixes).
+3. **Implement** — execute; write/adjust tests.
+4. **Verify** — independent gate with pasted evidence.
+5. **Commit** — Conventional Commits when committing.
+
+## Approval gates (irreversible)
+
+Require explicit human approval before: production deploy, infra mutation, deletes/publishes of user data, purchases, outbound sends. Pause and ask — never assume.
+
+## Stack-local verification defaults
+
+Prefer these gates when no better gate is specified:
+
+- `npm run lint` (`tsc --noEmit`)
+- `npm test` (Vitest)
+- Theme/UI: check ≥2 of the 10 visual codex paradigms when touching sheet chrome
+
+## Stress Test (abbreviated for this app)
+
+Before calling UI/prompt/code work done:
+
+- [ ] Mobile ~320–375px layout holds
+- [ ] Modals: Escape + outside-click; focus returns
+- [ ] Browser APIs (`localStorage`, `matchMedia`, `window`) guarded for SSR-less Vite client use
+- [ ] No secrets in client bundle or commits; provider keys only via Express (`server.ts`)
+- [ ] Verification evidence pasted
+- [ ] Destructive ops reversible or gated
+
+## Starter skeleton
+
+```xml
+<role>…</role>
+<context>@files, versions, genre/theme constraints</context>
+<task>One verb objective</task>
+<constraints>Do / Don't / Out of scope</constraints>
+<examples>…</examples>
+<acceptance_criteria>Testable Done</acceptance_criteria>
+<output_format>Exact schema</output_format>
+<gate>Run npm test / npm run lint; paste evidence</gate>
+<assumptions_and_limits>List assumptions; stop if ambiguous</assumptions_and_limits>
+```

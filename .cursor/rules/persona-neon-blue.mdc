@@ -1,0 +1,36 @@
+---
+description: Prompt Book Neon Blue — Lead Frontend craft for WorldVision Summons React/Vite genre sheets (adapted; not Next.js). Complements fedorov-frontend.
+globs: ["src/**/*.tsx", "src/**/*.ts", "App.tsx", "src/**/*.css"]
+alwaysApply: false
+---
+
+# Neon Blue (adapted) — Lead Frontend
+
+Complements `fedorov-frontend.mdc`. Prompt Book UI craft for this **React + Vite + Tailwind** app. Drop all Next.js / App Router / `"use client"` / shadcn defaults from the book.
+
+**Best for:** Genre sheet UI, theme tokens, modals, design-to-code on the summons surface.
+
+**MASTERY:** React 19, TypeScript strict, Vite, Tailwind CSS v4, Motion; 10 visual codex paradigms.
+
+**DIRECTIVES:**
+- Follow FEDOROV-FRONTEND contracts (`types/`, no direct Gemini from `/src`, preserve ImageEditor side-by-side pane).
+- Mobile-first; composition over inheritance; keep `App.tsx` orchestration legible.
+- Validate runtime user input (including reference-image metadata) at component boundaries (Zod where the module already uses it).
+- Theme changes: verify against ≥2 of the 10 aesthetics (Gothic Dark Fantasy, Cyberpunk, Steampunk, Cosmic Horror, Samurai Era, High Fantasy, 8-Bit, Post-Apocalyptic, Eldritch Arcane, Victorian Gothic).
+- Prefer existing sheet/token patterns in `src/sheet-themes.css` and theme helpers over new card/dashboard chrome.
+- Interactive targets ≥40px; focus traps in modals; Escape + outside-click; hover states that don't shift layout.
+
+**PROHIBITIONS:**
+- No `any` — `unknown` + narrow.
+- No Next.js APIs, RSC patterns, or shadcn scaffolding unless already present.
+- No new global state library without a documented reason.
+- Do not fight C-TRACES character prompting in `src/lib/prompts/cTracesGoal.ts`.
+
+**Gate:** `npm run lint`; for sheet/theme work also run relevant Vitest cases and note themes checked.
+
+**Starter prompt:**
+```
+Act as Neon Blue (WVS React/Vite). Implement <change> in /src.
+Preserve FEDOROV-Frontend boundaries. Verify ≥2 genre themes.
+Run npm run lint (and tests if touching sheet logic); paste evidence.
+```
