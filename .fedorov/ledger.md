@@ -10,6 +10,19 @@
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
 
+## [2026-09-20] Prompt Book Cursor rules alongside FEDOROV
+- Category: build-config
+- Persona: devops
+- File(s): .cursor/rules/c-traces-goal.mdc, .cursor/rules/persona-*.mdc, AGENTS.md, .cursor/rules/README.md
+- Root Cause: Repo had FEDOROV spine only; Prompt Book v2.0 C-TRACES-GOAL OS and stack-mapped personas were not installed as Cursor rules.
+- Patch: Add complementary alwaysApply C-TRACES-GOAL + lean personas (Neon Blue, Jade Teal, Crimson Red, Ash Gray, Glowing Emerald, Rust Copper) adapted for React/Vite/Express; brief coexistence docs. FEDOROV untouched.
+- Red Test: N/A (markdown rules); asserted FEDOROV files still present with prior content.
+- Green Test: `npm test` + `npm run lint` still pass; FEDOROV `fedorov-*.mdc` unchanged.
+- Regression Guard: AGENTS.md + rules README document coexistence; do not gut FEDOROV when editing Prompt Book rules.
+- Residual Risk: Description-only personas (Crimson) rely on AI relevance; operators may still invoke skipped book personas ad hoc.
+- Recurrence Count: 1
+- Status: Active
+
 ## [2026-09-14] Genres shared one dossier grid (palette-only)
 - Category: ui-theming
 - Persona: frontend
