@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-20 | Prompt Book Cursor rules alongside FEDOROV | build-config | devops | Active |
 | 2026-09-14 | Genres shared one dossier grid (palette-only) | ui-theming | frontend | Active |
 | 2026-09-14 | Dead Clerk middleware + orphan approval UI | build-config | frontend | Active |
 | 2026-09-14 | Live portrait silent fallback (quota limit 0) | provider-integration | integration | Active |
