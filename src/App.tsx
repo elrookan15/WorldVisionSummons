@@ -1199,7 +1199,7 @@ export default function App() {
       <div className="sheet-bezel">
 
       {/* Top Header */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
+      <header className="sticky top-0 z-40 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
         <div className="max-w-[1600px] mx-auto px-5 md:px-10 min-h-[72px] py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full grid place-items-center display font-bold tracking-tight shadow-lg" style={{ backgroundColor: c.text, color: c.bg }}>
@@ -1269,6 +1269,7 @@ export default function App() {
             )}
 
             <button
+              id="character-codex-btn"
               type="button"
               onClick={() => setShowCodex(true)}
               className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
@@ -1280,6 +1281,7 @@ export default function App() {
             </button>
 
             <button
+              id="dice-tray-btn"
               type="button"
               onClick={() => setShowDiceTray((v) => !v)}
               className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
