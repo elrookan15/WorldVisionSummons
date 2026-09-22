@@ -242,6 +242,39 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(layouts.size).toBe(SHEET_THEME_IDS.length);
   });
 
+  it("should give every genre a complementary clash accent opposite its primary palette", async () => {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const app = await fs.readFile(path.resolve("src/App.tsx"), "utf8");
+    const { SHEET_THEME_IDS, buildSheetPageBackground } = await import("../lib/sheetPageBackgrounds");
+
+    const expectedClash: Record<string, string> = {
+      gothicDarkFantasy: "#00e8a8",
+      cyberpunk: "#d4ff00",
+      steampunkTinkerer: "#14b8a6",
+      retro8Bit: "#ff2bd6",
+      highFantasy: "#6366f1",
+      cosmicHorror: "#fb923c",
+      samuraiEra: "#2dd4bf",
+      postApocalyptic: "#a3e635", // treasure-map parchment → lime
+      eldritchArcane: "#84cc16",
+      victorianGothic: "#f43f5e",
+    };
+
+    for (const theme of SHEET_THEME_IDS) {
+      const clash = expectedClash[theme];
+      expect(clash).toBeTruthy();
+      expect(app).toContain(`clash:"${clash}"`);
+      const svg = decodeURIComponent(buildSheetPageBackground("overview", theme));
+      expect(svg).toContain(`data-clash-spark="1"`);
+      expect(svg).toContain(clash);
+    }
+
+    // Explicit examples from product request
+    expect(expectedClash.postApocalyptic).toBe("#a3e635");
+    expect(expectedClash.steampunkTinkerer).toBe("#14b8a6");
+  });
+
   it("should calculate accurate baseline stats and comparison deltas for archetypes", async () => {
     const { getArchetypeBaseline } = await import("../lib/statBaselines");
 

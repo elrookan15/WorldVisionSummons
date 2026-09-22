@@ -11,6 +11,8 @@
   --wv-accent: #8b0000;
   --wv-accent2: #ff1a1a;
   --wv-accent-text: #f5d0d0;
+  --wv-clash: #00e8a8;
+  --wv-clash-text: #041510;
   --wv-shadow: rgba(0, 0, 0, 0.9);
   --wv-radius: 18px;
 }
@@ -468,8 +470,8 @@
   top: 10px;
   right: 18px;
   font-size: 28px;
-  color: var(--wv-accent);
-  opacity: 0.45;
+  color: var(--wv-clash);
+  opacity: 0.55;
 }
 .sheet-page--lore .lore-backstory textarea {
   font-size: 1.05rem;
@@ -505,7 +507,7 @@
   overflow: hidden;
 }
 .sheet-page--abilities .ability-rail {
-  background: var(--wv-accent);
+  background: var(--wv-clash);
 }
 .sheet-page--abilities .ability-body {
   padding: 18px 20px;
