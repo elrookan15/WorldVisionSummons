@@ -26,48 +26,51 @@ export type MotifThemeId = keyof typeof THEME_MOTIFS;
 type MotifFn = (p: MotifPalette) => string;
 
 function wrap(id: GenreMotifId, x: number, y: number, scale: number, rot: number, body: string): string {
-  return `<g data-motif="${id}" transform="translate(${x} ${y}) rotate(${rot}) scale(${scale})" opacity="0.55">${body}</g>`;
+  return `<g data-motif="${id}" transform="translate(${x} ${y}) rotate(${rot}) scale(${scale})" opacity="1">${body}</g>`;
 }
 
 const MOTIF_DRAW: Record<MotifThemeId, readonly [MotifFn, MotifFn, MotifFn]> = {
   gothicDarkFantasy: [
     (p) => `
+      <!-- gargoyle motif -->
       <path d="M0 -70 L18 -20 L55 -20 L26 8 L38 55 L0 28 L-38 55 L-26 8 L-55 -20 L-18 -20 Z"
-        fill="none" stroke="${p.accent}" stroke-width="3"/>
-      <ellipse cx="0" cy="-8" rx="22" ry="18" fill="none" stroke="${p.clash}" stroke-width="2"/>
-      <path d="M-14 -10 L-6 -4 M14 -10 L6 -4" stroke="${p.accent2}" stroke-width="2"/>`,
+        fill="${p.accent}" fill-opacity="0.25" stroke="${p.accent2}" stroke-width="4"/>
+      <ellipse cx="0" cy="-8" rx="22" ry="18" fill="${p.bg2}" stroke="${p.clash}" stroke-width="3"/>
+      <path d="M-14 -10 L-6 -4 M14 -10 L6 -4" stroke="${p.clash}" stroke-width="3"/>`,
     (p) => `
-      <circle cx="0" cy="0" r="48" fill="none" stroke="${p.accent}" stroke-width="3"/>
-      <circle cx="0" cy="0" r="28" fill="none" stroke="${p.clash}" stroke-width="2"/>
-      <path d="M0 -48 V48 M-48 0 H48 M-34 -34 L34 34 M34 -34 L-34 34" stroke="${p.accent2}" stroke-width="1.5"/>`,
+      <!-- stained glass rose -->
+      <circle cx="0" cy="0" r="48" fill="${p.bg2}" stroke="${p.accent2}" stroke-width="4"/>
+      <circle cx="0" cy="0" r="28" fill="${p.accent}" fill-opacity="0.3" stroke="${p.clash}" stroke-width="3"/>
+      <path d="M0 -48 V48 M-48 0 H48 M-34 -34 L34 34 M34 -34 L-34 34" stroke="${p.clash}" stroke-width="2.5"/>`,
     (p) => `
-      <path d="M-36 40 H36 M-28 40 V10 H-12 V40 M12 40 V10 H28 V40" fill="none" stroke="${p.accent}" stroke-width="3"/>
-      <path d="M-20 10 Q-20 -30 0 -40 Q20 -30 20 10" fill="none" stroke="${p.clash}" stroke-width="2.5"/>
-      <circle cx="0" cy="-44" r="6" fill="${p.accent2}" opacity="0.8"/>`,
+      <!-- candelabra motif -->
+      <path d="M-36 40 H36 M-28 40 V10 H-12 V40 M12 40 V10 H28 V40" fill="none" stroke="${p.accent2}" stroke-width="4"/>
+      <path d="M-20 10 Q-20 -30 0 -40 Q20 -30 20 10" fill="none" stroke="${p.clash}" stroke-width="3.5"/>
+      <circle cx="0" cy="-44" r="9" fill="${p.clash}" opacity="1"/>`,
   ],
   cyberpunk: [
     (p) => `
       <!-- laser skateboard -->
-      <ellipse cx="0" cy="18" rx="70" ry="12" fill="none" stroke="${p.accent}" stroke-width="4"/>
-      <rect x="-55" y="4" width="110" height="14" rx="4" fill="none" stroke="${p.accent2}" stroke-width="2"/>
-      <circle cx="-40" cy="28" r="10" fill="none" stroke="${p.clash}" stroke-width="3"/>
-      <circle cx="40" cy="28" r="10" fill="none" stroke="${p.clash}" stroke-width="3"/>
-      <path d="M-50 0 L50 -18" stroke="${p.clash}" stroke-width="3" stroke-linecap="round"/>
-      <path d="M20 -12 L55 -28" stroke="${p.accent}" stroke-width="2"/>`,
+      <ellipse cx="0" cy="18" rx="70" ry="12" fill="${p.accent}" fill-opacity="0.3" stroke="${p.accent2}" stroke-width="4"/>
+      <rect x="-55" y="4" width="110" height="14" rx="4" fill="${p.bg2}" stroke="${p.clash}" stroke-width="3"/>
+      <circle cx="-40" cy="28" r="10" fill="${p.clash}" stroke="${p.accent2}" stroke-width="3"/>
+      <circle cx="40" cy="28" r="10" fill="${p.clash}" stroke="${p.accent2}" stroke-width="3"/>
+      <path d="M-50 0 L50 -18" stroke="${p.clash}" stroke-width="4" stroke-linecap="round"/>
+      <path d="M20 -12 L55 -28" stroke="${p.accent2}" stroke-width="3"/>`,
     (p) => `
       <!-- cyborg bust -->
-      <circle cx="0" cy="-18" r="28" fill="none" stroke="${p.accent}" stroke-width="3"/>
-      <rect x="-10" y="-22" width="22" height="14" rx="2" fill="none" stroke="${p.clash}" stroke-width="2"/>
-      <path d="M-8 -16 H10 M-4 -10 H8" stroke="${p.accent2}" stroke-width="1.5"/>
-      <path d="M-22 12 Q0 28 22 12 L18 55 H-18 Z" fill="none" stroke="${p.accent}" stroke-width="3"/>
-      <path d="M-6 30 H6 M0 30 V48" stroke="${p.clash}" stroke-width="2"/>`,
+      <circle cx="0" cy="-18" r="28" fill="${p.bg2}" stroke="${p.accent2}" stroke-width="4"/>
+      <rect x="-10" y="-22" width="22" height="14" rx="2" fill="${p.clash}" stroke="${p.clash}" stroke-width="2"/>
+      <path d="M-8 -16 H10 M-4 -10 H8" stroke="${p.bg}" stroke-width="2"/>
+      <path d="M-22 12 Q0 28 22 12 L18 55 H-18 Z" fill="${p.accent}" fill-opacity="0.3" stroke="${p.accent2}" stroke-width="4"/>
+      <path d="M-6 30 H6 M0 30 V48" stroke="${p.clash}" stroke-width="3"/>`,
     (p) => `
       <!-- futuristic laptop interface -->
-      <rect x="-70" y="-40" width="140" height="70" rx="4" fill="none" stroke="${p.accent2}" stroke-width="3"/>
-      <rect x="-58" y="-28" width="116" height="46" fill="none" stroke="${p.clash}" stroke-width="1.5"/>
-      <path d="M-50 -18 H40 M-50 -6 H20 M-50 6 H50" stroke="${p.accent}" stroke-width="2"/>
-      <circle cx="48" cy="-18" r="5" fill="${p.clash}"/>
-      <path d="M-80 30 H80 L60 55 H-60 Z" fill="none" stroke="${p.accent}" stroke-width="3"/>`,
+      <rect x="-70" y="-40" width="140" height="70" rx="4" fill="${p.bg2}" stroke="${p.accent2}" stroke-width="4"/>
+      <rect x="-58" y="-28" width="116" height="46" fill="${p.accent}" fill-opacity="0.2" stroke="${p.clash}" stroke-width="2"/>
+      <path d="M-50 -18 H40 M-50 -6 H20 M-50 6 H50" stroke="${p.clash}" stroke-width="3"/>
+      <circle cx="48" cy="-18" r="6" fill="${p.clash}"/>
+      <path d="M-80 30 H80 L60 55 H-60 Z" fill="${p.bg2}" stroke="${p.accent2}" stroke-width="4"/>`,
   ],
   steampunkTinkerer: [
     (p) => `
@@ -202,11 +205,11 @@ const MOTIF_DRAW: Record<MotifThemeId, readonly [MotifFn, MotifFn, MotifFn]> = {
   ],
 };
 
-/** Base placements: left / center-right / lower — then nudged per page. */
+/** Base placements: left / center-right / lower — positioned to peek around card boundaries. */
 const BASE_PLACEMENTS: ReadonlyArray<{ x: number; y: number; scale: number; rot: number }> = [
-  { x: 160, y: 200, scale: 1.05, rot: -8 },
-  { x: 920, y: 280, scale: 1.0, rot: 6 },
-  { x: 620, y: 620, scale: 0.95, rot: -4 },
+  { x: 120, y: 140, scale: 1.35, rot: -8 },
+  { x: 1060, y: 220, scale: 1.3, rot: 6 },
+  { x: 980, y: 680, scale: 1.25, rot: -4 },
 ];
 
 function pageNudge(page: string, index: number): { dx: number; dy: number; dRot: number } {
@@ -227,7 +230,7 @@ function pageNudge(page: string, index: number): { dx: number; dy: number; dRot:
 export function genreMotifLayer(theme: MotifThemeId, page: string, p: MotifPalette): string {
   const ids = THEME_MOTIFS[theme];
   const drawers = MOTIF_DRAW[theme];
-  const quiet = page === "physical" ? 0.55 : 1;
+  const quiet = page === "physical" ? 0.75 : 1;
   const parts: string[] = [];
 
   for (let i = 0; i < 3; i++) {
