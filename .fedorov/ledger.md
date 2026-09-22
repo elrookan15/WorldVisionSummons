@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-22 | Character Codex + dice tray missing on main | ui-state | frontend | Active |
 | 2026-09-22 | Genre page backgrounds lack style motif props | ui-theming | frontend | Active |
 | 2026-09-22 | FEDOROV_AI Arch-Chronologer lore persona | build-config | other | Active |
 | 2026-09-22 | Genre clash accents (complementary opposite colors) | ui-theming | frontend | Active |
@@ -12,6 +13,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-22] Character Codex + dice tray missing on main
+- Category: ui-state
+- Persona: frontend
+- File(s): src/lib/characterCodex.ts, src/lib/dice.ts, src/components/CharacterCodex.tsx, src/components/DiceTray.tsx, src/App.tsx, src/lib/prompts/generators.ts, src/__tests__/codex-and-dice.test.ts
+- Root Cause: PR #7 shipped Codex roster + dice tray against a stale base (pre genre chrome / Arch-Chronologer / motifs). Features never landed on current `main`; portrait prompts still ignored `equipment.primaryWeapon`.
+- Patch: Reimplement Codex (`localStorage` save/load/duplicate/delete) and polyhedral/ability/initiative dice tray on current `main` using `UiSheetData` (no parallel dossier type fork). Header controls + clash-accent chrome. Ground `compilePortraitPrompt` in live equipment. Surface summon failures on the status banner. Supersedes PR #7.
+- Red Test: No Codex/dice modules on `main`; portrait prompt fell through to “Obsidian Catalyst Staff” when only `equipment.primaryWeapon` was set.
+- Green Test: Vitest Codex persistence + dice modifier/advantage math + equipment-grounded portrait; `npm test` + `npm run lint`.
+- Regression Guard: `src/__tests__/codex-and-dice.test.ts`.
+- Residual Risk: Codex stores full sheets in `localStorage` (quota may drop data-URL portraits); dice tray is client-only RNG, not seeded campaign logs.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-22] Genre page backgrounds lack style motif props
 - Category: ui-theming
