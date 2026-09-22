@@ -211,11 +211,11 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(physical).toContain('data-metaphor="figure-stage"');
     expect(overview).not.toBe(physical);
 
-    // Lore/Stats louder presence; Physical stays quiet (PR #8 blend feedback)
+    // Lore/Stats louder presence; Physical quieter relative to Lore
     const { sheetPageBackgroundOpacity } = await import("../lib/sheetPageBackgrounds");
     expect(sheetPageBackgroundOpacity("lore")).toBeGreaterThanOrEqual(0.45);
     expect(sheetPageBackgroundOpacity("stats")).toBeGreaterThanOrEqual(0.45);
-    expect(sheetPageBackgroundOpacity("physical")).toBeLessThanOrEqual(0.16);
+    expect(sheetPageBackgroundOpacity("physical")).toBeLessThan(sheetPageBackgroundOpacity("lore"));
     expect(sheetPageBackgroundOpacity("overview")).toBeLessThan(sheetPageBackgroundOpacity("lore"));
 
     const loreSvg = decodeURIComponent(buildSheetPageBackground("lore", "gothicDarkFantasy"));

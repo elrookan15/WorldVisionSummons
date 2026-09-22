@@ -309,16 +309,14 @@ export function sheetPageBackgroundCssVars(themeId: string): Record<string, stri
 }
 
 export function sheetPageBackgroundOpacity(page: SheetPageId): number {
-  // Physical stays quiet (portrait-first). Lore/Stats are intentionally louder
-  // atmospheres per PR #8 feedback — still meant for CSS soft blend, not wallpaper.
   switch (page) {
     case "physical":
-      return 0.14;
+      return 0.35;
     case "stats":
-      return 0.52;
+      return 0.72;
     case "lore":
-      return 0.5;
+      return 0.7;
     default:
-      return 0.2;
+      return 0.55;
   }
 }
