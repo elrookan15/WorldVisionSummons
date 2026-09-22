@@ -1,3 +1,5 @@
+import { genreMotifLayer } from "./sheetGenreMotifs";
+
 /**
  * Procedural SVG atmospheres for dossier pages.
  * Local-only (no remote images / Unsplash). Tuned to sit under UI via soft-light
@@ -34,6 +36,8 @@ export type SheetThemeId = (typeof SHEET_THEME_IDS)[number];
 
 type BgPalette = { bg: string; bg2: string; accent: string; accent2: string; clash: string };
 
+export type { BgPalette };
+
 const THEME_PALETTES: Record<SheetThemeId, BgPalette> = {
   gothicDarkFantasy: { bg: "#12080a", bg2: "#2a1014", accent: "#8b0000", accent2: "#d4a017", clash: "#00e8a8" },
   cyberpunk: { bg: "#0c0a14", bg2: "#1a1430", accent: "#ff2a8a", accent2: "#00f0ff", clash: "#d4ff00" },
@@ -56,7 +60,7 @@ export const THEME_ARTIFACT: Record<SheetThemeId, string> = {
   highFantasy: "mythril-filigree",
   cosmicHorror: "abyssal-rift",
   samuraiEra: "sumi-washi",
-  postApocalyptic: "hazard-stencil",
+  postApocalyptic: "treasure-map",
   eldritchArcane: "runic-crystal",
   victorianGothic: "gazette-lace",
 };
@@ -287,6 +291,7 @@ export function buildSheetPageBackground(page: SheetPageId, themeId: string): st
   <rect width="1200" height="800" fill="url(#clashSpark)"/>
   ${noiseLayer(seed, page === "lore" || page === "stats" ? 0.06 : 0.045)}
   ${genreOrnaments(theme, p)}
+  ${genreMotifLayer(theme, page, p)}
   ${pageComposition(page, p)}
   <circle cx="1120" cy="90" r="7" fill="${p.clash}" opacity="0.55" data-clash-spark="1"/>
 </svg>`;

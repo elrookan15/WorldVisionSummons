@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-22 | Genre page backgrounds lack style motif props | ui-theming | frontend | Active |
 | 2026-09-22 | FEDOROV_AI Arch-Chronologer lore persona | build-config | other | Active |
 | 2026-09-22 | Genre clash accents (complementary opposite colors) | ui-theming | frontend | Active |
 | 2026-09-20 | Prompt Book Cursor rules alongside FEDOROV | build-config | devops | Active |
@@ -11,6 +12,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-22] Genre page backgrounds lack style motif props
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/lib/sheetGenreMotifs.ts, src/lib/sheetPageBackgrounds.ts, src/__tests__/summons.test.ts
+- Root Cause: Page atmospheres were abstract ornaments only — no recognizable genre props — so Cyberpunk/map themes didn’t read as “skateboard / cyborg / laptop” or “sword / chest / ship.” PR #13 landed on a side branch and never reached `main`.
+- Patch: Three local SVG motifs per genre scattered across every dossier page plate (positions nudged per page); Physical quieter; Post-Apocalyptic uses pirate treasure-map set; Cyberpunk uses laser-skateboard, cyborg, futuristic-laptop. Re-applied onto current `main` (clash + blend preserved).
+- Red Test: Page SVGs had no `data-motif` markers for those props.
+- Green Test: Vitest asserts 3 motifs × 10 themes × 8 pages + explicit Cyberpunk/pirate examples.
+- Regression Guard: `should scatter three style-specific image motifs across every genre page background`.
+- Residual Risk: Motifs are illustrative SVG line-art, not photographic props; opacity may need eye-tune on bright themes (Steampunk/Post-Apoc).
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-22] FEDOROV_AI Arch-Chronologer lore persona
 - Category: build-config
