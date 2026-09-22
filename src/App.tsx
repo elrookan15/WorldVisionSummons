@@ -5,10 +5,12 @@ import {
   Bookmark, Eye, Terminal, Flame, Award, Heart, ShieldAlert,
   BookMarked, Beaker, ChartColumn, Cog, Crown, EyeOff, Feather,
   Moon, Truck, Users, FileSpreadsheet, LogIn, LogOut,
-  Star
+  Star, Dices
 } from "lucide-react";
 import { CharacterSheetData, SheetPreset } from "./types";
 import StatsRadarComparison from "./components/StatsRadarComparison";
+import CharacterCodex from "./components/CharacterCodex";
+import DiceTray from "./components/DiceTray";
 import { StatBaseline } from "./lib/statBaselines";
 import ImageEditorModal from "./components/ImageEditorModal";
 import GeminiChatModal from "./components/GeminiChatModal";
@@ -20,6 +22,13 @@ import { CANONICAL_SHEET_STYLES, canonicalizeSheetStyle, themeIdForStyle } from 
 import { sheetPageBackgroundCssVars } from "./lib/sheetPageBackgrounds";
 import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromptContext, UiSheetData } from "./lib/sheetMapper";
 import { buildProceduralPortrait } from "./lib/portraitFallback";
+import {
+  CodexEntry,
+  deleteCodexEntry,
+  duplicateCodexEntry,
+  loadCodex,
+  upsertCodexEntry
+} from "./lib/characterCodex";
 
 const THEMES = [
   // clash = complementary opposite of the genre's core accent (sparks, not recolor)
@@ -694,6 +703,39 @@ export default function App() {
     }
   };
   const [runState, setRunState] = useState<string>("draft"); // draft | validating | generating_text | generating_portrait | generating_inventory | generating_map | composing | awaiting_approval | revised | approved | exporting | completed
+  const [codexEntries, setCodexEntries] = useState<CodexEntry[]>(() => loadCodex());
+  const [activeCodexId, setActiveCodexId] = useState<string | null>(null);
+  const [showCodex, setShowCodex] = useState(false);
+  const [showDiceTray, setShowDiceTray] = useState(false);
+
+  const persistToCodex = (asNew: boolean) => {
+    const result = upsertCodexEntry({
+      existingId: asNew ? null : activeCodexId,
+      sheetData: sheetData as UiSheetData,
+      themeId: currentTheme.id,
+      portraitUrl: imageUrl
+    });
+    setCodexEntries(result.entries);
+    setActiveCodexId(result.entry.id);
+    setSheetsStatusMsg(
+      result.droppedPortraits
+        ? `Saved ${result.entry.name} to the Codex (portrait omitted — storage limit).`
+        : `Saved ${result.entry.name} to the Codex.`
+    );
+  };
+
+  const loadFromCodex = (entry: CodexEntry) => {
+    setSheetData(entry.sheetData);
+    setActiveCodexId(entry.id);
+    setImageUrl(entry.portraitUrl);
+    const resolvedTheme = THEMES.some((t) => t.id === entry.themeId)
+      ? entry.themeId
+      : themeIdForStyle(entry.sheetStyle || entry.sheetData.sheet_style);
+    setThemeId(resolvedTheme);
+    setSheetStyle(canonicalizeSheetStyle(entry.sheetStyle || entry.sheetData.sheet_style));
+    setShowCodex(false);
+    setSheetsStatusMsg(`Loaded ${entry.name} from the Codex.`);
+  };
 
   // Default editable character state initialized with Gelbinor
   const [sheetData, setSheetData] = useState({
@@ -935,6 +977,8 @@ export default function App() {
     setRunState("validating");
     setCurrentStep(1);
     setImageError(null);
+    setActiveCodexId(null);
+    setSheetsStatusMsg(null);
 
     const timers = [
       setTimeout(() => setRunState("generating_text"), 300),
@@ -994,7 +1038,9 @@ export default function App() {
       timers.forEach(clearTimeout);
       setLoading(false);
       setRunState("draft");
-      setImageError("Sheet generation failed. Check the summoner service and try again.");
+      const msg = "Sheet generation failed. Check the summoner service and try again.";
+      setImageError(msg);
+      setSheetsStatusMsg(msg);
     }
   };
 
@@ -1221,6 +1267,33 @@ export default function App() {
                 </button>
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => setShowCodex(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+              title="Open Character Codex"
+            >
+              <BookMarked className="w-3.5 h-3.5" style={{ color: c.clash || c.accent }} />
+              <span className="mono text-[11px]">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowDiceTray((v) => !v)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{
+                backgroundColor: showDiceTray ? c.accent : c.card,
+                borderColor: showDiceTray ? (c.clash || c.borderStrong) : c.border,
+                color: showDiceTray ? c.accentText : c.text
+              }}
+              title="Open tabletop dice tray"
+              aria-expanded={showDiceTray}
+            >
+              <Dices className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Dice Tray</span>
+            </button>
 
             <button
               id="copy-character-json-btn"
@@ -2390,6 +2463,36 @@ export default function App() {
           }}
         />
       )}
+
+      <CharacterCodex
+        open={showCodex}
+        onClose={() => setShowCodex(false)}
+        entries={codexEntries}
+        activeId={activeCodexId}
+        c={c}
+        fonts={currentTheme.fonts}
+        onSaveCurrent={() => persistToCodex(false)}
+        onSaveAsNew={() => persistToCodex(true)}
+        onLoad={loadFromCodex}
+        onDelete={(id) => {
+          const next = deleteCodexEntry(id);
+          setCodexEntries(next);
+          if (activeCodexId === id) setActiveCodexId(null);
+        }}
+        onDuplicate={(id) => {
+          const { entries, entry } = duplicateCodexEntry(id);
+          setCodexEntries(entries);
+          if (entry) setSheetsStatusMsg(`Duplicated ${entry.name} in the Codex.`);
+        }}
+      />
+
+      <DiceTray
+        sheet={sheetData as UiSheetData}
+        open={showDiceTray}
+        onToggle={() => setShowDiceTray((v) => !v)}
+        c={c}
+        fonts={currentTheme.fonts}
+      />
     </div>
   );
 }
