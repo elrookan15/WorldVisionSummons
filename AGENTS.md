@@ -3,9 +3,10 @@
 ## Rule stacks (coexist)
 
 1. **FEDOROV** (`.cursor/rules/fedorov-*.mdc`) — spine. Always-on core + scoped frontend / integration / security / review / QA / devops. Correction Kernel, Disproof Gate, and `.fedorov/ledger.md` are mandatory on code work.
-2. **Prompt Book** (`.cursor/rules/c-traces-goal.mdc` + `persona-*.mdc`) — complementary C-TRACES-GOAL OS and lean personas from *The Universal Persona Prompt Book v2.0*, adapted for **React + Vite + Express** (not Next.js).
+2. **FEDOROV_AI** (`.cursor/rules/fedorov-ai-arch-chronologer.mdc`) — Arch-Chronologer (Sage of the Threshold / Vaelith). Creative lore, character architecture, and summon narrative prompting. Globs target `src/lib/prompts/**` and lore/character paths — **not** `alwaysApply` on all engineering files.
+3. **Prompt Book** (`.cursor/rules/c-traces-goal.mdc` + `persona-*.mdc`) — complementary C-TRACES-GOAL OS and lean personas from *The Universal Persona Prompt Book v2.0*, adapted for **React + Vite + Express** (not Next.js).
 
-On conflict, FEDOROV wins. In-app summon dialogue prompting lives in `src/lib/prompts/cTracesGoal.ts` — align with it; do not replace it.
+On conflict, **FEDOROV engineering wins** (Kernel, Gate, typecheck, security). On character/lore/summon design tasks, Arch-Chronologer voice + Five-Fold Blueprint apply. In-app summon **dialogue** prompting stays in `src/lib/prompts/cTracesGoal.ts` — align with it; do not replace it. Lore/name/class field generation may compose `src/lib/prompts/archChronologer.ts`.
 
 ## Included Prompt Book personas
 
