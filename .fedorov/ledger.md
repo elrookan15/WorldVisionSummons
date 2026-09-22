@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-22 | Cloud Agent install non-deterministic (no npm lockfile) | build-config | devops | Active |
 | 2026-09-22 | Character Codex + dice tray missing on main | ui-state | frontend | Active |
 | 2026-09-22 | Genre page backgrounds lack style motif props | ui-theming | frontend | Active |
 | 2026-09-22 | FEDOROV_AI Arch-Chronologer lore persona | build-config | other | Active |
@@ -13,6 +14,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-22] Cloud Agent install non-deterministic (no npm lockfile)
+- Category: build-config
+- Persona: devops
+- File(s): .gitignore, package-lock.json, .cursor/environment.json
+- Root Cause: Repo shipped only `bun.lock`; `package-lock.json` was git-ignored. The Cloud Agent environment ran `npm install` with no npm lockfile, so npm re-resolved the full peer-dependency graph each build. Against a React 19 tree with many `ERESOLVE overriding peer dependency` conflicts, npm@10's arborist intermittently crashed with `Cannot read properties of null (reading 'edgesOut')`, failing the environment build (INSTALL_FAILED) even though local installs sometimes succeeded.
+- Patch: Un-ignore and commit `package-lock.json` (573 KB, pins the full resolved tree); switch `.cursor/environment.json` install to deterministic `npm ci`.
+- Red Test: Draft environment build bld-20260922-fd54eaf6 with `install: npm install` → `npm error Cannot read properties of null (reading 'edgesOut')`, Exit code 1, build FAILED/INSTALL_FAILED.
+- Green Test: Clean `rm -rf node_modules && npm ci` twice → `added 797 packages`, exit 0 both times; `npm run lint` (tsc) exit 0; `npm test` 32/32 pass; `npm run build` exit 0; dev server `/api/health` → `status: ok`.
+- Regression Guard: Committed `package-lock.json` + `npm ci` removes graph re-resolution (no arborist peer crash) and is verified in a fresh Cloud Agent build/subagent.
+- Residual Risk: `package.json` pins pre-release Prisma (`8.0.0-rc`/`@prisma/client 7`) with engine `>=22.18.0` while the base image is Node 22.14.0 (EBADENGINE warning only; install/build/tests unaffected). Lockfile must be regenerated when dependencies change.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-22] Character Codex + dice tray missing on main
 - Category: ui-state
