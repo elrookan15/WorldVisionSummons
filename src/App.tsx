@@ -22,35 +22,36 @@ import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromp
 import { buildProceduralPortrait } from "./lib/portraitFallback";
 
 const THEMES = [
-  {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes", texture:"obsidian", chrome:"arch", radius:"4px",
-    tokens:{bg:"#070708",bg2:"#121212",card:"#111010",card2:"#1a1414",border:"#2a1a1a",borderStrong:"#8b0000",text:"#d8c9c9",muted:"#8a6a6a",muted2:"#5a4040",accent:"#8b0000",accent2:"#ff1a1a",accentText:"#f5d0d0",shadow:"rgba(0,0,0,0.9)"},
+  // clash = complementary opposite of the genre's core accent (sparks, not recolor)
+  {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes — clash: electric teal", texture:"obsidian", chrome:"arch", radius:"4px",
+    tokens:{bg:"#070708",bg2:"#121212",card:"#111010",card2:"#1a1414",border:"#2a1a1a",borderStrong:"#8b0000",text:"#d8c9c9",muted:"#8a6a6a",muted2:"#5a4040",accent:"#8b0000",accent2:"#ff1a1a",accentText:"#f5d0d0",clash:"#00e8a8",clashText:"#041510",shadow:"rgba(0,0,0,0.9)"},
     fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'Cinzel', serif"}},
-  {id:"cyberpunk", alias:"neonRonin", name:"Cyberpunk", short:"CYB", icon:Zap, desc:"Neon grid, chrome & rain-slicked streets", texture:"neon", chrome:"hud", radius:"0px",
-    tokens:{bg:"#0c0a14",bg2:"#171222",card:"#1a1426",card2:"#221a32",border:"#3a2d4f",borderStrong:"#ff2a8a",text:"#e9ddff",muted:"#9d8ab8",muted2:"#6b5a85",accent:"#ff2a8a",accent2:"#00f0ff",accentText:"#0c0a14",shadow:"rgba(255,42,138,0.22)"},
+  {id:"cyberpunk", alias:"neonRonin", name:"Cyberpunk", short:"CYB", icon:Zap, desc:"Neon grid, chrome & rain-slicked streets — clash: toxic chartreuse", texture:"neon", chrome:"hud", radius:"0px",
+    tokens:{bg:"#0c0a14",bg2:"#171222",card:"#1a1426",card2:"#221a32",border:"#3a2d4f",borderStrong:"#ff2a8a",text:"#e9ddff",muted:"#9d8ab8",muted2:"#6b5a85",accent:"#ff2a8a",accent2:"#00f0ff",accentText:"#0c0a14",clash:"#d4ff00",clashText:"#101400",shadow:"rgba(255,42,138,0.22)"},
     fonts:{display:"'Orbitron', sans-serif",body:"'IBM Plex Mono', monospace",mono:"'Orbitron', monospace"}},
-  {id:"steampunkTinkerer", alias:"steampunk", name:"Steampunk", short:"STM", icon:Cog, desc:"Brass gears, gaslight & riveted copper", texture:"steampunk", chrome:"rivet", radius:"10px",
-    tokens:{bg:"#e8ddd0",bg2:"#d9cbb8",card:"#f5efe6",card2:"#efe6d6",border:"#c9b8a0",borderStrong:"#b87333",text:"#2e2118",muted:"#7a6654",muted2:"#a89886",accent:"#b87333",accent2:"#8a5a2b",accentText:"#fdf6ec",shadow:"rgba(46,33,24,0.15)"},
+  {id:"steampunkTinkerer", alias:"steampunk", name:"Steampunk", short:"STM", icon:Cog, desc:"Brass gears, gaslight & riveted copper — clash: turquoise", texture:"steampunk", chrome:"rivet", radius:"10px",
+    tokens:{bg:"#e8ddd0",bg2:"#d9cbb8",card:"#f5efe6",card2:"#efe6d6",border:"#c9b8a0",borderStrong:"#b87333",text:"#2e2118",muted:"#7a6654",muted2:"#a89886",accent:"#b87333",accent2:"#8a5a2b",accentText:"#fdf6ec",clash:"#14b8a6",clashText:"#04201c",shadow:"rgba(46,33,24,0.15)"},
     fonts:{display:"'Philosopher', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}},
-  {id:"retro8Bit", alias:"8bitRetro", name:"8-Bit Retro RPG", short:"8BT", icon:Terminal, desc:"16-color dungeon chamber, arcade pixel glow", texture:"retro", chrome:"pixel", radius:"0px",
-    tokens:{bg:"#0d1117",bg2:"#161b22",card:"#1b222d",card2:"#212836",border:"#30363d",borderStrong:"#2ea043",text:"#e6edf3",muted:"#8b949e",muted2:"#6e7681",accent:"#2ea043",accent2:"#f0883e",accentText:"#0d1117",shadow:"rgba(46,160,67,0.2)"},
+  {id:"retro8Bit", alias:"8bitRetro", name:"8-Bit Retro RPG", short:"8BT", icon:Terminal, desc:"16-color dungeon chamber, arcade pixel glow — clash: hot magenta", texture:"retro", chrome:"pixel", radius:"0px",
+    tokens:{bg:"#0d1117",bg2:"#161b22",card:"#1b222d",card2:"#212836",border:"#30363d",borderStrong:"#2ea043",text:"#e6edf3",muted:"#8b949e",muted2:"#6e7681",accent:"#2ea043",accent2:"#f0883e",accentText:"#0d1117",clash:"#ff2bd6",clashText:"#1a0014",shadow:"rgba(46,160,67,0.2)"},
     fonts:{display:"'JetBrains Mono', monospace",body:"'JetBrains Mono', monospace",mono:"'JetBrains Mono', monospace"}},
-  {id:"highFantasy", alias:"arcaneCodex", name:"High Fantasy", short:"HFA", icon:Crown, desc:"Gilded mythril, celestial radiance & grimoires", texture:"arcane", chrome:"filigree", radius:"22px",
-    tokens:{bg:"#0d0c0b",bg2:"#1a1620",card:"#151412",card2:"#1e1b2e",border:"#2a2438",borderStrong:"#d9c5a0",text:"#e8e1d3",muted:"#8a847a",muted2:"#5a5752",accent:"#d9c5a0",accent2:"#bfa67a",accentText:"#0d0c0b",shadow:"rgba(0,0,0,0.5)"},
+  {id:"highFantasy", alias:"arcaneCodex", name:"High Fantasy", short:"HFA", icon:Crown, desc:"Gilded mythril, celestial radiance & grimoires — clash: royal indigo", texture:"arcane", chrome:"filigree", radius:"22px",
+    tokens:{bg:"#0d0c0b",bg2:"#1a1620",card:"#151412",card2:"#1e1b2e",border:"#2a2438",borderStrong:"#d9c5a0",text:"#e8e1d3",muted:"#8a847a",muted2:"#5a5752",accent:"#d9c5a0",accent2:"#bfa67a",accentText:"#0d0c0b",clash:"#6366f1",clashText:"#f5f3ff",shadow:"rgba(0,0,0,0.5)"},
     fonts:{display:"'Fraunces', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"cosmicHorror", alias:"cosmic", name:"Cosmic Horror", short:"CSM", icon:Eye, desc:"Non-Euclidean basalt, abyssal void & viridian", texture:"cosmic", chrome:"rift", radius:"28px",
-    tokens:{bg:"#06080d",bg2:"#0d121c",card:"#0f1724",card2:"#141f32",border:"#1c2d44",borderStrong:"#38bdf8",text:"#cbd5e1",muted:"#64748b",muted2:"#475569",accent:"#38bdf8",accent2:"#a855f7",accentText:"#06080d",shadow:"rgba(56,189,248,0.2)"},
+  {id:"cosmicHorror", alias:"cosmic", name:"Cosmic Horror", short:"CSM", icon:Eye, desc:"Non-Euclidean basalt, abyssal void & viridian — clash: molten amber", texture:"cosmic", chrome:"rift", radius:"28px",
+    tokens:{bg:"#06080d",bg2:"#0d121c",card:"#0f1724",card2:"#141f32",border:"#1c2d44",borderStrong:"#38bdf8",text:"#cbd5e1",muted:"#64748b",muted2:"#475569",accent:"#38bdf8",accent2:"#a855f7",accentText:"#06080d",clash:"#fb923c",clashText:"#1a0a00",shadow:"rgba(56,189,248,0.2)"},
     fonts:{display:"'Fraunces', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"samuraiEra", alias:"samurai", name:"Samurai Era", short:"SAM", icon:Sword, desc:"Sumi-e ink, bamboo mist & tamahagane steel", texture:"samurai", chrome:"scroll", radius:"2px",
-    tokens:{bg:"#121010",bg2:"#1c1717",card:"#221d1d",card2:"#2c2424",border:"#423636",borderStrong:"#dc2626",text:"#f3ecec",muted:"#a89a9a",muted2:"#756767",accent:"#dc2626",accent2:"#eab308",accentText:"#ffffff",shadow:"rgba(220,38,38,0.2)"},
+  {id:"samuraiEra", alias:"samurai", name:"Samurai Era", short:"SAM", icon:Sword, desc:"Sumi-e ink, bamboo mist & tamahagane steel — clash: jade teal", texture:"samurai", chrome:"scroll", radius:"2px",
+    tokens:{bg:"#121010",bg2:"#1c1717",card:"#221d1d",card2:"#2c2424",border:"#423636",borderStrong:"#dc2626",text:"#f3ecec",muted:"#a89a9a",muted2:"#756767",accent:"#dc2626",accent2:"#eab308",accentText:"#ffffff",clash:"#2dd4bf",clashText:"#04201c",shadow:"rgba(220,38,38,0.2)"},
     fonts:{display:"'Philosopher', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"postApocalyptic", alias:"wastelandScavenger", name:"Post-Apocalyptic", short:"PST", icon:Truck, desc:"Irradiated ash, rusted corrugated iron & hazard stencils", texture:"wasteland", chrome:"stencil", radius:"0px",
-    tokens:{bg:"#d8c9a7",bg2:"#c9b896",card:"#e8dcc0",card2:"#e0d0a8",border:"#b89a6a",borderStrong:"#b8451b",text:"#2b1f14",muted:"#6b5a42",muted2:"#8a7a64",accent:"#b8451b",accent2:"#ff6b2a",accentText:"#fff0d6",shadow:"rgba(43,31,20,0.18)"},
+  {id:"postApocalyptic", alias:"wastelandScavenger", name:"Post-Apocalyptic", short:"PST", icon:Truck, desc:"Treasure-map parchment, rust & hazard stencils — clash: lime green", texture:"wasteland", chrome:"stencil", radius:"0px",
+    tokens:{bg:"#d8c9a7",bg2:"#c9b896",card:"#e8dcc0",card2:"#e0d0a8",border:"#b89a6a",borderStrong:"#b8451b",text:"#2b1f14",muted:"#6b5a42",muted2:"#8a7a64",accent:"#b8451b",accent2:"#ff6b2a",accentText:"#fff0d6",clash:"#a3e635",clashText:"#142000",shadow:"rgba(43,31,20,0.18)"},
     fonts:{display:"'Anton', sans-serif",body:"'Special Elite', cursive",mono:"'Special Elite', monospace"}},
-  {id:"eldritchArcane", alias:"eldritch", name:"Eldritch Arcane", short:"ELD", icon:BookOpen, desc:"Amethyst voids, floating runic shards & astral mist", texture:"eldritch", chrome:"crystal", radius:"26px",
-    tokens:{bg:"#0b0813",bg2:"#151024",card:"#1b152e",card2:"#241c3d",border:"#3b2d61",borderStrong:"#c084fc",text:"#f3e8ff",muted:"#a855f7",muted2:"#7e22ce",accent:"#c084fc",accent2:"#38bdf8",accentText:"#0b0813",shadow:"rgba(192,132,252,0.25)"},
+  {id:"eldritchArcane", alias:"eldritch", name:"Eldritch Arcane", short:"ELD", icon:BookOpen, desc:"Amethyst voids, floating runic shards & astral mist — clash: chartreuse", texture:"eldritch", chrome:"crystal", radius:"26px",
+    tokens:{bg:"#0b0813",bg2:"#151024",card:"#1b152e",card2:"#241c3d",border:"#3b2d61",borderStrong:"#c084fc",text:"#f3e8ff",muted:"#a855f7",muted2:"#7e22ce",accent:"#c084fc",accent2:"#38bdf8",accentText:"#0b0813",clash:"#84cc16",clashText:"#142000",shadow:"rgba(192,132,252,0.25)"},
     fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'IBM Plex Mono', monospace"}},
-  {id:"victorianGothic", alias:"victorian", name:"Victorian Gothic", short:"VIC", icon:Feather, desc:"Cobblestone alleys, gaslamps & mourning lace", texture:"victorian", chrome:"gazette", radius:"0px",
-    tokens:{bg:"#0e1013",bg2:"#171a1f",card:"#1d2127",card2:"#252a32",border:"#333945",borderStrong:"#cbd5e1",text:"#e2e8f0",muted:"#94a3b8",muted2:"#64748b",accent:"#cbd5e1",accent2:"#f59e0b",accentText:"#0e1013",shadow:"rgba(0,0,0,0.7)"},
+  {id:"victorianGothic", alias:"victorian", name:"Victorian Gothic", short:"VIC", icon:Feather, desc:"Cobblestone alleys, gaslamps & mourning lace — clash: rose vermillion", texture:"victorian", chrome:"gazette", radius:"0px",
+    tokens:{bg:"#0e1013",bg2:"#171a1f",card:"#1d2127",card2:"#252a32",border:"#333945",borderStrong:"#cbd5e1",text:"#e2e8f0",muted:"#94a3b8",muted2:"#64748b",accent:"#cbd5e1",accent2:"#f59e0b",accentText:"#0e1013",clash:"#f43f5e",clashText:"#ffffff",shadow:"rgba(0,0,0,0.7)"},
     fonts:{display:"'Newsreader', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}}
 ];
 
@@ -1111,6 +1112,8 @@ export default function App() {
     ["--wv-accent"]: c.accent,
     ["--wv-accent2"]: c.accent2,
     ["--wv-accent-text"]: c.accentText,
+    ["--wv-clash"]: c.clash,
+    ["--wv-clash-text"]: c.clashText,
     ["--wv-shadow"]: c.shadow,
     ["--wv-radius"]: (currentTheme as any).radius || "18px",
     ...sheetPageBackgroundCssVars(currentTheme.id),
@@ -1130,7 +1133,7 @@ export default function App() {
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: ${c.border}; border-radius: 99px; }
         input, textarea { background: transparent; color: inherit; }
-        input:focus, textarea:focus { outline: none; border-color: ${c.accent}; }
+        input:focus, textarea:focus { outline: none; border-color: ${c.clash}; box-shadow: 0 0 0 1px ${c.clash}55; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @media print { .no-print { display: none !important; } }
@@ -1359,8 +1362,12 @@ export default function App() {
                     </div>
                     <div className="mono text-[9px] mt-1 opacity-70 truncate">{item.desc}</div>
                   </div>
+                  <div className="mt-2 flex items-center gap-1" aria-hidden="true">
+                    <span className="h-1.5 w-4 rounded-sm" style={{ backgroundColor: item.tokens.accent }} title="Primary accent" />
+                    <span className="h-1.5 w-4 rounded-sm" style={{ backgroundColor: item.tokens.clash }} title="Opposite clash" />
+                  </div>
                   {isSelected && (
-                    <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: item.tokens.accent }} />
+                    <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: item.tokens.clash }} />
                   )}
                 </button>
               );
@@ -1780,7 +1787,7 @@ export default function App() {
                 </div>
               ))}
               <div className="overview-quote sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.borderStrong, color: c.text }}>
-                <div className="mono text-[10px] tracking-[0.18em] uppercase mb-2" style={{ color: c.accent }}>Pull quote</div>
+                <div className="mono text-[10px] tracking-[0.18em] uppercase mb-2" style={{ color: c.clash }}>Pull quote</div>
                 <textarea
                   value={sheetData.personality.speech}
                   onChange={(e) => updateField("personality.speech", e.target.value)}
@@ -1895,7 +1902,7 @@ export default function App() {
             <SectionHeader k="03" title="Lore & Backstory" subtitle="A manuscript of origin, conflict, and oath" c={c} currentTheme={currentTheme} />
             <div className="lore-manuscript">
               <div className="lore-backstory sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.borderStrong, color: c.text, boxShadow: `0 24px 70px ${c.shadow}` }}>
-                <p className="lore-kicker mono text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: c.accent }}>Folio I · Recorded history</p>
+                <p className="lore-kicker mono text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: c.clash }}>Folio I · Recorded history</p>
                 <TextAreaField label="Detailed Backstory" value={sheetData.lore.backstory} onChange={(v: string) => updateField("lore.backstory", v)} rows={10} c={c} />
               </div>
               <div className="lore-stack">
@@ -2034,7 +2041,7 @@ export default function App() {
                 const val = (sheetData.equipment as any)[item.k] || (item.fallbackKey ? (sheetData.equipment as any)[item.fallbackKey] : "") || "";
                 return (
                   <div key={item.k} className="gear-slot sheet-card border p-5 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
-                    <span className="slot-index" style={{ color: c.accent, fontFamily: currentTheme.fonts.display }}>{String(i + 1).padStart(2, "0")}</span>
+                    <span className="slot-index" style={{ color: i % 2 === 0 ? c.accent : c.clash, fontFamily: currentTheme.fonts.display }}>{String(i + 1).padStart(2, "0")}</span>
                     <div>
                       <div className="flex items-center justify-between mb-1.5 pr-8">
                         <div className="flex items-center gap-2 mono text-[10px] tracking-[0.14em] uppercase font-bold" style={{ color: c.text }}>
@@ -2390,7 +2397,7 @@ export default function App() {
 function SectionHeader({ k, title, subtitle, c, currentTheme }: { k: string; title: string; subtitle: string; c: any; currentTheme: any }) {
   return (
     <div className="section-kicker">
-      <span className="mono text-[11px] tracking-[0.18em] border px-2.5 py-1 rounded-full" style={{ color: c.accent, borderColor: c.border, backgroundColor: c.card }}>
+      <span className="mono text-[11px] tracking-[0.18em] border px-2.5 py-1 rounded-full" style={{ color: c.clashText, borderColor: c.clash, backgroundColor: c.clash }}>
         {k}
       </span>
       <h2 className="display text-[28px] md:text-[32px] tracking-[-0.02em] font-light" style={{ fontFamily: currentTheme.fonts.display, color: c.text }}>

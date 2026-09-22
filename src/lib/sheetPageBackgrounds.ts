@@ -32,19 +32,19 @@ export const SHEET_THEME_IDS = [
 
 export type SheetThemeId = (typeof SHEET_THEME_IDS)[number];
 
-type BgPalette = { bg: string; bg2: string; accent: string; accent2: string };
+type BgPalette = { bg: string; bg2: string; accent: string; accent2: string; clash: string };
 
 const THEME_PALETTES: Record<SheetThemeId, BgPalette> = {
-  gothicDarkFantasy: { bg: "#12080a", bg2: "#2a1014", accent: "#8b0000", accent2: "#d4a017" },
-  cyberpunk: { bg: "#0c0a14", bg2: "#1a1430", accent: "#ff2a8a", accent2: "#00f0ff" },
-  steampunkTinkerer: { bg: "#2a1c12", bg2: "#4a301c", accent: "#b87333", accent2: "#e8c37a" },
-  retro8Bit: { bg: "#0d1117", bg2: "#16301d", accent: "#2ea043", accent2: "#f0883e" },
-  highFantasy: { bg: "#151224", bg2: "#2a2140", accent: "#d9c5a0", accent2: "#7dd3fc" },
-  cosmicHorror: { bg: "#06080d", bg2: "#122038", accent: "#38bdf8", accent2: "#a855f7" },
-  samuraiEra: { bg: "#1a1010", bg2: "#3a1818", accent: "#dc2626", accent2: "#eab308" },
-  postApocalyptic: { bg: "#2b1f14", bg2: "#4a341c", accent: "#b8451b", accent2: "#ff6b2a" },
-  eldritchArcane: { bg: "#0b0813", bg2: "#241c3d", accent: "#c084fc", accent2: "#38bdf8" },
-  victorianGothic: { bg: "#0e1013", bg2: "#252a32", accent: "#cbd5e1", accent2: "#f59e0b" },
+  gothicDarkFantasy: { bg: "#12080a", bg2: "#2a1014", accent: "#8b0000", accent2: "#d4a017", clash: "#00e8a8" },
+  cyberpunk: { bg: "#0c0a14", bg2: "#1a1430", accent: "#ff2a8a", accent2: "#00f0ff", clash: "#d4ff00" },
+  steampunkTinkerer: { bg: "#2a1c12", bg2: "#4a301c", accent: "#b87333", accent2: "#e8c37a", clash: "#14b8a6" },
+  retro8Bit: { bg: "#0d1117", bg2: "#16301d", accent: "#2ea043", accent2: "#f0883e", clash: "#ff2bd6" },
+  highFantasy: { bg: "#151224", bg2: "#2a2140", accent: "#d9c5a0", accent2: "#7dd3fc", clash: "#6366f1" },
+  cosmicHorror: { bg: "#06080d", bg2: "#122038", accent: "#38bdf8", accent2: "#a855f7", clash: "#fb923c" },
+  samuraiEra: { bg: "#1a1010", bg2: "#3a1818", accent: "#dc2626", accent2: "#eab308", clash: "#2dd4bf" },
+  postApocalyptic: { bg: "#2b1f14", bg2: "#4a341c", accent: "#b8451b", accent2: "#ff6b2a", clash: "#a3e635" },
+  eldritchArcane: { bg: "#0b0813", bg2: "#241c3d", accent: "#c084fc", accent2: "#38bdf8", clash: "#84cc16" },
+  victorianGothic: { bg: "#0e1013", bg2: "#252a32", accent: "#cbd5e1", accent2: "#f59e0b", clash: "#f43f5e" },
 };
 
 /** Genre artifact language — drives ornament geometry, not palette alone. */
@@ -277,12 +277,18 @@ export function buildSheetPageBackground(page: SheetPageId, themeId: string): st
       <stop offset="55%" stop-color="${p.bg2}" stop-opacity="${midWash}"/>
       <stop offset="100%" stop-color="${p.bg}" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="clashSpark" cx="88%" cy="18%" r="22%">
+      <stop offset="0%" stop-color="${p.clash}" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="${p.clash}" stop-opacity="0"/>
+    </radialGradient>
   </defs>
   <rect width="1200" height="800" fill="url(#wash)"/>
   <rect width="1200" height="800" fill="url(#vignette)"/>
+  <rect width="1200" height="800" fill="url(#clashSpark)"/>
   ${noiseLayer(seed, page === "lore" || page === "stats" ? 0.06 : 0.045)}
   ${genreOrnaments(theme, p)}
   ${pageComposition(page, p)}
+  <circle cx="1120" cy="90" r="7" fill="${p.clash}" opacity="0.55" data-clash-spark="1"/>
 </svg>`;
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

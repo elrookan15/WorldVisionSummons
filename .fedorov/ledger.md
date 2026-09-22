@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-22 | Genre clash accents (complementary opposite colors) | ui-theming | frontend | Active |
 | 2026-09-20 | Prompt Book Cursor rules alongside FEDOROV | build-config | devops | Active |
 | 2026-09-14 | Genres shared one dossier grid (palette-only) | ui-theming | frontend | Active |
 | 2026-09-14 | Dead Clerk middleware + orphan approval UI | build-config | frontend | Active |
@@ -9,6 +10,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-22] Genre clash accents (complementary opposite colors)
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/App.tsx, src/sheet-themes.css, src/lib/sheetPageBackgrounds.ts, src/__tests__/summons.test.ts
+- Root Cause: Each genre palette stayed within one temperature family (rust-on-parchment, brass-on-cream, blood-on-charcoal), so sheets never got a true complementary spark.
+- Patch: Add `clash` / `clashText` tokens per theme (e.g. Post-Apocalyptic lime `#a3e635`, Steampunk turquoise `#14b8a6`); inject `--wv-clash`; use on section badges, lore kickers, ability rails, focus rings, theme chip swatches, and a subtle SVG spark in page atmospheres.
+- Red Test: Themes had only accent/accent2 harmony colors; no opposite token in App or backgrounds.
+- Green Test: Vitest asserts each theme's clash hex + `data-clash-spark` in page SVGs.
+- Regression Guard: `should give every genre a complementary clash accent opposite its primary palette`.
+- Residual Risk: Clash is intentionally loud on badges — if it fights readability on a specific theme, dial opacity not the hue.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-20] Prompt Book Cursor rules alongside FEDOROV
 - Category: build-config
