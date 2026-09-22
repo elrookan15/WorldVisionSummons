@@ -201,6 +201,9 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(cyber).toContain('data-artifact="neon-hud"');
     expect(eightBit).toContain('data-artifact="pixel-grid"');
     expect(samurai).toContain('data-artifact="sumi-washi"');
+    expect(decodeURIComponent(buildSheetPageBackground("overview", "postApocalyptic"))).toContain(
+      'data-artifact="treasure-map"'
+    );
 
     const overview = decodeURIComponent(buildSheetPageBackground("overview", "gothicDarkFantasy"));
     const physical = decodeURIComponent(buildSheetPageBackground("physical", "gothicDarkFantasy"));
@@ -240,6 +243,38 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     }
     // Structural differentiation: one unique layout token per genre
     expect(layouts.size).toBe(SHEET_THEME_IDS.length);
+  });
+
+  it("should scatter three style-specific image motifs across every genre page background", async () => {
+    const { SHEET_PAGE_IDS, SHEET_THEME_IDS, buildSheetPageBackground } = await import(
+      "../lib/sheetPageBackgrounds"
+    );
+    const { THEME_MOTIFS } = await import("../lib/sheetGenreMotifs");
+
+    for (const theme of SHEET_THEME_IDS) {
+      const motifs = THEME_MOTIFS[theme];
+      expect(motifs).toHaveLength(3);
+      for (const page of SHEET_PAGE_IDS) {
+        const svg = decodeURIComponent(buildSheetPageBackground(page, theme));
+        expect(svg).toContain(`data-genre-motifs="${theme}"`);
+        expect(svg).toContain('data-motif-count="3"');
+        for (const motif of motifs) {
+          expect(svg).toContain(`data-motif="${motif}"`);
+        }
+        expect(svg.toLowerCase()).not.toContain("unsplash");
+        expect(svg).not.toContain("https://");
+      }
+    }
+
+    const cyber = decodeURIComponent(buildSheetPageBackground("overview", "cyberpunk"));
+    expect(cyber).toContain('data-motif="laser-skateboard"');
+    expect(cyber).toContain('data-motif="cyborg"');
+    expect(cyber).toContain('data-motif="futuristic-laptop"');
+
+    const map = decodeURIComponent(buildSheetPageBackground("lore", "postApocalyptic"));
+    expect(map).toContain('data-motif="pirate-sword"');
+    expect(map).toContain('data-motif="gold-chest"');
+    expect(map).toContain('data-motif="pirate-ship"');
   });
 
   it("should give every genre a complementary clash accent opposite its primary palette", async () => {
