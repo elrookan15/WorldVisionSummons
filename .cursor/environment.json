@@ -1,6 +1,6 @@
 {
   "name": "WorldVision Summons",
-  "install": "npm install",
+  "install": "npm ci",
   "terminals": [
     {
       "name": "dev-server",
