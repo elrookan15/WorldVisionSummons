@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-22 | FEDOROV_AI Arch-Chronologer lore persona | build-config | other | Active |
 | 2026-09-22 | Genre clash accents (complementary opposite colors) | ui-theming | frontend | Active |
 | 2026-09-20 | Prompt Book Cursor rules alongside FEDOROV | build-config | devops | Active |
 | 2026-09-14 | Genres shared one dossier grid (palette-only) | ui-theming | frontend | Active |
@@ -10,6 +11,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-22] FEDOROV_AI Arch-Chronologer lore persona
+- Category: build-config
+- Persona: other (FEDOROV_AI)
+- File(s): .cursor/rules/fedorov-ai-arch-chronologer.mdc, src/lib/prompts/archChronologer.ts, src/lib/prompts/generators.ts, AGENTS.md, .cursor/rules/README.md
+- Root Cause: No first-class FEDOROV creative AI module for lore/character architecture; Arch-Chronologer persona lived only as an external upload.
+- Patch: Add scoped Cursor rule (not alwaysApply) with full Five-Fold Blueprint + coexistence; runtime `archChronologer.ts` composed into missing-field generators; docs + Vitest export/schema guards. FEDOROV engineering `fedorov-*.mdc` substance unchanged.
+- Red Test: No `fedorov-ai-arch-chronologer.mdc`; lore prompts lacked Arch-Chronologer preamble / Five-Fold anchors.
+- Green Test: `npm test` asserts exports + five-fold sections + lore prompt preamble; `npm run lint` clean.
+- Regression Guard: AGENTS.md + rules README document FEDOROV_AI; unit test on `archChronologer.ts` exports.
+- Residual Risk: `**/*character*` / `**/*lore*` globs may attach on type files; coexistence block defers engineering authority.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-22] Genre clash accents (complementary opposite colors)
 - Category: ui-theming

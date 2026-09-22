@@ -1,4 +1,4 @@
-import { SheetStyle } from "../../types/character";
+import { archChronologerFieldPreamble } from "./archChronologer";
 
 export const GENRE_ATMOSPHERIC_MATRICES: Record<string, {
   palette: string;
@@ -95,7 +95,8 @@ export function getAtmosphericMatrix(style: string) {
 
 export const generateMissingFieldsPrompts = {
   formatNamePrompt: (opts: { sheet_style: string; existing_lore?: string | undefined; existing_class?: string | undefined }) => {
-    return `You are a professional RPG worldbuilder. Generate a single memorable character name (1-4 words) consistent with the following style and any present details.
+    return `${archChronologerFieldPreamble(opts.sheet_style)}
+You are a professional RPG worldbuilder. Generate a single memorable character name (1-4 words) consistent with the following style and any present details.
 Style: ${opts.sheet_style}
 Existing class (if any): ${opts.existing_class ?? "none"}
 Existing lore (if any, short): ${opts.existing_lore ?? "none"}
@@ -107,7 +108,8 @@ Rules:
   },
 
   formatClassPrompt: (opts: { sheet_style: string; existing_lore?: string | undefined; existing_name?: string | undefined }) => {
-    return `You are a professional RPG designer. Generate a single class/archetype (2-6 words) suited to the style and any present lore or name.
+    return `${archChronologerFieldPreamble(opts.sheet_style)}
+You are a professional RPG designer. Generate a single class/archetype (2-6 words) suited to the style and any present lore or name.
 Style: ${opts.sheet_style}
 Existing name: ${opts.existing_name ?? "none"}
 Existing lore: ${opts.existing_lore ?? "none"}
@@ -118,13 +120,14 @@ Rules:
   },
 
   formatLorePrompt: (opts: { sheet_style: string; existing_name?: string | undefined; existing_class?: string | undefined }) => {
-    return `You are a concise fiction writer tasked with writing a 2-3 sentence background (60-110 words) for a character.
+    return `${archChronologerFieldPreamble(opts.sheet_style)}
+You are a concise fiction writer tasked with writing a 2-3 sentence background (60-110 words) for a character.
 Name: ${opts.existing_name ?? "Unknown"}
 Class: ${opts.existing_class ?? "Unknown"}
 Style: ${opts.sheet_style}
 Guidance:
-- Include an origin, a formative conflict or sacrifice, faction/world tie, and a present driving goal or unresolved mystery.
-- Use concrete places, artifacts, or forces relevant to the style.
+- Compress Five-Fold substance into prose: origin + sensory texture, formative conflict/sacrifice (GMC), faction/world-seam tie, and a present driving goal or unresolved mystery.
+- Use concrete places, artifacts, smells, or forces relevant to the style — never generic "mysterious power."
 - Tone: cinematic, specific, lore-rich.
 Output:
 Return the lore only. Exactly 60-110 words.
@@ -132,7 +135,8 @@ Return the lore only. Exactly 60-110 words.
   },
 
   formatInventoryPrompt: (opts: { sheet_style: string; existing_name?: string | undefined; existing_class?: string | undefined; existing_lore?: string | undefined }) => {
-    return `Generate a comma-separated list of exactly 8-12 distinct inventory items for this character. Items must fit the style, class, and lore provided.
+    return `${archChronologerFieldPreamble(opts.sheet_style)}
+Generate a comma-separated list of exactly 8-12 distinct inventory items for this character. Items must fit the style, class, and lore provided.
 Name: ${opts.existing_name ?? "Unknown"}
 Class: ${opts.existing_class ?? "Unknown"}
 Lore (short): ${opts.existing_lore ?? "none"}
@@ -145,19 +149,23 @@ Rules:
   },
 
   formatPhysicalPrompt: (opts: { sheet_style: string; character_class: string; character_lore: string; character_name: string }) => {
-    return `Provide four physical attributes for the character as JSON with keys: height (format X'Y"), weight (NNN lbs), build (one of Wiry, Stocky, Lean, Broad-shouldered, Gaunt, Imposing, Compact), distinguishing_feature (short phrase). Ensure consistency with class and lore and style: ${opts.sheet_style}
+    return `${archChronologerFieldPreamble(opts.sheet_style)}
+Provide four physical attributes for the character as JSON with keys: height (format X'Y"), weight (NNN lbs), build (one of Wiry, Stocky, Lean, Broad-shouldered, Gaunt, Imposing, Compact), distinguishing_feature (short phrase). Ensure consistency with class and lore and style: ${opts.sheet_style}
 Character: ${opts.character_name}
 Class: ${opts.character_class}
 Lore: ${opts.character_lore}
+distinguishing_feature must be sensory-concrete (sight/sound/smell tell), not a vague adjective.
 Return strictly a JSON object. Example:
 {"height":"6'2\"", "weight":"220 lbs", "build":"Imposing", "distinguishing_feature":"tarnished sigil branded on right shoulder"}
 `;
   },
 
   formatSignaturePrompt: (opts: { sheet_style: string; character_name: string; character_class: string; character_lore: string; inventory_items: string }) => {
-    return `Generate 10 short flavour attributes (1-6 words each) as JSON with keys:
+    return `${archChronologerFieldPreamble(opts.sheet_style)}
+Generate 10 short flavour attributes (1-6 words each) as JSON with keys:
 reputation, vice, virtue, fear, obsession, tell, loyalty, blind_spot, survival_instinct, legacy_fear.
 Ground each value in the following character details. No sentences; just short strings. Keep them distinct.
+Map loosely to Five-Fold: reputation/lineage, tell (sensory), obsession/goal, fear/conflict, virtue-vice (cost), loyalty/world-seam.
 Name: ${opts.character_name}
 Class: ${opts.character_class}
 Lore: ${opts.character_lore}
