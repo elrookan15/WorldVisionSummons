@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { EquipmentTarget } from "../../schema/codexSnapshotV1";
 import type { CalloutRoute, PlateRule, RectMm } from "../../composition/types";
-import { ILLUMINATED_TOKENS } from "./tokens";
+import type { PlateFrame, PlateSkin } from "./skins";
 
 const PT_IN_MM = 25.4 / 72;
 
@@ -17,44 +17,91 @@ export function regionBox(region: RectMm): CSSProperties {
 }
 
 export function plateFont(role: "display" | "body" | "mono" | "label"): string {
-  if (role === "display") return '"Cinzel Decorative", Cinzel, Palatino, serif';
-  if (role === "label") return "Cinzel, Palatino, serif";
-  if (role === "mono") return '"IBM Plex Mono", ui-monospace, monospace';
-  return '"Cormorant Garamond", Newsreader, Palatino, serif';
+  if (role === "display") return "var(--codex-display), Cinzel, Palatino, serif";
+  if (role === "label") return "var(--codex-label), Cinzel, Palatino, serif";
+  if (role === "mono") return "var(--codex-mono), 'IBM Plex Mono', ui-monospace, monospace";
+  return "var(--codex-body), 'Cormorant Garamond', Newsreader, Palatino, serif";
 }
 
-export function CodexParchmentGround() {
+export function CodexParchmentGround({ skin }: { skin: PlateSkin }) {
+  const gid = `codex-sheet-${skin.id}`;
   return (
     <svg viewBox="0 0 210 297" width="210mm" height="297mm" style={{ position: "absolute", inset: 0 }} aria-hidden="true">
       <defs>
-        <radialGradient id="codex-sheet" cx="48%" cy="42%" r="72%">
-          <stop offset="0%" stopColor="#F6EDD8" />
-          <stop offset="46%" stopColor={ILLUMINATED_TOKENS.parchment} />
-          <stop offset="78%" stopColor="#D7C09A" />
-          <stop offset="100%" stopColor="#8C6842" />
+        <radialGradient id={gid} cx="48%" cy="42%" r="72%">
+          <stop offset="0%" stopColor={skin.ground} />
+          <stop offset="58%" stopColor={skin.mid} />
+          <stop offset="100%" stopColor={skin.edge} />
         </radialGradient>
-        <filter id="codex-fiber" x="0" y="0" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="7" result="noise" />
-          <feColorMatrix type="matrix" values="0 0 0 0 0.38  0 0 0 0 0.24  0 0 0 0 0.12  0 0 0 0.42 0" />
+        <filter id={`codex-fiber-${skin.id}`} x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency={skin.texture === "grid" ? "0.35" : "0.9"} numOctaves="4" seed="7" />
+          <feColorMatrix type="matrix" values="0 0 0 0 0.38  0 0 0 0 0.24  0 0 0 0 0.12  0 0 0 0.38 0" />
         </filter>
-        <radialGradient id="codex-stain-a" cx="18%" cy="22%" r="28%">
-          <stop offset="0%" stopColor={ILLUMINATED_TOKENS.oxblood} stopOpacity="0.16" />
-          <stop offset="100%" stopColor={ILLUMINATED_TOKENS.oxblood} stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id="codex-stain-b" cx="84%" cy="76%" r="34%">
-          <stop offset="0%" stopColor="#5C3A22" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#5C3A22" stopOpacity="0" />
-        </radialGradient>
+        <pattern id={`codex-scan-${skin.id}`} width="4" height="4" patternUnits="userSpaceOnUse">
+          <rect width="4" height="1" fill={skin.rule} opacity="0.18" />
+        </pattern>
       </defs>
-      <rect width="210" height="297" fill="url(#codex-sheet)" />
-      <rect width="210" height="297" filter="url(#codex-fiber)" />
-      <rect width="210" height="297" fill="url(#codex-stain-a)" />
-      <rect width="210" height="297" fill="url(#codex-stain-b)" />
+      <rect width="210" height="297" fill={`url(#${gid})`} />
+      {skin.texture === "scan" || skin.texture === "grid" ? (
+        <rect width="210" height="297" fill={`url(#codex-scan-${skin.id})`} />
+      ) : (
+        <rect width="210" height="297" filter={`url(#codex-fiber-${skin.id})`} />
+      )}
     </svg>
   );
 }
 
-export function CodexOrnamentFrame({ rules }: { rules: readonly PlateRule[] }) {
+function cornerMark(frame: PlateFrame, x: number, y: number, dx: number, dy: number, skin: PlateSkin) {
+  const accent = skin.accent;
+  const rule = skin.rule;
+  if (frame === "circuit") {
+    return (
+      <g key={`${x}-${y}`}>
+        <polyline points={`${x},${y + dy * 10} ${x},${y} ${x + dx * 10},${y}`} fill="none" stroke={rule} strokeWidth={0.5} />
+        <circle cx={x + dx * 3} cy={y + dy * 3} r="0.8" fill={accent} />
+      </g>
+    );
+  }
+  if (frame === "pixel") {
+    return (
+      <g key={`${x}-${y}`}>
+        <rect x={Math.min(x, x + dx * 4)} y={Math.min(y, y + dy * 2)} width="4" height="2" fill={accent} />
+        <rect x={Math.min(x, x + dx * 2)} y={Math.min(y, y + dy * 4)} width="2" height="4" fill={rule} />
+      </g>
+    );
+  }
+  if (frame === "rivet") {
+    return (
+      <g key={`${x}-${y}`}>
+        <polyline points={`${x},${y + dy * 7} ${x},${y} ${x + dx * 7},${y}`} fill="none" stroke={rule} strokeWidth={0.7} />
+        <circle cx={x + dx * 2.2} cy={y + dy * 2.2} r="0.9" fill="none" stroke={accent} strokeWidth="0.4" />
+      </g>
+    );
+  }
+  if (frame === "brush") {
+    return (
+      <polyline key={`${x}-${y}`} points={`${x},${y + dy * 9} ${x + dx * 0.4},${y} ${x + dx * 9},${y + dy * 0.3}`} fill="none" stroke={accent} strokeWidth="1.1" />
+    );
+  }
+  if (frame === "stencil") {
+    return (
+      <polyline key={`${x}-${y}`} points={`${x},${y + dy * 8} ${x},${y} ${x + dx * 8},${y}`} fill="none" stroke={accent} strokeWidth="0.9" strokeDasharray="2 1.2" />
+    );
+  }
+  if (frame === "rift") {
+    return (
+      <path key={`${x}-${y}`} d={`M ${x} ${y + dy * 8} Q ${x + dx * 4} ${y + dy * 4} ${x + dx * 8} ${y}`} fill="none" stroke={rule} strokeWidth="0.6" />
+    );
+  }
+  return (
+    <g key={`${x}-${y}`}>
+      <polyline points={`${x},${y + dy * 8} ${x},${y} ${x + dx * 8},${y}`} fill="none" stroke={accent} strokeWidth={1.2 * PT_IN_MM} />
+      <polyline points={`${x + dx * 1.6},${y + dy * 5} ${x + dx * 1.6},${y + dy * 1.6} ${x + dx * 5},${y + dy * 1.6}`} fill="none" stroke={rule} strokeWidth={0.4 * PT_IN_MM} />
+    </g>
+  );
+}
+
+export function CodexOrnamentFrame({ rules, skin }: { rules: readonly PlateRule[]; skin: PlateSkin }) {
   return (
     <svg viewBox="0 0 210 297" width="210mm" height="297mm" style={{ position: "absolute", inset: 0 }} aria-hidden="true">
       {rules.map((rule) => (
@@ -73,45 +120,20 @@ export function CodexOrnamentFrame({ rules }: { rules: readonly PlateRule[] }) {
         [198, 12, -1, 1],
         [12, 285, 1, -1],
         [198, 285, -1, -1],
-      ].map(([x, y, dx, dy]) => (
-        <g key={`${x}-${y}`}>
-          <polyline
-            points={`${x},${Number(y) + Number(dy) * 8} ${x},${y} ${Number(x) + Number(dx) * 8},${y}`}
-            fill="none"
-            stroke={ILLUMINATED_TOKENS.oxblood}
-            strokeWidth={1.2 * PT_IN_MM}
-          />
-          <polyline
-            points={`${Number(x) + Number(dx) * 1.6},${Number(y) + Number(dy) * 5} ${Number(x) + Number(dx) * 1.6},${Number(y) + Number(dy) * 1.6} ${Number(x) + Number(dx) * 5},${Number(y) + Number(dy) * 1.6}`}
-            fill="none"
-            stroke={ILLUMINATED_TOKENS.gildedBronze}
-            strokeWidth={0.4 * PT_IN_MM}
-          />
-          <rect
-            x={Number(x) + Number(dx) * 2.2 - 0.7}
-            y={Number(y) + Number(dy) * 2.2 - 0.7}
-            width="1.4"
-            height="1.4"
-            transform={`rotate(45 ${Number(x) + Number(dx) * 2.2} ${Number(y) + Number(dy) * 2.2})`}
-            fill="none"
-            stroke={ILLUMINATED_TOKENS.gildedBronze}
-            strokeWidth={0.4 * PT_IN_MM}
-          />
-        </g>
-      ))}
+      ].map(([x, y, dx, dy]) => cornerMark(skin.frame, x, y, dx, dy, skin))}
     </svg>
   );
 }
 
-export function CodexCrest({ letters, size = 28 }: { letters: string | null; size?: number }) {
+export function CodexCrest({ letters, size = 28, skin }: { letters: string | null; size?: number; skin: PlateSkin }) {
   const mark = (letters ?? "").slice(0, 3);
   return (
     <svg width={size} height={size * 1.15} viewBox="0 0 40 46" aria-hidden="true">
-      <path d="M20 2 L36 8 V24 C36 34 28 42 20 44 C12 42 4 34 4 24 V8 Z" fill={ILLUMINATED_TOKENS.agedFiber} stroke={ILLUMINATED_TOKENS.oxblood} strokeWidth="1.2" />
-      <path d="M20 7 L31 12 V23 C31 30 26 36 20 38 C14 36 9 30 9 23 V12 Z" fill="none" stroke={ILLUMINATED_TOKENS.gildedBronze} strokeWidth="0.7" />
-      {mark ? null : <path d="M20 12 V30 M14 18 H26" stroke={ILLUMINATED_TOKENS.oxblood} strokeWidth="0.6" />}
+      <path d="M20 2 L36 8 V24 C36 34 28 42 20 44 C12 42 4 34 4 24 V8 Z" fill={skin.mid} stroke={skin.accent} strokeWidth="1.2" />
+      <path d="M20 7 L31 12 V23 C31 30 26 36 20 38 C14 36 9 30 9 23 V12 Z" fill="none" stroke={skin.rule} strokeWidth="0.7" />
+      {mark ? null : <path d="M20 12 V30 M14 18 H26" stroke={skin.accent} strokeWidth="0.6" />}
       {mark ? (
-        <text x="20" y="27" textAnchor="middle" fontSize="7" fill={ILLUMINATED_TOKENS.ink} fontFamily="Cinzel, Palatino, serif">
+        <text x="20" y="27" textAnchor="middle" fontSize="7" fill={skin.ink} fontFamily="Cinzel, Palatino, serif">
           {mark}
         </text>
       ) : null}
@@ -119,11 +141,11 @@ export function CodexCrest({ letters, size = 28 }: { letters: string | null; siz
   );
 }
 
-export function CodexItemVignette({ target }: { target: EquipmentTarget }) {
+export function CodexItemVignette({ target, skin }: { target: EquipmentTarget; skin: PlateSkin }) {
   return (
     <svg width="8mm" height="8mm" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="1" y="1" width="22" height="22" fill={ILLUMINATED_TOKENS.agedFiber} stroke={ILLUMINATED_TOKENS.gildedBronze} strokeWidth="0.7" />
-      <g fill="none" stroke={ILLUMINATED_TOKENS.ink} strokeWidth="0.9" strokeLinecap="square">
+      <rect x="1" y="1" width="22" height="22" fill={skin.mid} stroke={skin.rule} strokeWidth="0.7" />
+      <g fill="none" stroke={skin.ink} strokeWidth="0.9" strokeLinecap="square">
         {target === "head" ? <path d="M7 14 V10 C7 7 9 5 12 5 C15 5 17 7 17 10 V14 M8 14 H16" /> : null}
         {target === "torso" ? <path d="M8 6 L12 8 L16 6 V16 H8 Z" /> : null}
         {target === "leftHand" || target === "rightHand" ? <path d="M12 4 V16 M9 16 H15 M10 18 H14" /> : null}
@@ -135,11 +157,7 @@ export function CodexItemVignette({ target }: { target: EquipmentTarget }) {
   );
 }
 
-export function CodexMonogram({ letters }: { letters: string | null }) {
-  return <CodexCrest letters={letters} size={28} />;
-}
-
-export function CodexLeaderLines({ routes }: { routes: readonly CalloutRoute[] }) {
+export function CodexLeaderLines({ routes, skin }: { routes: readonly CalloutRoute[]; skin: PlateSkin }) {
   return (
     <svg viewBox="0 0 210 297" width="210mm" height="297mm" style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
       {routes.filter((route) => route.leader && route.bend).map((route) => {
@@ -151,13 +169,13 @@ export function CodexLeaderLines({ routes }: { routes: readonly CalloutRoute[] }
             <polyline
               points={`${route.anchorPoint.x},${route.anchorPoint.y} ${bend.x},${bend.y} ${tip.x},${tip.y}`}
               fill="none"
-              stroke={ILLUMINATED_TOKENS.gildedBronze}
+              stroke={skin.rule}
               strokeWidth={0.6 * PT_IN_MM}
             />
-            <circle cx={route.anchorPoint.x} cy={route.anchorPoint.y} r="0.7" fill={ILLUMINATED_TOKENS.gildedBronze} />
+            <circle cx={route.anchorPoint.x} cy={route.anchorPoint.y} r="0.7" fill={skin.rule} />
             <polygon
               points={`${tip.x},${tip.y} ${tip.x - 1.6},${tip.y - 0.7} ${tip.x - 1.6},${tip.y + 0.7}`}
-              fill={ILLUMINATED_TOKENS.gildedBronze}
+              fill={skin.rule}
             />
           </g>
         );
