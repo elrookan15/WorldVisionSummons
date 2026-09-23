@@ -1,0 +1,70 @@
+---
+description: Codex Page Finalizer spec. Immutable A4 plate. The generator stays a mutable workshop.
+globs: src/features/codex/**/*
+alwaysApply: false
+---
+
+# WorldVision Summons: Codex Page Finalizer
+
+The generator is the mutable workshop. A finalized Codex Page is an immutable, deterministic, print-ready artifact (A4 portrait, illuminated manuscript / equipment plate).
+
+Do not write the sealed page back into `UiSheetData`. Do not call `Date.now()` inside normalize, compose, hash, or export. The caller supplies `finalizedAt` and `snapshotId`. `provenance.sourceHash` is SHA-256 of canonical JSON with sorted keys, excluding `sourceHash`.
+
+## 1. Data schema (`src/features/codex/schema/`)
+
+`CodexSnapshotV1`:
+
+- `schemaVersion`: `"codex.snapshot.v1"`
+- `snapshotId`: UUID
+- `characterId`: string
+- `revision`: integer, starting at 1 for the first sealed artifact
+- `finalizedAt`: ISO 8601
+- `template`: `{ id: "illuminated-codex"; version: "1.0.0" }`
+- `identity`: `{ name, classTitle, faction?, motto? }`
+- `portrait`: `PinnedPortraitAsset | null` with `assetId`, `renditionUrl`, `width`, `height`, `mimeType`, `contentHash`, `focalPoint`, `cropRect` (fractions 0..1)
+- `physical`: `{ silhouette?, marks, height?, weight? }`
+- `psychology`: traits in categories reputation, virtue, vice, fear, loyalty, survival, obsession, tell, blindSpot
+- `combat`: `{ hp, maxHp, ac, initiative, speed }`
+- `attributes`: str, dex, con, int, wis, cha, each `{ score, modifier }`
+- `resources`, `proficiencies`, `equipment` (`target` head | torso | leftHand | rightHand | waist | feet | free, `priority` 1 | 2 | 3)
+- `chronicle`: `{ backstorySummary, notes? }`
+- `relations`, `visual.genreTheme`, `provenance.sourceHash`
+
+Normalization: trim strings and turn `""` into `null`. Clamp attributes and vitals. Never copy OAuth tokens, `blob:` URLs, private prompts, or chat history.
+
+## 2. Geometry and tokens
+
+A4 `210mm x 297mm`. Safe margin `12mm`. Title `22mm`. Body `188mm`: identity `35mm`, portrait `95mm`, gear `37mm`. Bottom system `50mm`. Footer `8mm`.
+
+Palette: Ink `#211813`, Oxblood `#6B3324`, Gilded Bronze `#B37B3D`, Aged Fiber `#DBC69F`, Parchment `#F2E7CF`. Display 24–42pt. Labels 7.5–9pt. Body minimum 8pt. Rules 0.4–1.2pt.
+
+## 3. Composition
+
+`composeCodex(snapshot, templateManifest, outputProfile)`.
+
+- Name target 24 characters, hard max 42, two lines when condensed.
+- Class target 44, max 72.
+- Motto longer than 90 characters moves into the chronicle.
+- Up to 6 traits, pinned first, then Reputation, Virtue, Vice, Fear, Loyalty, Survival. Description max 140.
+- Missing portrait renders an engraved frame labeled "Portrait not set".
+- Up to 6 equipment items. Empty slots collapse. Never print "None".
+- Vitals and the six attributes with modifiers stay visible.
+- Chronicle is an extractive 3-beat summary, target 480, hard max 720.
+- Footer: `Revision {n} • Template: {id}@{version} • Hash: {sourceHash.slice(0, 8)} • Finalized {YYYY-MM-DD}`.
+- Leaders are orthogonal, one bend, 0.6pt. If an anchor collides or a line would cross the face, drop the leaders and keep the equipment plate.
+
+## 4. Review flow
+
+Phases: `editing -> reviewing -> snapshotting -> composing -> ready -> exporting -> ready`.
+
+Blocking errors (missing name, missing class/title, invalid stats) disable Finalize. Warnings (missing crest, empty traits, low-resolution portrait) stay non-blocking and offer Edit section. The workshop stays editable. The next seal is the next revision.
+
+`CodexPreviewShell` scales the fixed `210mm x 297mm` page with `transform: scale()`. Do not reflow text inside the page.
+
+## 5. Export
+
+Filename: `worldvision-[slug]-codex-r[revision]-[yyyy-mm-dd].[ext]`.
+
+JSON is the snapshot. PNG is 2480×3508 for A4. PDF is print-ready A4 (`210mm 297mm`, zero margin), with US Letter as a scaled output profile of the same composition.
+
+Mount from `App.tsx` with `CodexFinalizer`, passing the live `UiSheetData` workshop sheet.

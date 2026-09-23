@@ -61,6 +61,6 @@ src/features/codex/
 | E F G | CodexBottomSystem | Vitals, attributes, chronicle |
 | H | CodexFooterProvenance | Revision, template, hash, timestamp |
 
-Palette: Ink `#1c140e`, Oxblood `#6e2430`, Gilded Bronze `#a6844a`, Parchment `#f4e7cb`. Frame weights 0.4pt and 1.2pt. Page 210mm × 297mm. PNG profile 2480×3508. PDF MediaBox 595.28 × 841.89 pt. US Letter is a second output profile, not a second composition.
+The normative spec is `codex.mdc`. Palette: Ink `#211813`, Oxblood `#6B3324`, Gilded Bronze `#B37B3D`, Aged Fiber `#DBC69F`, Parchment `#F2E7CF`. Frame weights 0.4pt and 1.2pt. Page 210mm × 297mm. PNG profile 2480×3508. PDF page size 210mm × 297mm. US Letter is a second output profile, not a second composition. `schemaVersion` is `"codex.snapshot.v1"`. The content hash is `provenance.sourceHash`.
 
 Mount with `CodexFinalizer` from `src/features/codex`, passing the live `UiSheetData` workshop object. Locking copies fields into `CodexSnapshotV1` and freezes them.
