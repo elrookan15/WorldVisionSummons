@@ -106,18 +106,33 @@ export function composeCodex(
 
   const identity = regionOf("identity", templateManifest);
   const traits = selectPsychology(snapshot.psychology);
+  const traitPitch = 26;
   traits.forEach((trait, index) => {
-    const fitted = fitLine(`${trait.label}: ${trait.description}`, identity.w - 3, type.labelPt, 140);
+    const slotY = identity.y + 16 + index * traitPitch;
+    const label = fitLine(trait.label, identity.w - 3, type.labelPt, 40);
     push(line({
-      id: `identity.trait.${index}`,
-      text: fitted.text,
+      id: `identity.trait.${index}.label`,
+      text: label.text,
       x: roundMm(identity.x + 1.5),
-      y: roundMm(identity.y + 8 + index * 28),
+      y: roundMm(slotY),
       maxWidthMm: identity.w - 3,
       fontPt: type.labelPt,
-      role: "body",
-      color: ink,
-    }, fitted.truncated));
+      role: "label",
+      color: oxblood,
+    }, label.truncated));
+    const body = fitBlock(trait.description, identity.w - 3, 16, type.minBodyPt, 1.15, 140);
+    if (body.text.length > 0) {
+      push(line({
+        id: `identity.trait.${index}`,
+        text: body.text,
+        x: roundMm(identity.x + 1.5),
+        y: roundMm(slotY + 4),
+        maxWidthMm: identity.w - 3,
+        fontPt: type.minBodyPt,
+        role: "body",
+        color: ink,
+      }, body.truncated, true));
+    }
   });
   snapshot.physical.marks.slice(0, 3).forEach((mark, index) => {
     const fitted = fitLine(mark, identity.w - 3, type.labelPt, 80);
@@ -125,7 +140,7 @@ export function composeCodex(
       id: `identity.mark.${index}`,
       text: fitted.text,
       x: roundMm(identity.x + 1.5),
-      y: roundMm(identity.y + 8 + traits.length * 28 + index * 8),
+      y: roundMm(identity.y + 16 + traits.length * traitPitch + index * 6),
       maxWidthMm: identity.w - 3,
       fontPt: type.labelPt,
       role: "label",
