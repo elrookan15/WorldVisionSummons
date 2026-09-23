@@ -1,0 +1,210 @@
+                    <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: item.tokens.clash }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Presets & AI Summoner Configuration Bar */}
+      <div className="max-w-[1600px] mx-auto px-5 md:px-10 pt-6">
+        <div className="rounded-[20px] border p-5 md:p-6" style={{ backgroundColor: c.card, borderColor: c.border }}>
+          <div className="flex items-center justify-between mb-4 border-b pb-3" style={{ borderColor: c.border }}>
+            <h2 className="text-lg font-serif font-bold flex items-center gap-2" style={{ color: c.text }}>
+              <Sliders className="w-5 h-5" style={{ color: c.accent }} /> Parameter Configuration & AI Summoner
+            </h2>
+            <span className="mono text-[11px]" style={{ color: c.muted }}>Fill parameters or pick a preset to synthesize character</span>
+          </div>
+
+          {/* Categorized & Tabbed Preset Library Browser */}
+          <div className="mb-6 p-4 rounded-xl border" style={{ backgroundColor: c.bg2, borderColor: c.border }}>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: c.text }}>
+                  <Sparkles className="w-4 h-4" style={{ color: c.accent }} /> Quick Presets Library ({filteredPresets.length} of {PRESETS.length} available)
+                </h3>
+                <p className="text-xs" style={{ color: c.muted }}>Select an archetype tab or search to instantly populate character parameters</p>
+              </div>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <input
+                  type="text"
+                  placeholder="Search 50+ presets..."
+                  value={presetSearchQuery}
+                  onChange={(e) => setPresetSearchQuery(e.target.value)}
+                  className="px-3 py-1.5 text-xs border rounded-lg w-full md:w-48 focus:outline-none"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                />
+                <select
+                  value={presetStyleFilter}
+                  onChange={(e) => setPresetStyleFilter(e.target.value)}
+                  className="px-3 py-1.5 text-xs border rounded-lg focus:outline-none"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                >
+                  <option value="All">All Styles</option>
+                  {uniquePresetStyles.map((st, idx) => (
+                    <option key={idx} value={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Category Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => {
+                  setFavoritesOnlyFilter(!favoritesOnlyFilter);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition flex items-center gap-1.5 border ${favoritesOnlyFilter ? "shadow-sm font-semibold" : "opacity-80 hover:opacity-100"}`}
+                style={{
+                  backgroundColor: favoritesOnlyFilter ? "rgba(245, 158, 11, 0.18)" : c.card,
+                  borderColor: favoritesOnlyFilter ? "#f59e0b" : c.border,
+                  color: favoritesOnlyFilter ? "#f59e0b" : c.text
+                }}
+                title={favoritesOnlyFilter ? "Show all archetypes" : "Show pinned favorite archetypes only"}
+              >
+                <Star className={`w-3.5 h-3.5 ${favoritesOnlyFilter ? "fill-amber-400 text-amber-400" : "text-amber-400"}`} />
+                <span>Favorites ({favoritePresets.length})</span>
+              </button>
+              <button
+                onClick={() => {
+                  setFavoritesOnlyFilter(false);
+                  setPresetCategoryFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${!favoritesOnlyFilter && presetCategoryFilter === "All" ? "shadow-sm font-semibold" : "opacity-75 hover:opacity-100"}`}
+                style={{
+                  backgroundColor: !favoritesOnlyFilter && presetCategoryFilter === "All" ? c.accent : c.card,
+                  color: !favoritesOnlyFilter && presetCategoryFilter === "All" ? c.accentText : c.text,
+                  borderColor: c.border,
+                  borderWidth: '1px'
+                }}
+              >
+                All Categories ({PRESETS.length})
+              </button>
+              {uniquePresetCategories.map((cat, idx) => {
+                const count = PRESETS.filter(p => p.category === cat).length;
+                const isSelected = !favoritesOnlyFilter && presetCategoryFilter === cat;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setFavoritesOnlyFilter(false);
+                      setPresetCategoryFilter(cat);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${isSelected ? "shadow-sm font-semibold" : "opacity-75 hover:opacity-100"}`}
+                    style={{
+                      backgroundColor: isSelected ? c.accent : c.card,
+                      color: isSelected ? c.accentText : c.text,
+                      borderColor: c.border,
+                      borderWidth: '1px'
+                    }}
+                  >
+                    {cat} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Scrollable Preset Cards Grid */}
+            <div className="max-h-56 overflow-y-auto pr-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+              {filteredPresets.length === 0 ? (
+                <div className="col-span-full py-8 text-center text-xs" style={{ color: c.muted }}>
+                  {favoritesOnlyFilter ? "No pinned favorites yet. Click the star on any preset card to pin it." : "No presets found matching your filter or search query."}
+                </div>
+              ) : (
+                filteredPresets.map((p, idx) => {
+                  const isCurrent = characterName === p.charName;
+                  const isFavorited = favoritePresets.includes(p.name);
+                  return (
+                    <div
+                      key={p.name || idx}
+                      onClick={() => applyPreset(p)}
+                      className="p-3 rounded-xl border text-left cursor-pointer transition hover:scale-[1.01] flex flex-col justify-between group relative"
+                      style={{
+                        backgroundColor: isCurrent ? c.bg : (isFavorited ? c.card2 : c.card),
+                        borderColor: isCurrent ? c.accent : (isFavorited ? c.borderStrong : c.border),
+                        boxShadow: isFavorited ? `0 2px 10px ${c.shadow || 'rgba(0,0,0,0.12)'}` : "none"
+                      }}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1 gap-1">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            <button
+                              type="button"
+                              onClick={(e) => toggleFavoritePreset(p.name, e)}
+                              className={`p-1 -ml-1 rounded-md transition shrink-0 hover:scale-110 active:scale-95 ${
+                                isFavorited 
+                                  ? "text-amber-400" 
+                                  : "text-neutral-500 hover:text-amber-400 opacity-60 hover:opacity-100"
+                              }`}
+                              title={isFavorited ? "Unpin archetype from top" : "Pin archetype to top (Favorite)"}
+                              aria-label={isFavorited ? `Unpin ${p.name}` : `Pin ${p.name} to top`}
+                            >
+                              <Star className={`w-3.5 h-3.5 transition ${isFavorited ? "fill-amber-400 text-amber-400" : ""}`} />
+                            </button>
+                            <span className="text-xs font-bold truncate" style={{ color: c.text }}>{p.name}</span>
+                          </div>
+                          <span className="mono text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0" style={{ backgroundColor: c.bg2, color: c.muted }}>
+                            {p.category}
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-medium mb-1 truncate flex items-center justify-between" style={{ color: c.accent }}>
+                          <span className="truncate">{p.charClass}</span>
+                          {isFavorited && (
+                            <span className="mono text-[8px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/30 flex items-center gap-1 shrink-0 ml-1">
+                              <span>★</span> PINNED
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] line-clamp-2 leading-relaxed" style={{ color: c.muted }}>
+                          {p.lore}
+                        </p>
+                      </div>
+                      <div className="mt-2 pt-2 border-t flex items-center justify-between text-[10px] mono" style={{ borderColor: c.border }}>
+                        <span className="truncate opacity-75">{p.style}</span>
+                        <span className="font-bold underline group-hover:translate-x-0.5 transition" style={{ color: c.accent }}>
+                          {isCurrent ? "Active ✓" : "Apply →"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+
+            <div>
+              <label className="block mono text-[10px] uppercase font-semibold mb-1.5" style={{ color: c.muted }}>Character Name (Optional)</label>
+              <input
+                type="text"
+                value={characterName}
+                onChange={e => setCharacterName(e.target.value)}
+                placeholder="e.g. Vaelin Ashborn"
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}
+              />
+            </div>
+
+            <div>
+              <label className="block mono text-[10px] uppercase font-semibold mb-1.5" style={{ color: c.muted }}>Visual Codex Genre (10 Styles)</label>
+              <select
+                value={sheetStyle}
+                onChange={e => {
+                  const newStyle = canonicalizeSheetStyle(e.target.value);
+                  setSheetStyle(newStyle);
+                  setThemeId(themeIdForStyle(newStyle));
+                  setSheetData((prev) => ({ ...prev, sheet_style: newStyle }));
+                }}
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+                style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}
+              >
+                {CANONICAL_SHEET_STYLES.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
