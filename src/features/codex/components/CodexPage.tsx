@@ -1,6 +1,6 @@
 import type { CodexRenderModel } from "../composition/types";
 import { CodexLeaderLines, CodexOrnamentFrame, CodexParchmentGround } from "../templates/illuminated-codex/ornaments";
-import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
+import { skinFonts, skinFor } from "../templates/illuminated-codex/skins";
 import { CodexBottomSystem } from "./CodexBottomSystem";
 import { CodexFooterProvenance } from "./CodexFooterProvenance";
 import { CodexGearRail } from "./CodexGearRail";
@@ -9,6 +9,8 @@ import { CodexPortraitStage } from "./CodexPortraitStage";
 import { CodexTitleCartouche } from "./CodexTitleCartouche";
 
 export function CodexPage({ model }: { model: CodexRenderModel }) {
+  const skin = skinFor(model.genre);
+  const fonts = skinFonts(model.genre);
   return (
     <article
       className="codex-page"
@@ -17,14 +19,18 @@ export function CodexPage({ model }: { model: CodexRenderModel }) {
         position: "relative",
         width: "210mm",
         height: "297mm",
-        background: ILLUMINATED_TOKENS.parchment,
-        color: ILLUMINATED_TOKENS.ink,
+        background: skin.mid,
+        color: skin.ink,
         overflow: "hidden",
         boxSizing: "border-box",
-        boxShadow: "inset 0 0 14mm rgba(62, 28, 12, 0.42)",
+        boxShadow: skin.edgeShadow,
+        ["--codex-display" as string]: fonts.display,
+        ["--codex-body" as string]: fonts.body,
+        ["--codex-label" as string]: fonts.label,
+        ["--codex-mono" as string]: fonts.mono,
       }}
     >
-      <CodexParchmentGround />
+      <CodexParchmentGround skin={skin} />
       <style>
         {`@page { size: 210mm 297mm; margin: 0; }
           @media print {
@@ -32,12 +38,12 @@ export function CodexPage({ model }: { model: CodexRenderModel }) {
             .codex-page { box-shadow: none !important; }
           }`}
       </style>
-      <CodexOrnamentFrame rules={model.rules} />
+      <CodexOrnamentFrame rules={model.rules} skin={skin} />
       <CodexTitleCartouche model={model} />
       <CodexIdentityRail model={model} />
       <CodexPortraitStage model={model} />
       <CodexGearRail model={model} />
-      {model.leadersDropped ? null : <CodexLeaderLines routes={model.callouts} />}
+      {model.leadersDropped ? null : <CodexLeaderLines routes={model.callouts} skin={skin} />}
       <CodexBottomSystem model={model} />
       <CodexFooterProvenance model={model} />
     </article>

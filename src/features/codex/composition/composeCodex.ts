@@ -3,7 +3,7 @@ import { isSealedSnapshot } from "../schema/normalizeSnapshot";
 import type { OutputProfile } from "../export/outputProfiles";
 import { OUTPUT_PROFILES } from "../export/outputProfiles";
 import { ILLUMINATED_MANIFEST, regionOf, type IlluminatedManifest } from "../templates/illuminated-codex/manifest";
-import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
+import { skinFor } from "../templates/illuminated-codex/skins";
 import { fitBlock, fitLine } from "./fitText";
 import { routeCallouts } from "./routeCallouts";
 import { extractiveBeats, selectEquipment, selectPsychology } from "./selectContent";
@@ -47,10 +47,11 @@ export function composeCodex(
     throw new Error("Output profile has no page size");
   }
   const type = templateManifest.type;
-  const ink = ILLUMINATED_TOKENS.ink;
-  const bronze = ILLUMINATED_TOKENS.gildedBronze;
-  const oxblood = ILLUMINATED_TOKENS.oxblood;
-  const muted = ILLUMINATED_TOKENS.muted;
+  const skin = skinFor(snapshot.visual.genreTheme);
+  const ink = skin.ink;
+  const bronze = skin.rule;
+  const oxblood = skin.accent;
+  const muted = skin.muted;
   const texts: TextRun[] = [];
   const overflowIds: string[] = [];
   const push = (run: TextRun): void => {
@@ -255,5 +256,6 @@ export function composeCodex(
     portraitUrl: snapshot.portrait?.renditionUrl ?? null,
     portraitCrop: snapshot.portrait?.cropRect ?? { x: 0, y: 0, width: 1, height: 1 },
     focalPoint: snapshot.portrait?.focalPoint ?? { x: 0.5, y: 0.5 },
+    genre: snapshot.visual.genreTheme,
   };
 }
