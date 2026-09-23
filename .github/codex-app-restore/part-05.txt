@@ -1,0 +1,228 @@
+                <span className="mono text-[11px]">{isSigningInGoogle ? "Connecting..." : "Sign in with Google"}</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportSheets}
+                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                  title="Export Character to Google Sheets"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="mono text-[11px]">Export Sheets</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(true)}
+                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                  title="Import Character from Google Sheets"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="mono text-[11px]">Import Sheets</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                    setGoogleUser(null);
+                    setGoogleToken(null);
+                    setSheetsStatusMsg("Signed out of Google Workspace.");
+                  }}
+                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:opacity-90"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                  title={googleUser?.email || "Sign out"}
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                  <span className="mono text-[11px]">Sign out</span>
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowCodex(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+              title="Open Character Codex"
+            >
+              <BookMarked className="w-3.5 h-3.5" style={{ color: c.clash || c.accent }} />
+              <span className="mono text-[11px]">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowPlate(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{ backgroundColor: showPlate ? c.accent : c.card, borderColor: c.border, color: showPlate ? c.accentText : c.text }}
+              title="Finalize the illuminated Codex page"
+            >
+              <Scroll className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Seal Page</span>
+            </button>
+
+
+            <button
+              type="button"
+              onClick={() => setShowDiceTray((v) => !v)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{
+                backgroundColor: showDiceTray ? c.accent : c.card,
+                borderColor: showDiceTray ? (c.clash || c.borderStrong) : c.border,
+                color: showDiceTray ? c.accentText : c.text
+              }}
+              title="Open tabletop dice tray"
+              aria-expanded={showDiceTray}
+            >
+              <Dices className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Dice Tray</span>
+            </button>
+
+            <button
+              id="copy-character-json-btn"
+              onClick={handleCopyCharacterJson}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] shadow-sm"
+              style={{
+                backgroundColor: copiedJson ? "rgba(16, 185, 129, 0.15)" : c.card,
+                borderColor: copiedJson ? "#10b981" : c.border,
+                color: copiedJson ? "#10b981" : c.text
+              }}
+              title="Copy entire character sheet JSON to clipboard"
+              aria-label="Copy Character JSON"
+            >
+              {copiedJson ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="mono text-[11px] text-emerald-400 font-bold">JSON Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" style={{ color: c.accent }} />
+                  <span className="mono text-[11px]">Copy Character JSON</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => setShowChatModal(true)}
+              className="no-print shrink-0 flex items-center gap-2 px-4 h-9 rounded-full border transition hover:scale-[1.02]"
+              style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+            >
+              <Terminal className="w-3.5 h-3.5" style={{ color: c.accent }} />
+              <span className="mono text-[11px] font-semibold">Ask Federov AI</span>
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="no-print shrink-0 flex items-center gap-2 px-4 h-9 rounded-full font-bold shadow-md transition hover:opacity-90"
+              style={{ backgroundColor: c.accent, color: c.accentText }}
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Export / Print</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Sheets Status Banner */}
+      {sheetsStatusMsg && (
+        <div className="max-w-[1600px] mx-auto px-5 md:px-10 pt-3 no-print">
+          <div className="p-3 rounded-xl border flex items-center justify-between text-xs mono" style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}>
+            <span className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" style={{ color: c.accent }} />
+              {sheetsStatusMsg}
+            </span>
+            <button onClick={() => setSheetsStatusMsg(null)} className="text-stone-400 hover:text-stone-200">Dismiss</button>
+          </div>
+        </div>
+      )}
+
+      {/* Import Spreadsheet Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="max-w-md w-full rounded-2xl border p-6 shadow-2xl flex flex-col gap-4" style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}>
+            <h3 className="text-lg font-bold display" style={{ fontFamily: currentTheme.fonts.display }}>Import from Google Sheets</h3>
+            <p className="text-xs" style={{ color: c.muted }}>Enter the Google Sheets Spreadsheet ID to load character attributes and lore:</p>
+            <input
+              type="text"
+              placeholder="Paste Google Spreadsheet ID here..."
+              value={spreadsheetIdInput}
+              onChange={(e) => setSpreadsheetIdInput(e.target.value)}
+              className="w-full px-3 py-2 text-xs border rounded-xl focus:outline-none mono"
+              style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}
+            />
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold border"
+                style={{ borderColor: c.border, color: c.muted }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleImportSheets}
+                className="px-4 py-2 rounded-xl text-xs font-bold shadow-md transition"
+                style={{ backgroundColor: c.accent, color: c.accentText }}
+              >
+                Import Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Theme Bar */}
+      <div className="max-w-[1600px] mx-auto px-5 md:px-10 pt-6">
+        <div className="rounded-[20px] border p-4 md:p-5" style={{ backgroundColor: c.card, borderColor: c.border, boxShadow: `0 12px 40px ${c.shadow}` }}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-4 h-4" style={{ color: c.accent }} />
+              <span className="mono text-[11px] tracking-[0.18em] uppercase font-semibold" style={{ color: c.muted }}>
+                Theme Engine — Cinematic Origins
+              </span>
+            </div>
+            <span className="mono text-[10px]" style={{ color: c.muted2 }}>Click any theme to instantly restyle the entire dossier</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 overflow-x-auto no-scrollbar pb-1">
+            {THEMES.map((item) => {
+              let isSelected = themeId === item.id;
+              let IconComp = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setThemeId(item.id);
+                    setSheetStyle(item.name);
+                    setSheetData((prev) => ({ ...prev, sheet_style: item.name }));
+                  }}
+                  className="relative group p-3 rounded-[14px] border text-left transition-all duration-200 flex flex-col justify-between"
+                  style={{
+                    backgroundColor: isSelected ? item.tokens.card2 : item.tokens.card,
+                    borderColor: isSelected ? item.tokens.borderStrong : item.tokens.border,
+                    color: item.tokens.text,
+                    boxShadow: isSelected ? `0 0 0 2px ${item.tokens.borderStrong}, 0 8px 24px ${item.tokens.shadow}` : "none",
+                    transform: isSelected ? "translateY(-1px)" : "none"
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <IconComp className="w-4 h-4" style={{ color: item.tokens.accent }} />
+                    <span className="mono text-[9px] px-1.5 py-0.5 rounded border" style={{ borderColor: item.tokens.border, color: item.tokens.muted }}>
+                      {item.short}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="display text-[13px] font-semibold leading-tight truncate" style={{ fontFamily: item.fonts.display }}>
+                      {item.name}
+                    </div>
+                    <div className="mono text-[9px] mt-1 opacity-70 truncate">{item.desc}</div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-1" aria-hidden="true">
+                    <span className="h-1.5 w-4 rounded-sm" style={{ backgroundColor: item.tokens.accent }} title="Primary accent" />
+                    <span className="h-1.5 w-4 rounded-sm" style={{ backgroundColor: item.tokens.clash }} title="Opposite clash" />
+                  </div>
+                  {isSelected && (
