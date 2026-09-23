@@ -18,7 +18,19 @@ export const PSYCHOLOGY_CATEGORIES = [
 ] as const;
 
 export const EQUIPMENT_TARGETS = ["head", "torso", "leftHand", "rightHand", "waist", "feet", "free"] as const;
-export const GENRE_THEMES = ["gothic", "cyberpunk", "steampunk", "cosmic", "samurai", "default"] as const;
+export const GENRE_THEMES = [
+  "gothic",
+  "cyberpunk",
+  "steampunk",
+  "cosmic",
+  "samurai",
+  "highFantasy",
+  "retro",
+  "wasteland",
+  "eldritch",
+  "victorian",
+  "default",
+] as const;
 export const ATTRIBUTE_KEYS = ["str", "dex", "con", "int", "wis", "cha"] as const;
 
 export type PsychologyCategory = (typeof PSYCHOLOGY_CATEGORIES)[number];
