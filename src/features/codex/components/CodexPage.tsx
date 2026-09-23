@@ -1,5 +1,5 @@
 import type { CodexRenderModel } from "../composition/types";
-import { CodexLeaderLines, CodexOrnamentFrame } from "../templates/illuminated-codex/ornaments";
+import { CodexLeaderLines, CodexOrnamentFrame, CodexParchmentGround } from "../templates/illuminated-codex/ornaments";
 import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
 import { CodexBottomSystem } from "./CodexBottomSystem";
 import { CodexFooterProvenance } from "./CodexFooterProvenance";
@@ -21,8 +21,10 @@ export function CodexPage({ model }: { model: CodexRenderModel }) {
         color: ILLUMINATED_TOKENS.ink,
         overflow: "hidden",
         boxSizing: "border-box",
+        boxShadow: "inset 0 0 14mm rgba(62, 28, 12, 0.42)",
       }}
     >
+      <CodexParchmentGround />
       <style>
         {`@page { size: 210mm 297mm; margin: 0; }
           @media print {
