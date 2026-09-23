@@ -38,6 +38,8 @@ A4 `210mm x 297mm`. Safe margin `12mm`. Title `22mm`. Body `188mm`: identity `35
 
 Palette: Ink `#211813`, Oxblood `#6B3324`, Gilded Bronze `#B37B3D`, Aged Fiber `#DBC69F`, Parchment `#F2E7CF`. Display 24–42pt. Labels 7.5–9pt. Body minimum 8pt. Rules 0.4–1.2pt.
 
+The plate is a manuscript, not a dashboard. Ground is mottled parchment with a burnt edge and a full-bleed double rule plus corner ornaments. The portrait is the hero and sits slightly desaturated. Gear callouts are a vignette, a small-caps name, and one italic line, joined by fine rules. A heraldic crest sits at the top of the identity rail. Empty portrait, crest, or item art is an engraved sigil. Empty fields omit their panel. Reference sheets in `references/codex-examples/` are composition only. Never copy their names, stats, items, or lore.
+
 ## 3. Composition
 
 `composeCodex(snapshot, templateManifest, outputProfile)`.
