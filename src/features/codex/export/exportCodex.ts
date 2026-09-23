@@ -9,6 +9,15 @@ export function exportCodexJson(snapshot: CodexSnapshotV1): string {
   return canonicalJson(snapshot);
 }
 
+export function codexExportBasename(snapshot: CodexSnapshotV1): string {
+  const slug = (snapshot.identity.name ?? "unnamed")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "unnamed";
+  const day = /^\d{4}-\d{2}-\d{2}/.test(snapshot.finalizedAt) ? snapshot.finalizedAt.slice(0, 10) : "undated";
+  return `worldvision-${slug}-codex-r${snapshot.revision}-${day}`;
+}
+
 function pdfEscape(value: string): string {
   return value
     .replace(/…/g, "...")
@@ -28,7 +37,7 @@ export function buildCodexPdf(model: CodexRenderModel, profile: OutputProfile = 
   const oy = Math.round(((profile.pdfHeightPt - A4_HEIGHT_PT * scale) / 2) * 100) / 100;
   const commands: string[] = [
     "q",
-    "0.957 0.906 0.796 rg",
+    "0.949 0.906 0.812 rg",
     `0 0 ${profile.pdfWidthPt} ${profile.pdfHeightPt} re f`,
     "Q",
     "q",
@@ -193,7 +202,7 @@ function drawHex(pixels: Uint8Array, width: number, height: number, text: string
     glyph.forEach((row, gy) => {
       for (let gx = 0; gx < 5; gx += 1) {
         if (((row >> (4 - gx)) & 1) === 0) continue;
-        fillRect(pixels, width, height, cursor + gx * scale, y + gy * scale, scale, scale, [110, 36, 48]);
+        fillRect(pixels, width, height, cursor + gx * scale, y + gy * scale, scale, scale, [107, 51, 36]);
       }
     });
     cursor += 6 * scale;
@@ -213,16 +222,15 @@ export function buildCodexPng(
   const width = raster?.width ?? profile.pngWidth;
   const height = raster?.height ?? profile.pngHeight;
   const pixels = new Uint8Array(width * height * 3);
-  pixels.fill(244);
   for (let i = 0; i < pixels.length; i += 3) {
-    pixels[i] = 244;
+    pixels[i] = 242;
     pixels[i + 1] = 231;
-    pixels[i + 2] = 203;
+    pixels[i + 2] = 207;
   }
   const sx = width / 210;
   const sy = height / 297;
-  const oxblood: [number, number, number] = [110, 36, 48];
-  const bronze: [number, number, number] = [166, 132, 74];
+  const oxblood: [number, number, number] = [107, 51, 36];
+  const bronze: [number, number, number] = [179, 123, 61];
   for (const region of Object.values(model.regions)) {
     const x = Math.round(region.x * sx);
     const y = Math.round(region.y * sy);

@@ -1,11 +1,19 @@
 export const ILLUMINATED_TOKENS = {
-  ink: "#1c140e",
-  oxblood: "#6e2430",
-  gildedBronze: "#a6844a",
-  parchment: "#f4e7cb",
-  parchmentDeep: "#e7d3ae",
-  muted: "#5c4636",
-  seal: "#6e2430",
+  ink: "#211813",
+  oxblood: "#6B3324",
+  gildedBronze: "#B37B3D",
+  agedFiber: "#DBC69F",
+  parchment: "#F2E7CF",
+  muted: "#6B5344",
 } as const;
 
-export type IlluminatedTokens = typeof ILLUMINATED_TOKENS;
+export const ILLUMINATED_TYPE = {
+  namePt: 32,
+  nameCondensedPt: 24,
+  epithetPt: 11,
+  bodyPt: 10,
+  labelPt: 8,
+  monoPt: 9,
+  lineHeight: 1.2,
+  minBodyPt: 8,
+} as const;
