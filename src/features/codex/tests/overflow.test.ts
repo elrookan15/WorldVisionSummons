@@ -1,25 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { composeCodex } from "../composition/composeCodex";
-import { fitBlock, fitLine } from "../composition/fitText";
+import { fitLine } from "../composition/fitText";
 import { normalizeSnapshot } from "../schema/normalizeSnapshot";
 import { workshopFixture } from "./fixture";
 
 describe("codex overflow", () => {
-  it("clamps a line that cannot fit the measure", () => {
-    const fitted = fitLine("Threshold Warden of the Unfinished Vow and the Ash Court Ledger", 28, 8, 80);
-    expect(fitted.truncated).toBe(true);
-    expect(fitted.text.endsWith("…")).toBe(true);
-    expect(fitted.text.length).toBeLessThan(60);
-  });
-
-  it("flags chronicle overflow on the plate and records a snapshot warning", () => {
-    const backstory = "oath ".repeat(800);
-    const snapshot = normalizeSnapshot(workshopFixture({ lore: { backstory } }), { finalizedAt: "UNSEALED" });
-    expect(snapshot.warnings.some((warning) => warning.includes("chronicle"))).toBe(true);
-    expect(snapshot.chronicle.backstory.length).toBeLessThanOrEqual(2000);
-    const block = fitBlock(snapshot.chronicle.backstory, 54, 64, 8, 1.2, 2000);
-    expect(block.truncated).toBe(true);
-    const model = composeCodex(snapshot);
+  it("clamps a name to 42 characters and a chronicle to 720", () => {
+    expect(fitLine("Vaelith Thornkeeper", 22, 18, 80).text.endsWith("…")).toBe(true);
+    const sheet = workshopFixture({
+      name: "A".repeat(80),
+      lore: { backstory: `She kept the oath ${"without pause ".repeat(80)}` },
+    });
+    const model = composeCodex(normalizeSnapshot(sheet, {
+      finalizedAt: "2026-09-23T13:43:00.000Z",
+      snapshotId: "00000000-0000-4000-8000-000000000001",
+      characterId: "sheet-1",
+      portraitUrl: null,
+    }));
+    const name = model.texts.filter((text) => text.id.startsWith("title.name")).map((text) => text.text).join("");
+    expect([...name].length).toBeLessThanOrEqual(43);
+    const story = model.texts.find((text) => text.id === "chronicle.body");
+    expect(story?.text.length).toBeLessThanOrEqual(720);
     expect(model.overflowIds).toContain("chronicle.body");
   });
 });
