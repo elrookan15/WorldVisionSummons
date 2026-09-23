@@ -1,0 +1,266 @@
+    charClass: "Sunken Paladin",
+    lore: "Sworn to protect the submerged ruins of Atlantis Minor, Aethelgard breathes the dark ocean abysses and wields a coral-encrusted greatsword blessed by forgotten tides.",
+    items: "Coral Greatsword,Abyssal Plate Armor,Pearl of Water Breathing,Tide-Chime"
+  },
+  {
+    name: "Evelyn Sterling — Solar Archivist",
+    style: "Starship Log",
+    category: "Arcane & Cosmic",
+    charName: "Evelyn Sterling",
+    charClass: "Solar Archivist",
+    lore: "Aboard the exploration vessel Vanguard, Evelyn records dying stars and catalogs anomalous alien transmissions from the edge of the Perseus Arm.",
+    items: "LCARS Datapad,Quantum Scanner,Plasma Torch,Stellar Chart"
+  },
+  {
+    name: "Ignis Thorne — Pyre Inquisitor",
+    style: "Gothic Dark Fantasy",
+    category: "Dark & Necrotic",
+    charName: "Ignis Thorne",
+    charClass: "Pyre Inquisitor",
+    lore: "A zealous hunter of heretics and shape-shifters across the Mist-Veiled Duchies, Ignis carries a silver censer that burns with cold blue sanctified flame.",
+    items: "Sanctified Censer,Inquisitor Crossbow,Silver Stakes,Vial of Holy Oil"
+  },
+  {
+    name: "Silas Moore — 8-Bit Hero",
+    style: "8-Bit Retro RPG",
+    category: "Combat & Martial",
+    charName: "Silas Moore",
+    charClass: "Chiptune Adventurer",
+    lore: "Pulled straight from a legendary 1985 cartridge into physical reality, Silas perceives the world in pixelated grids and solves every problem with 8-bit sword swings.",
+    items: "Pixel Sword,Wooden Shield,16 HP Potions,8-Bit Key"
+  },
+  {
+    name: "Mirela — Thornwood Druid",
+    style: "Feywild Bloom",
+    category: "Nature & Wild",
+    charName: "Mirela",
+    charClass: "Thornwood Druid",
+    lore: "Guardian of the Deep Glimmerwood, Mirela speaks in rustling leaves and commands ancient briars to swallow trespassers who disrespect the forest canopy.",
+    items: "Staff of Living Oak,Moonpetal Tea,Fey-Dust Pouch,Carved Wooden Mask"
+  },
+  {
+    name: "Cain — Sector 9 Enforcer",
+    style: "Shadow Protocol",
+    category: "Stealth & Rogue",
+    charName: "Cain",
+    charClass: "Blacksite Enforcer",
+    lore: "Operating in absolute secrecy under Sector 9 jurisdiction, Cain sanitizes compromised facilities and eliminates liabilities before dawn.",
+    items: "Suppressed SMG,Blacksite Pass,Thermal Goggles,Bio-Lock Cuffs"
+  },
+  {
+    name: "Zephyrine — Void Stalker",
+    style: "Cosmic Horror",
+    category: "Arcane & Cosmic",
+    charName: "Zephyrine",
+    charClass: "Void Stalker",
+    lore: "An operative touched by the Great Old Ones, Zephyrine bends shadow and reality to slip through dimensional rifts unnoticed.",
+    items: "Dagger of Whispers,Void-Silk Cloak,Eldritch Compass,Sanity Amulet"
+  },
+  {
+    name: "Gideon Vance — Alchemist of Ashes",
+    style: "Wasteland Scavenger",
+    category: "Science & Lab",
+    charName: "Gideon Vance",
+    charClass: "Scavenger Alchemist",
+    lore: "Scouring the nuclear craters of Old Chicago, Gideon distills high-octane fuel and medicinal tonics from toxic fallout and rusted engine blocks.",
+    items: "Gas Mask,Acid Sprayer,Geiger Counter,Scrap-Metal Shield"
+  },
+  {
+    name: "Morrigan — Bloodroot Witch",
+    style: "Victorian Gothic",
+    category: "Dark & Necrotic",
+    charName: "Morrigan",
+    charClass: "Bloodroot Witch",
+    lore: "Dwelling in the foggy cobblestone alleys of 1888 London, Morrigan brews potions from belladonna and communicates with Victorian street ghosts.",
+    items: "Cauldron Pendant,Belladonna Vial,Bone Needle,Gaslamp"
+  },
+  {
+    name: "Tariq — Silk Road Assassin",
+    style: "High Fantasy",
+    category: "Stealth & Rogue",
+    charName: "Tariq ibn-Ziyad",
+    charClass: "Desert Assassin",
+    lore: "Master of the dunes and winds, Tariq dances across shifting sands with twin curved scimitars dipped in scorpion venom.",
+    items: "Twin Scimitars,Desert Cloak,Venom Vial,Throwing Darts"
+  },
+  {
+    name: "Valeria — Star-Drift Captain",
+    style: "Starship Log",
+    category: "Tech & Cyber",
+    charName: "Valeria Vance",
+    charClass: "Free-Captain",
+    lore: "Commander of the rogue freighter Nebula Hawk, Valeria smuggling contraband past Imperial blockades across three planetary systems.",
+    items: "Heavy Blaster Pistol,Navigation Rig,Smuggler's Pass,Plasma Flask"
+  },
+  {
+    name: "Dmitri — Neon Street Samurai",
+    style: "Neon Ronin",
+    category: "Combat & Martial",
+    charName: "Dmitri",
+    charClass: "Neon Mercenary",
+    lore: "Armed with a glowing plasma katana and chrome ocular implants, Dmitri protects the neon-lit slums of Neo-Moscow from syndicate thugs.",
+    items: "Plasma Katana,Chrome Arm,Holo-Visor,Stun Baton"
+  },
+  {
+    name: "Seraphina — Gilded Empress",
+    style: "Royal Court",
+    category: "Royal & Noble",
+    charName: "Seraphina III",
+    charClass: "Gilded Empress",
+    lore: "Ruling from the Sapphire Throne of Oria, Seraphina commands supreme legal authority and wields the Scepter of Eternal Decrees.",
+    items: "Scepter of Decrees,Velvet Crown,Signet Ring,Royal Seal"
+  },
+  {
+    name: "Grimm — Sump Diver",
+    style: "Wasteland Scavenger",
+    category: "Stealth & Rogue",
+    charName: "Grimm",
+    charClass: "Sump Diver",
+    lore: "Navigating the toxic underground drainage tunnels beneath the mega-cities, Grimm salvages pristine pre-war tech from forgotten subterranean bunkers.",
+    items: "Water-Filter Mask,Magnetic Grappler,Rusted Crowbar,Scrap-LED Torch"
+  },
+  {
+    name: "Lyra-9 — Bio-Synthetic Infiltrator",
+    style: "BioHacker",
+    category: "Tech & Cyber",
+    charName: "Lyra-9",
+    charClass: "Bio-Synthetic Agent",
+    lore: "Engineered in a clandestine sub-ocean laboratory, Lyra-9 possesses chameleon skin pigmentation and synthetic neural pathways optimized for infiltration.",
+    items: "Chameleon Suit,Neural Interface,Synthetic Scalpel,Toxin Injector"
+  },
+  {
+    name: "Thorne — Hollowed Executioner",
+    style: "Obsidian Cult",
+    category: "Dark & Necrotic",
+    charName: "Thorne",
+    charClass: "Obsidian Executioner",
+    lore: "Serving the blood-priests of the Black Altar, Thorne swings a heavy obsidian cleaver that drinks the vitality of condemned heretics.",
+    items: "Obsidian Cleaver,Iron Mask,Blood-Chalice,Executioner Hood"
+  },
+  {
+    name: "Aria — Moonlit Bard",
+    style: "Feywild Bloom",
+    category: "Nature & Wild",
+    charName: "Aria",
+    charClass: "Moonlit Bard",
+    lore: "Traveling across enchanted glades with her silver lute, Aria sings ancient fey ballads that can charm wild beasts and soothe raging storms.",
+    items: "Silver Lute,Enchanted Sheet Music,Fey Sparkles Vial,Silk Robes"
+  },
+  {
+    name: "Zane — Ether-Engine Pilot",
+    style: "Steampunk Tinkerer",
+    category: "Science & Lab",
+    charName: "Zane",
+    charClass: "Airship Pilot",
+    lore: "Soaring above the cloud-seas in his armored dirigible 'The Iron Albatross', Zane navigates fierce tempest gales and fights sky-pirates with a brass blunderbuss.",
+    items: "Brass Blenderbuss,Aviator Goggles,Airship Compass,Hook & Cable"
+  },
+  {
+    name: "Cassian — Classified Operative",
+    style: "Shadow Protocol",
+    category: "Stealth & Rogue",
+    charName: "Cassian",
+    charClass: "Covert Operative",
+    lore: "His file does not exist in central government databases. When impossible crises emerge, Cassian arrives unannounced and resolves them before dawn.",
+    items: "Matrix Keycard,Silenced Pistol,Encrypted Radio,Counter-Surveillance Rig"
+  },
+  {
+    name: "Xylar — Arcane Archivist",
+    style: "Arcane Codex",
+    category: "Arcane & Cosmic",
+    charName: "Xylar",
+    charClass: "Arcane Archivist",
+    lore: "Keeper of the Vault of Whispers, Xylar preserves forbidden spells and ancient prophecies written on the skin of celestial beasts.",
+    items: "Grimoire of Whispers,Quill of Light,Pendulum,Crystal Monocle"
+  },
+  // 25 Brand New Unique Entries Below
+  {
+    name: "Valerius — Solar Paladin",
+    style: "High Fantasy",
+    category: "Combat & Martial",
+    charName: "Valerius Dawnseeker",
+    charClass: "Solar Paladin",
+    lore: "Knight commander of the Golden Sunburst Order, Valerius radiates blazing solar energy that melts shadow fiends and restores hope to besieged bastions.",
+    items: "Sun-Forged Greatsword,Solar Crest Shield,Vial of Dawnlight,Sunstone Pendant"
+  },
+  {
+    name: "Soren — Frost-Vein Berserker",
+    style: "High Fantasy",
+    category: "Combat & Martial",
+    charName: "Soren Iron-Tooth",
+    charClass: "Glacial Berserker",
+    lore: "Hailing from the frozen peaks of Jotunheim, Soren channels the biting frost storms into his battleaxe, roaring defiance against winter giants.",
+    items: "Glacial Greataxe,Bear-Hide Cloak,Rune of Winter,Frost Mead Flask"
+  },
+  {
+    name: "Nyxara — Shadow Weaver",
+    style: "Gothic Dark Fantasy",
+    category: "Dark & Necrotic",
+    charName: "Nyxara",
+    charClass: "Umbral Weaver",
+    lore: "Weaving garments from pure midnight shadow and spider silk, Nyxara slips through royal courts and catacombs without casting a reflection.",
+    items: "Shadow Loom Dagger,Spider-Silk Shroud,Obsidian Spindle,Veil of Silence"
+  },
+  {
+    name: "Malakor — Abyssal Warlock",
+    style: "Cosmic Horror",
+    category: "Arcane & Cosmic",
+    charName: "Malakor",
+    charClass: "Abyssal Pact-Bound",
+    lore: "Bound by blood-pact to an entity sleeping in the Mariana Trench of stars, Malakor summons crushing pressure tentacles to pulverize foes.",
+    items: "Tome of Deep Woe,Tentacle Rod,Abyssal Pearl,Chanting Beads"
+  },
+  {
+    name: "Vespera — Neon Gunslinger",
+    style: "Cyberpunk",
+    category: "Tech & Cyber",
+    charName: "Vespera",
+    charClass: "Neon Street Gunslinger",
+    lore: "Operating in the underbelly of Neon City, Vespera fires custom magnetic rounds that lock onto bio-signatures through solid steel bulkheads.",
+    items: "Mag-Pistol Pairs,Cyber-Optic HUD,Holo-Cigars,Smart-Bullets"
+  },
+  {
+    name: "Zephyr — Cyber-Monk",
+    style: "Cyberpunk",
+    category: "Tech & Cyber",
+    charName: "Zephyr-7",
+    charClass: "Bio-Electric Ascetic",
+    lore: "Blending ancient martial monastery discipline with high-voltage cybernetic implants, Zephyr channels lightning through bare carbon-fiber fists.",
+    items: "Carbon Knuckles,Neural Tap,Energy Cell Pack,Meditation Chip"
+  },
+  {
+    name: "Tetsuya — Cherry-Blossom Assassin",
+    style: "Samurai Era",
+    category: "Stealth & Rogue",
+    charName: "Tetsuya",
+    charClass: "Shinobi Master",
+    lore: "A legendary phantom of feudal Kyoto who vanishes in a swirling vortex of falling cherry petals while leaving behind a folded origami crane.",
+    items: "Ninjakto Blade,Smoke Pellets,Origami Paper,Grappling Iron"
+  },
+  {
+    name: "Aiko — Shogun Vanguard",
+    style: "Samurai Era",
+    category: "Combat & Martial",
+    charName: "Lady Aiko",
+    charClass: "Imperial Vanguard",
+    lore: "Commander of the Emperor's personal cavalry guard, Aiko wields a gleaming naginata that has turned the tide of countless clan wars.",
+    items: "Imperial Naginata,Lacquer Armor,Banner of the Sun,Tea Ceremony Set"
+  },
+  {
+    name: "Ignatius — Galvanic Alchemist",
+    style: "Steampunk Tinkerer",
+    category: "Science & Lab",
+    charName: "Ignatius Vance",
+    charClass: "Galvanic Chemist",
+    lore: "Experimenting with volatile chemical mixtures and Tesla coils in his subterranean Victorian laboratory, Ignatius seeks the formula for perpetual lightning.",
+    items: "Tesla Coil Rod,Chemical Vials,Copper Goggles,Leaded Apron"
+  },
+  {
+    name: "Beatrice — Clockwork Nurse",
+    style: "Steampunk Tinkerer",
+    category: "Science & Lab",
+    charName: "Beatrice Cogsworth",
+    charClass: "Clockwork Medic",
+    lore: "Tending to wounded soldiers across industrial frontlines with spring-loaded scalpel fingers and automated adrenaline injectors built into her corset.",
+    items: "Clockwork Scalpels,Adrenaline Pump,Aether-Bandages,Nurse's Satchel"
+  },
