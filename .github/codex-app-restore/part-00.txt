@@ -1,0 +1,156 @@
+import React, { useState, useEffect, useRef } from "react";
+import { 
+  Shield, Sword, Sparkles, Compass, Scroll, User, Skull, BookOpen, 
+  Download, RefreshCw, Sliders, Zap, Copy, Check, 
+  Bookmark, Eye, Terminal, Flame, Award, Heart, ShieldAlert,
+  BookMarked, Beaker, ChartColumn, Cog, Crown, EyeOff, Feather,
+  Moon, Truck, Users, FileSpreadsheet, LogIn, LogOut,
+  Star, Dices
+} from "lucide-react";
+import { CharacterSheetData, SheetPreset } from "./types";
+import StatsRadarComparison from "./components/StatsRadarComparison";
+import CharacterCodex from "./components/CharacterCodex";
+import { CodexFinalizer } from "./features/codex";
+import DiceTray from "./components/DiceTray";
+import { StatBaseline } from "./lib/statBaselines";
+import ImageEditorModal from "./components/ImageEditorModal";
+import GeminiChatModal from "./components/GeminiChatModal";
+import { nanoBananaProvider } from "./lib/providers/NanoBananaProvider";
+import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
+import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
+import { compilePortraitPrompt } from "./lib/prompts/generators";
+import { CANONICAL_SHEET_STYLES, canonicalizeSheetStyle, themeIdForStyle } from "./lib/themeMap";
+import { sheetPageBackgroundCssVars } from "./lib/sheetPageBackgrounds";
+import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromptContext, UiSheetData } from "./lib/sheetMapper";
+import { buildProceduralPortrait } from "./lib/portraitFallback";
+import {
+  CodexEntry,
+  deleteCodexEntry,
+  duplicateCodexEntry,
+  loadCodex,
+  upsertCodexEntry
+} from "./lib/characterCodex";
+
+const THEMES = [
+  // clash = complementary opposite of the genre's core accent (sparks, not recolor)
+  {id:"gothicDarkFantasy", alias:"obsidianCult", name:"Gothic Dark Fantasy", short:"GTH", icon:Flame, desc:"Cold moonlight, charcoal & blood runes — clash: electric teal", texture:"obsidian", chrome:"arch", radius:"4px",
+    tokens:{bg:"#070708",bg2:"#121212",card:"#111010",card2:"#1a1414",border:"#2a1a1a",borderStrong:"#8b0000",text:"#d8c9c9",muted:"#8a6a6a",muted2:"#5a4040",accent:"#8b0000",accent2:"#ff1a1a",accentText:"#f5d0d0",clash:"#00e8a8",clashText:"#041510",shadow:"rgba(0,0,0,0.9)"},
+    fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'Cinzel', serif"}},
+  {id:"cyberpunk", alias:"neonRonin", name:"Cyberpunk", short:"CYB", icon:Zap, desc:"Neon grid, chrome & rain-slicked streets — clash: toxic chartreuse", texture:"neon", chrome:"hud", radius:"0px",
+    tokens:{bg:"#0c0a14",bg2:"#171222",card:"#1a1426",card2:"#221a32",border:"#3a2d4f",borderStrong:"#ff2a8a",text:"#e9ddff",muted:"#9d8ab8",muted2:"#6b5a85",accent:"#ff2a8a",accent2:"#00f0ff",accentText:"#0c0a14",clash:"#d4ff00",clashText:"#101400",shadow:"rgba(255,42,138,0.22)"},
+    fonts:{display:"'Orbitron', sans-serif",body:"'IBM Plex Mono', monospace",mono:"'Orbitron', monospace"}},
+  {id:"steampunkTinkerer", alias:"steampunk", name:"Steampunk", short:"STM", icon:Cog, desc:"Brass gears, gaslight & riveted copper — clash: turquoise", texture:"steampunk", chrome:"rivet", radius:"10px",
+    tokens:{bg:"#e8ddd0",bg2:"#d9cbb8",card:"#f5efe6",card2:"#efe6d6",border:"#c9b8a0",borderStrong:"#b87333",text:"#2e2118",muted:"#7a6654",muted2:"#a89886",accent:"#b87333",accent2:"#8a5a2b",accentText:"#fdf6ec",clash:"#14b8a6",clashText:"#04201c",shadow:"rgba(46,33,24,0.15)"},
+    fonts:{display:"'Philosopher', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}},
+  {id:"retro8Bit", alias:"8bitRetro", name:"8-Bit Retro RPG", short:"8BT", icon:Terminal, desc:"16-color dungeon chamber, arcade pixel glow — clash: hot magenta", texture:"retro", chrome:"pixel", radius:"0px",
+    tokens:{bg:"#0d1117",bg2:"#161b22",card:"#1b222d",card2:"#212836",border:"#30363d",borderStrong:"#2ea043",text:"#e6edf3",muted:"#8b949e",muted2:"#6e7681",accent:"#2ea043",accent2:"#f0883e",accentText:"#0d1117",clash:"#ff2bd6",clashText:"#1a0014",shadow:"rgba(46,160,67,0.2)"},
+    fonts:{display:"'JetBrains Mono', monospace",body:"'JetBrains Mono', monospace",mono:"'JetBrains Mono', monospace"}},
+  {id:"highFantasy", alias:"arcaneCodex", name:"High Fantasy", short:"HFA", icon:Crown, desc:"Gilded mythril, celestial radiance & grimoires — clash: royal indigo", texture:"arcane", chrome:"filigree", radius:"22px",
+    tokens:{bg:"#0d0c0b",bg2:"#1a1620",card:"#151412",card2:"#1e1b2e",border:"#2a2438",borderStrong:"#d9c5a0",text:"#e8e1d3",muted:"#8a847a",muted2:"#5a5752",accent:"#d9c5a0",accent2:"#bfa67a",accentText:"#0d0c0b",clash:"#6366f1",clashText:"#f5f3ff",shadow:"rgba(0,0,0,0.5)"},
+    fonts:{display:"'Fraunces', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
+  {id:"cosmicHorror", alias:"cosmic", name:"Cosmic Horror", short:"CSM", icon:Eye, desc:"Non-Euclidean basalt, abyssal void & viridian — clash: molten amber", texture:"cosmic", chrome:"rift", radius:"28px",
+    tokens:{bg:"#06080d",bg2:"#0d121c",card:"#0f1724",card2:"#141f32",border:"#1c2d44",borderStrong:"#38bdf8",text:"#cbd5e1",muted:"#64748b",muted2:"#475569",accent:"#38bdf8",accent2:"#a855f7",accentText:"#06080d",clash:"#fb923c",clashText:"#1a0a00",shadow:"rgba(56,189,248,0.2)"},
+    fonts:{display:"'Fraunces', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
+  {id:"samuraiEra", alias:"samurai", name:"Samurai Era", short:"SAM", icon:Sword, desc:"Sumi-e ink, bamboo mist & tamahagane steel — clash: jade teal", texture:"samurai", chrome:"scroll", radius:"2px",
+    tokens:{bg:"#121010",bg2:"#1c1717",card:"#221d1d",card2:"#2c2424",border:"#423636",borderStrong:"#dc2626",text:"#f3ecec",muted:"#a89a9a",muted2:"#756767",accent:"#dc2626",accent2:"#eab308",accentText:"#ffffff",clash:"#2dd4bf",clashText:"#04201c",shadow:"rgba(220,38,38,0.2)"},
+    fonts:{display:"'Philosopher', serif",body:"'Newsreader', serif",mono:"'IBM Plex Mono', monospace"}},
+  {id:"postApocalyptic", alias:"wastelandScavenger", name:"Post-Apocalyptic", short:"PST", icon:Truck, desc:"Treasure-map parchment, rust & hazard stencils — clash: lime green", texture:"wasteland", chrome:"stencil", radius:"0px",
+    tokens:{bg:"#d8c9a7",bg2:"#c9b896",card:"#e8dcc0",card2:"#e0d0a8",border:"#b89a6a",borderStrong:"#b8451b",text:"#2b1f14",muted:"#6b5a42",muted2:"#8a7a64",accent:"#b8451b",accent2:"#ff6b2a",accentText:"#fff0d6",clash:"#a3e635",clashText:"#142000",shadow:"rgba(43,31,20,0.18)"},
+    fonts:{display:"'Anton', sans-serif",body:"'Special Elite', cursive",mono:"'Special Elite', monospace"}},
+  {id:"eldritchArcane", alias:"eldritch", name:"Eldritch Arcane", short:"ELD", icon:BookOpen, desc:"Amethyst voids, floating runic shards & astral mist — clash: chartreuse", texture:"eldritch", chrome:"crystal", radius:"26px",
+    tokens:{bg:"#0b0813",bg2:"#151024",card:"#1b152e",card2:"#241c3d",border:"#3b2d61",borderStrong:"#c084fc",text:"#f3e8ff",muted:"#a855f7",muted2:"#7e22ce",accent:"#c084fc",accent2:"#38bdf8",accentText:"#0b0813",clash:"#84cc16",clashText:"#142000",shadow:"rgba(192,132,252,0.25)"},
+    fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'IBM Plex Mono', monospace"}},
+  {id:"victorianGothic", alias:"victorian", name:"Victorian Gothic", short:"VIC", icon:Feather, desc:"Cobblestone alleys, gaslamps & mourning lace — clash: rose vermillion", texture:"victorian", chrome:"gazette", radius:"0px",
+    tokens:{bg:"#0e1013",bg2:"#171a1f",card:"#1d2127",card2:"#252a32",border:"#333945",borderStrong:"#cbd5e1",text:"#e2e8f0",muted:"#94a3b8",muted2:"#64748b",accent:"#cbd5e1",accent2:"#f59e0b",accentText:"#0e1013",clash:"#f43f5e",clashText:"#ffffff",shadow:"rgba(0,0,0,0.7)"},
+    fonts:{display:"'Newsreader', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}}
+];
+
+const NAV_TABS = [
+  {id:"overview", label:"Overview", icon:User},
+  {id:"physical", label:"Physical", icon:Heart},
+  {id:"lore", label:"Lore", icon:Feather},
+  {id:"abilities", label:"Abilities", icon:Skull},
+  {id:"equipment", label:"Gear", icon:Sword},
+  {id:"personality", label:"Psyche", icon:Users},
+  {id:"relationships", label:"Bonds", icon:Bookmark},
+  {id:"stats", label:"Stats", icon:ChartColumn}
+];
+
+const PRESETS: SheetPreset[] = [
+  {
+    name: "Gelbinor — The Shy Grave",
+    style: "Gothic Dark Fantasy",
+    category: "Dark & Necrotic",
+    charName: "Gelbinor",
+    charClass: "Reluctant Necromancer / Ossuary Librarian",
+    lore: "Born in Karst, a city built over a mass grave that never stopped whispering. Raised by Charnel Librarians who catalog unclaimed dead. Profoundly shy—corpses don't judge, so he prefers them.",
+    items: "Mister Cracks Grimoire,Bone Tassel Shroud,Cold Tea Thermos,Grave Dirt Satchel,3 Duckling Skulls"
+  },
+  {
+    name: "Vaelin the Gravebound",
+    style: "High Fantasy",
+    category: "Combat & Martial",
+    charName: "Vaelin Ashborn",
+    charClass: "Gravebound Knight",
+    lore: "Excommunicated from the Cathedral of Thorns after refusing to slaughter innocents in the Bleeding March, Vaelin wanders the ash-choked valleys as an oath-bound warden.",
+    items: "Sanctified Bastard Sword,Iron Heater Shield,Vial of consecrated ash,Worn rosary beads"
+  },
+  {
+    name: "Kaelen Vex - Netrunner",
+    style: "Cyberpunk",
+    category: "Tech & Cyber",
+    charName: "Kaelen 'Zero-Day' Vex",
+    charClass: "Cybernetic Netrunner Assassin",
+    lore: "Once a corporate data-savant for Arasaka-Nexus, Kaelen's neural architecture was fried during a rogue AI containment breach in Neo-Shinjuku.",
+    items: "Monomolecular Katana,Smart-Link Heavy Pistol,Neural Deck Mk.IV,Stim-Injectors"
+  },
+  {
+    name: "Lyra Vane — Void Alchemist",
+    style: "Cosmic Horror",
+    category: "Arcane & Cosmic",
+    charName: "Lyra Vane",
+    charClass: "Void Alchemist",
+    lore: "Studying the celestial tides at the observatory of Carcosa, Lyra brewed a draught from fallen meteorite glass that permanently unlocked her peripheral vision to things that crawl between stars.",
+    items: "Stellar Astrolabe,Vial of Star-Ichors,Obsidian Mortar,Telescopic Lenses"
+  },
+  {
+    name: "Kenshiro — Rust-Blade Ronin",
+    style: "Samurai Era",
+    category: "Combat & Martial",
+    charName: "Kenshiro",
+    charClass: "Wasteland Ronin",
+    lore: "A masterless warrior wandering the scorched plains of the Shattered Empire, carrying a blade forged from ancient rail tracks and bound by an unyielding bushido of survival.",
+    items: "Rail-Steel Katana,Tattered Haori,Whetstone of Iron,Dried Plum Flask"
+  },
+  {
+    name: "Orlaith — Ironclad Artificer",
+    style: "Steampunk Tinkerer",
+    category: "Science & Lab",
+    charName: "Orlaith",
+    charClass: "Master Artificer",
+    lore: "Chief engineer of the Albion Steamworks, Orlaith replaced her own right arm with a steam-driven piston gauntlet after an industrial blast in Sector 4.",
+    items: "Piston Gauntlet,Brass Wrench,Blueprint Codex,Aether-Torch"
+  },
+  {
+    name: "Balthazar Crown — Clockwork Magistrate",
+    style: "Steampunk Tinkerer",
+    category: "Science & Lab",
+    charName: "Balthazar Crown",
+    charClass: "Clockwork Magistrate",
+    lore: "Enforcing the Great Meridian Accord with absolute algorithmic precision, Balthazar's mechanical monocle calculates ballistic trajectories and heartbeat fluctuations in real-time.",
+    items: "Clockwork Monocle,Aether-Pistol,Legal Codex,Pocket Chronometer"
+  },
+  {
+    name: "Nyx Talon — Neon Courier",
+    style: "Cyberpunk",
+    category: "Tech & Cyber",
+    charName: "Nyx Talon",
+    charClass: "Underground Courier",
+    lore: "The fastest data-runner in the Sprawl, Nyx plugs directly into fiber-optic grids and jumps rooftop to rooftop across Neo-London while corporate drones hunt her encrypted cargo.",
+    items: "Fiber-Optic Jack,EMP Grenades,Anti-Gravity Boots,Encrypted Data-Drive"
+  },
+  {
+    name: "Aethelgard — Sunken Paladin",
+    style: "High Fantasy",
+    category: "Combat & Martial",
+    charName: "Aethelgard",

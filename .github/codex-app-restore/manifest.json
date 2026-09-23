@@ -1,0 +1,66 @@
+{
+  "files": [
+    {
+      "name": "part-00.txt",
+      "chars": 11981,
+      "sha256": "1fe03dd0d32510cd09d0cdcf819536b20d57eee5ff689cc5d1f8409c3d7ab5de"
+    },
+    {
+      "name": "part-01.txt",
+      "chars": 11999,
+      "sha256": "2ca524503434d7c5c6bbe08d7a944ffb79e67ed11957ebbb6a8cc41579ec1a7e"
+    },
+    {
+      "name": "part-02.txt",
+      "chars": 11971,
+      "sha256": "2766b6a58229cb3d9e1d9403305190c3ffa7abbb9da58ceff54f5244f3409a38"
+    },
+    {
+      "name": "part-03.txt",
+      "chars": 11968,
+      "sha256": "3ebe5f05ae616b7513f8a3d2b7f790e6476559f31d151580cd440ca3f2149db7"
+    },
+    {
+      "name": "part-04.txt",
+      "chars": 11935,
+      "sha256": "a5d8a209b03e9f8e7e36c138d5bbf0ac56ddb3e7e0151e2cef4171703e2134a9"
+    },
+    {
+      "name": "part-05.txt",
+      "chars": 11934,
+      "sha256": "a02018b14a551148a74be8dbbec8bc5cf31e871ff31dd886c53c994ddb5b9cb3"
+    },
+    {
+      "name": "part-06.txt",
+      "chars": 11904,
+      "sha256": "2ece4255f11488223faea20003145faf29e24e0472a3673d7f94593003cfd606"
+    },
+    {
+      "name": "part-07.txt",
+      "chars": 11995,
+      "sha256": "f13681b66cc93991944ace780a4d4ec26712b3295fb56c776b4d5c2a4a6f6316"
+    },
+    {
+      "name": "part-08.txt",
+      "chars": 11998,
+      "sha256": "38654ae0b341783f07bb978287645340d29e465d565033dc1476bd20d829172e"
+    },
+    {
+      "name": "part-09.txt",
+      "chars": 11997,
+      "sha256": "f2b2bf0b9fbd085246c01b2edbb9ed70bec99de9852d7692a3a7f24499978ea8"
+    },
+    {
+      "name": "part-10.txt",
+      "chars": 11975,
+      "sha256": "77008d9570b095270eb19fc93058620075097f9b67b5b0d96de6a65e2effca75"
+    },
+    {
+      "name": "part-11.txt",
+      "chars": 3091,
+      "sha256": "cb44d9359ecf31cde7558a710bd4a14c6d8a7b00d8c5a01d0c6dd09f096d233c"
+    }
+  ],
+  "total_chars": 134748,
+  "sha256": "18fc01db225bc85d6465b4dc1b82f339c9b40647130ad7dc8bd45cc8a4cb08e5"
+}
