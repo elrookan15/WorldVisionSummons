@@ -114,7 +114,7 @@ export function normalizeSnapshot(sheet: WorkshopSheet, options: NormalizeOption
   const attributes = selectAttributes(sheet.stats).map((stat) => {
     const value = intIn(stat.value, 1, 30, 10);
     if (!stat.filled) warn(warnings, `Missing attribute ${stat.key}; plate uses 10`);
-    else if (value !== stat.value) warn(warnings, `Attribute ${stat.key} clamped into 1\u201330`);
+    else if (value !== stat.value) warn(warnings, `Attribute ${stat.key} clamped into 1–30`);
     return { key: stat.key, label: clampText(stat.label, 24), value };
   });
 
