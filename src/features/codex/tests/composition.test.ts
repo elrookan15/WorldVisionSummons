@@ -39,6 +39,24 @@ describe("codex composition", () => {
     expect(footer).toContain("Hash: ");
   });
 
+  it("keeps one plate anatomy and a distinct skin per genre", () => {
+    const gothic = modelFor();
+    const cyber = modelFor(workshopFixture({ sheet_style: "Cyberpunk" }));
+    const samurai = modelFor(workshopFixture({ sheet_style: "Samurai Era" }));
+    const victorian = modelFor(workshopFixture({ sheet_style: "Victorian Gothic" }));
+    expect(gothic.genre).toBe("gothic");
+    expect(cyber.genre).toBe("cyberpunk");
+    expect(samurai.genre).toBe("samurai");
+    expect(victorian.genre).toBe("victorian");
+    expect(cyber.regions).toEqual(gothic.regions);
+    expect(cyber.texts.find((text) => text.id === "title.name")?.color).not.toBe(
+      gothic.texts.find((text) => text.id === "title.name")?.color,
+    );
+    expect(samurai.texts.find((text) => text.id === "title.class")?.color).not.toBe(
+      cyber.texts.find((text) => text.id === "title.class")?.color,
+    );
+  });
+
   it("relocates a long motto into the chronicle", () => {
     const motto = "oath ".repeat(30).trim();
     const model = modelFor(workshopFixture({ personality: { speech: motto } }));

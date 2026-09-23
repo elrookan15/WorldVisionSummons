@@ -1,16 +1,17 @@
 import type { CodexRenderModel } from "../composition/types";
 import { regionBox } from "../templates/illuminated-codex/ornaments";
-import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
+import { skinFor } from "../templates/illuminated-codex/skins";
 import { PlateText, textsWithPrefix } from "./PlateText";
 
 function Band({ model, regionKey, label, ids }: { model: CodexRenderModel; regionKey: "vitals" | "attributes" | "chronicle"; label: string; ids: string[] }) {
   const region = model.regions[regionKey];
+  const skin = skinFor(model.genre);
   return (
     <section
       style={{
         ...regionBox(region),
-        border: `0.6pt solid ${ILLUMINATED_TOKENS.oxblood}`,
-        boxShadow: `inset 0 0 0 0.6mm transparent, inset 0 0 0 0.8mm ${ILLUMINATED_TOKENS.gildedBronze}`,
+        border: `0.6pt solid ${skin.accent}`,
+        boxShadow: `inset 0 0 0 0.6mm transparent, inset 0 0 0 0.8mm ${skin.rule}`,
       }}
       aria-label={label}
     >

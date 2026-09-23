@@ -1,6 +1,6 @@
 import type { CalloutRoute, CodexRenderModel } from "../composition/types";
 import { CodexItemVignette, plateFont, regionBox } from "../templates/illuminated-codex/ornaments";
-import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
+import { skinFor } from "../templates/illuminated-codex/skins";
 
 function blurb(callout: CalloutRoute): string {
   const prefix = `${callout.name} `;
@@ -11,9 +11,10 @@ function blurb(callout: CalloutRoute): string {
 
 export function CodexGearRail({ model }: { model: CodexRenderModel }) {
   const region = model.regions.gear;
+  const skin = skinFor(model.genre);
   const cardH = region.h / Math.max(1, model.callouts.length);
   return (
-    <section style={{ ...regionBox(region), borderLeft: `0.4pt solid ${ILLUMINATED_TOKENS.gildedBronze}` }} aria-label="Gear rail">
+    <section style={{ ...regionBox(region), borderLeft: `0.4pt solid ${skin.rule}` }} aria-label="Gear rail">
       {model.callouts.map((callout, index) => {
         const note = blurb(callout);
         return (
@@ -26,12 +27,12 @@ export function CodexGearRail({ model }: { model: CodexRenderModel }) {
               width: `${region.w - 2.4}mm`,
               height: `${Math.max(0, cardH - 2)}mm`,
               overflow: "hidden",
-              borderBottom: `0.4pt solid ${ILLUMINATED_TOKENS.gildedBronze}`,
+              borderBottom: `0.4pt solid ${skin.rule}`,
             }}
           >
             <div style={{ display: "flex", gap: "1.4mm", alignItems: "flex-start" }}>
               <div style={{ flex: "0 0 auto" }}>
-                <CodexItemVignette target={callout.target} />
+                <CodexItemVignette target={callout.target} skin={skin} />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div
@@ -40,7 +41,7 @@ export function CodexGearRail({ model }: { model: CodexRenderModel }) {
                     fontSize: "7.5pt",
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
-                    color: ILLUMINATED_TOKENS.oxblood,
+                    color: skin.accent,
                     lineHeight: 1.15,
                   }}
                 >
@@ -54,7 +55,7 @@ export function CodexGearRail({ model }: { model: CodexRenderModel }) {
                       fontStyle: "italic",
                       fontSize: "8pt",
                       lineHeight: 1.15,
-                      color: ILLUMINATED_TOKENS.ink,
+                      color: skin.ink,
                     }}
                   >
                     {note}
