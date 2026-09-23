@@ -1,0 +1,271 @@
+    setCharacterClass(preset.charClass);
+    setCharacterLore(preset.lore);
+    setInventoryItems(preset.items);
+    setSheetStyle(style);
+    setThemeId(themeIdForStyle(style));
+  };
+
+  const handleApplyBaselineToSheet = (baseline: StatBaseline) => {
+    const updatedStats = sheetData.stats.map(st => {
+      const key = st.key as keyof StatBaseline;
+      if (baseline[key] !== undefined) {
+        return { ...st, value: baseline[key] };
+      }
+      return st;
+    });
+    updateField("stats", updatedStats);
+  };
+
+  // Summon / Generate via Gemini API backend
+  const handleSummon = async () => {
+    setLoading(true);
+    setRunState("validating");
+    setCurrentStep(1);
+    setImageError(null);
+    setActiveCodexId(null);
+    setSheetsStatusMsg(null);
+
+    const timers = [
+      setTimeout(() => setRunState("generating_text"), 300),
+      setTimeout(() => setRunState("generating_portrait"), 1200),
+      setTimeout(() => setRunState("generating_inventory"), 2000),
+      setTimeout(() => setRunState("generating_map"), 2800),
+    ];
+
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev < 8 ? prev + 1 : prev));
+    }, 450);
+
+    try {
+      const res = await fetch("/api/generate-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          character_name: characterName,
+          character_class: characterClass,
+          character_level: characterLevel,
+          character_lore: characterLore,
+          inventory_items: inventoryItems,
+          sheet_style: canonicalizeSheetStyle(sheetStyle)
+        })
+      });
+      if (!res.ok) {
+        throw new Error(`Summoner returned HTTP ${res.status}`);
+      }
+      const data: CharacterSheetData = await res.json();
+      clearInterval(interval);
+      timers.forEach(clearTimeout);
+      setCurrentStep(9);
+      setLoading(false);
+      setRunState("completed");
+
+      if (data && data.character_data) {
+        const nextSheet = mapGeneratedSheetToUi(data, {
+          characterLevel,
+          playerName: characterName,
+          sheetStyle,
+        });
+        setSheetData(nextSheet);
+        setSheetStyle(nextSheet.sheet_style);
+        setThemeId(themeIdForStyle(nextSheet.sheet_style));
+
+        const portraitPrompt = [
+          compilePortraitPrompt(portraitPromptContext(nextSheet), nextSheet.sheet_style),
+          data.visual_prompts?.step_2_hero_portrait
+            ? `Director notes: ${data.visual_prompts.step_2_hero_portrait}`
+            : "",
+        ].filter(Boolean).join("\n");
+        generatePortraitImage(portraitPrompt, nextSheet.sheet_style, undefined, nextSheet);
+      }
+    } catch (e) {
+      console.error(e);
+      clearInterval(interval);
+      timers.forEach(clearTimeout);
+      setLoading(false);
+      setRunState("draft");
+      const msg = "Sheet generation failed. Check the summoner service and try again.";
+      setImageError(msg);
+      setSheetsStatusMsg(msg);
+    }
+  };
+
+  const generatePortraitImage = async (
+    prompt: string,
+    style: string,
+    referenceImage?: string,
+    contextOverride?: UiSheetData
+  ) => {
+    setGeneratingImage(true);
+    setImageError(null);
+    const startedAt = Date.now();
+    try {
+      const contextSheet = contextOverride || (sheetData as UiSheetData);
+      const result = await nanoBananaProvider.generateImage({
+        prompt,
+        style: canonicalizeSheetStyle(style),
+        aspectRatio: "3:4",
+        imageSize: "2K",
+        outputMimeType: "image/png",
+        characterContext: portraitPromptContext(contextSheet),
+        referenceImage
+      });
+      if (result.imageUrl) {
+        setImageUrl(result.imageUrl);
+        setImageEngine(result.engine || "Nano Banana");
+        // Server may return a procedural SVG with fallback:true — surface why live raster failed.
+        if (result.fallback || (result.engine || "").includes("Procedural")) {
+          setImageError(
+            result.error?.message ||
+              "Live portrait unavailable (quota/billing or model). Showing dossier plate — enable Gemini image billing, then reroll."
+          );
+        }
+      } else {
+        const fallback = buildProceduralPortrait({
+          name: contextSheet.name,
+          charClass: contextSheet.overview?.classRole,
+          style,
+          distinguishingFeature: contextSheet.physical?.marks,
+        });
+        setImageUrl(fallback);
+        setImageEngine("WorldVision Procedural Codex");
+        setImageError(result.error?.message || "Portrait model returned no image; showing dossier plate.");
+      }
+    } catch (e) {
+      console.error("Portrait generation error:", e);
+      setImageError("Portrait synthesis failed. You can reroll or edit the asset.");
+    } finally {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 500) {
+        await new Promise((resolve) => setTimeout(resolve, 500 - elapsed));
+      }
+      setGeneratingImage(false);
+    }
+  };
+
+  const handleRerollPortrait = () => {
+    const style = canonicalizeSheetStyle((sheetData as UiSheetData).sheet_style || sheetStyle);
+    const prompt = compilePortraitPrompt(portraitPromptContext(sheetData as UiSheetData), style);
+    generatePortraitImage(prompt, style, undefined, sheetData as UiSheetData);
+  };
+
+  const handleRandomizeStats = () => {
+    const rnd = () => Math.floor(Math.random() * 11) + 10;
+    let newStats = sheetData.stats.map(s => ({
+      ...s,
+      value: rnd()
+    }));
+    updateField("stats", newStats);
+  };
+
+  const [copiedJson, setCopiedJson] = useState(false);
+
+  const handleCopyCharacterJson = async () => {
+    try {
+      const jsonString = JSON.stringify(sheetData, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(jsonString);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = jsonString;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
+      setCopiedJson(true);
+      setTimeout(() => setCopiedJson(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy character JSON:", err);
+    }
+  };
+
+  const portraitSrc = imageUrl || buildProceduralPortrait({
+    name: sheetData.name,
+    charClass: sheetData.overview.classRole,
+    style: (sheetData as UiSheetData).sheet_style || sheetStyle,
+    distinguishingFeature: sheetData.physical.marks,
+  });
+
+  const themeVars = {
+    ["--wv-bg"]: c.bg,
+    ["--wv-bg2"]: c.bg2,
+    ["--wv-card"]: c.card,
+    ["--wv-card2"]: c.card2,
+    ["--wv-border"]: c.border,
+    ["--wv-border-strong"]: c.borderStrong,
+    ["--wv-text"]: c.text,
+    ["--wv-muted"]: c.muted,
+    ["--wv-muted2"]: c.muted2,
+    ["--wv-accent"]: c.accent,
+    ["--wv-accent2"]: c.accent2,
+    ["--wv-accent-text"]: c.accentText,
+    ["--wv-clash"]: c.clash,
+    ["--wv-clash-text"]: c.clashText,
+    ["--wv-shadow"]: c.shadow,
+    ["--wv-radius"]: (currentTheme as any).radius || "18px",
+    ...sheetPageBackgroundCssVars(currentTheme.id),
+  } as React.CSSProperties;
+
+  return (
+    <div
+      className="sheet-app min-h-screen selection:bg-black/20"
+      data-sheet={currentTheme.id}
+      data-chrome={(currentTheme as any).chrome}
+      style={{ ...themeVars, backgroundColor: c.bg, color: c.text, fontFamily: currentTheme.fonts.body }}
+    >
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Anton&family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@400;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Orbitron:wght@400;600&family=Philosopher:wght@400;700&family=Pirata+One&family=Quicksand:wght@400;600&family=Share+Tech+Mono&family=Special+Elite&display=swap');
+        .display { font-family: ${currentTheme.fonts.display}; }
+        .mono { font-family: ${currentTheme.fonts.mono}; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: ${c.border}; border-radius: 99px; }
+        input, textarea { background: transparent; color: inherit; }
+        input:focus, textarea:focus { outline: none; border-color: ${c.clash}; box-shadow: 0 0 0 1px ${c.clash}55; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media print { .no-print { display: none !important; } }
+        .texture-obsidian { background-image: linear-gradient(30deg, transparent 48%, ${c.border} 49%, ${c.border} 51%, transparent 52%), linear-gradient(-30deg, transparent 48%, ${c.border} 49%, ${c.border} 51%, transparent 52%); background-size: 80px 80px; opacity: 0.18; }
+        .texture-arcane { background-image: radial-gradient(ellipse at 30% 20%, rgba(217,197,160,0.12), transparent 60%); }
+        .texture-neon { background-image: linear-gradient(${c.border} 1px, transparent 1px); background-size: 100% 48px; opacity: 0.28; }
+        .texture-steampunk { background-image: linear-gradient(${c.border}40 1px, transparent 1px), linear-gradient(90deg, ${c.border}40 1px, transparent 1px); background-size: 32px 32px; }
+        .texture-retro { background-image: repeating-linear-gradient(90deg, transparent 0 7px, ${c.accent}22 7px 8px); opacity: 0.25; }
+        .texture-cosmic { background-image: radial-gradient(circle at 20% 30%, ${c.accent}33, transparent 18%), radial-gradient(circle at 80% 70%, ${c.accent2}22, transparent 16%); }
+        .texture-samurai { background-image: radial-gradient(circle at 90% 8%, ${c.accent}55, transparent 16%); }
+        .texture-wasteland { background-image: repeating-linear-gradient(-32deg, ${c.accent}14 0 10px, transparent 10px 22px); }
+        .texture-eldritch { background-image: radial-gradient(circle at 40% 20%, ${c.accent}28, transparent 24%); }
+        .texture-victorian { background-image: repeating-linear-gradient(90deg, transparent 0 16px, ${c.accent}10 16px 17px); }
+      `}</style>
+
+      <div className={`pointer-events-none fixed inset-0 z-0 texture-${currentTheme.texture}`} />
+      <div className="sheet-bezel">
+
+      {/* Top Header */}
+      <header className="sticky top-0 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
+        <div className="max-w-[1600px] mx-auto px-5 md:px-10 min-h-[72px] py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full grid place-items-center display font-bold tracking-tight shadow-lg" style={{ backgroundColor: c.text, color: c.bg }}>
+              WV
+            </div>
+            <div>
+              <div className="display text-lg font-bold tracking-tight" style={{ fontFamily: currentTheme.fonts.display }}>
+                WORLDVISION SUMMONS
+              </div>
+              <div className="mono text-[10px] tracking-widest" style={{ color: c.muted }}>
+                DETERMINISTIC RPG LORE & CHARACTER SHEET ENGINE
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center flex-wrap gap-2.5">
+            {!googleUser ? (
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={isSigningInGoogle}
+                className="no-print shrink-0 flex items-center gap-2 px-4 h-9 rounded-full font-semibold border transition hover:opacity-90 shadow-sm"
+                style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+              >
+                <LogIn className="w-3.5 h-3.5 text-blue-400" />
