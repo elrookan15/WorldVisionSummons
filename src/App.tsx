@@ -10,6 +10,7 @@ import {
 import { CharacterSheetData, SheetPreset } from "./types";
 import StatsRadarComparison from "./components/StatsRadarComparison";
 import CharacterCodex from "./components/CharacterCodex";
+import { CodexFinalizer } from "./features/codex";
 import DiceTray from "./components/DiceTray";
 import { StatBaseline } from "./lib/statBaselines";
 import ImageEditorModal from "./components/ImageEditorModal";
@@ -707,6 +708,7 @@ export default function App() {
   const [activeCodexId, setActiveCodexId] = useState<string | null>(null);
   const [showCodex, setShowCodex] = useState(false);
   const [showDiceTray, setShowDiceTray] = useState(false);
+  const [showPlate, setShowPlate] = useState(false);
 
   const persistToCodex = (asNew: boolean) => {
     const result = upsertCodexEntry({
@@ -1278,6 +1280,18 @@ export default function App() {
               <BookMarked className="w-3.5 h-3.5" style={{ color: c.clash || c.accent }} />
               <span className="mono text-[11px]">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setShowPlate(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-full font-semibold border transition hover:scale-[1.02]"
+              style={{ backgroundColor: showPlate ? c.accent : c.card, borderColor: c.border, color: showPlate ? c.accentText : c.text }}
+              title="Finalize the illuminated Codex page"
+            >
+              <Scroll className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Seal Page</span>
+            </button>
+
 
             <button
               type="button"
@@ -2462,6 +2476,27 @@ export default function App() {
             signature_attributes: (sheetData as UiSheetData).signatureAttributes,
           }}
         />
+      )}
+
+      {showPlate && (
+        <div className="no-print fixed inset-0 z-[70] overflow-auto p-4" style={{ backgroundColor: "#211813" }}>
+          <div className="mx-auto max-w-[1100px]">
+            <button
+              type="button"
+              onClick={() => setShowPlate(false)}
+              className="mb-3 min-h-[44px] min-w-[44px] px-4 rounded-full border"
+              style={{ color: "#F2E7CF", borderColor: "#B37B3D", background: "transparent" }}
+            >
+              Close plate
+            </button>
+            <CodexFinalizer
+              sheet={sheetData as UiSheetData}
+              portraitUrl={imageUrl}
+              characterId={activeCodexId}
+              onEditSection={() => setShowPlate(false)}
+            />
+          </div>
+        </div>
       )}
 
       <CharacterCodex

@@ -1,0 +1,180 @@
+                    ))}
+                  </div>
+                </div>
+
+                <div className="skill-panel sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.border }}>
+                  <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3" style={{ color: c.muted }}>System & Magic Rules</div>
+                  <textarea
+                    value={sheetData.magic}
+                    onChange={(e) => updateField("magic", e.target.value)}
+                    rows={4}
+                    className="w-full text-[14px] leading-[1.6] resize-none bg-transparent"
+                    style={{ color: c.text }}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Equipment */}
+          <section ref={(el) => { sectionRefs.current.equipment = el; }} id="equipment" className="sheet-page sheet-page--equipment scroll-mt-[88px]">
+            <SectionHeader k="05" title="Equipment & Inventory Architecture" subtitle="Loadout slots — weapons, foci, armor, kits, and relics" c={c} currentTheme={currentTheme} />
+            <div className="gear-grid">
+              {[
+                { k: "primaryWeapon", fallbackKey: "weapons", label: "Primary Weapons & Catalysts", icon: Sword, desc: "Main offensive arms, staves, or focus implements" },
+                { k: "secondaryFocus", fallbackKey: "weapons", label: "Secondary Foci & Off-Hand", icon: Zap, desc: "Shields, spell foci, parrying daggers, or sidearms" },
+                { k: "armor", fallbackKey: "armor", label: "Armor, Robes & Chassis", icon: Shield, desc: "Body protection, defensive apparel, or reinforced weave" },
+                { k: "utilityTools", fallbackKey: "items", label: "Utility Tools & Field Kits", icon: Cog, desc: "Lockpicks, climbing gear, alchemical apparatus, or kits" },
+                { k: "consumables", fallbackKey: "items", label: "Consumables & Elixirs", icon: Beaker, desc: "Potions, serums, rations, ammo, or field bandages" },
+                { k: "relics", fallbackKey: "items", label: "Relics & Quest Artifacts", icon: Scroll, desc: "Attuned magical items, ancient sigils, or lore charms" },
+                { k: "currency", fallbackKey: "currency", label: "Currency, Barter & Debts", icon: BookMarked, desc: "Coins, credits, soul gems, promissory notes, or debts" }
+              ].map((item, i) => {
+                let IconC = item.icon;
+                const val = (sheetData.equipment as any)[item.k] || (item.fallbackKey ? (sheetData.equipment as any)[item.fallbackKey] : "") || "";
+                return (
+                  <div key={item.k} className="gear-slot sheet-card border p-5 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                    <span className="slot-index" style={{ color: i % 2 === 0 ? c.accent : c.clash, fontFamily: currentTheme.fonts.display }}>{String(i + 1).padStart(2, "0")}</span>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5 pr-8">
+                        <div className="flex items-center gap-2 mono text-[10px] tracking-[0.14em] uppercase font-bold" style={{ color: c.text }}>
+                          <IconC className="w-3.5 h-3.5" style={{ color: c.accent }} /> {item.label}
+                        </div>
+                      </div>
+                      <div className="mono text-[9px] mb-3" style={{ color: c.muted2 }}>{item.desc}</div>
+                    </div>
+                    <textarea
+                      value={val}
+                      onChange={(e) => updateField(`equipment.${item.k}`, e.target.value)}
+                      rows={3}
+                      className="w-full text-[14px] leading-[1.6] resize-none bg-transparent"
+                      style={{ color: c.text }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Personality */}
+          <section ref={(el) => { sectionRefs.current.personality = el; }} id="personality" className="sheet-page sheet-page--personality scroll-mt-[88px]">
+            <SectionHeader k="06" title="Personality & Psychology" subtitle="Sealed DNA traits, ideals, flaws, and mannerisms" c={c} currentTheme={currentTheme} />
+
+            <div className="dna-banner sheet-card border p-5 mb-2" style={{ backgroundColor: c.card2, borderColor: c.border }}>
+              <div className="mono text-[11px] tracking-[0.18em] uppercase font-bold flex items-center justify-between" style={{ color: c.accent }}>
+                <span>10 Psychological DNA Traits</span>
+                <span className="mono text-[9px] px-2 py-0.5 rounded border" style={{ borderColor: c.borderStrong, color: c.text }}>IMMUTABLE CANON</span>
+              </div>
+            </div>
+            <div className="dna-grid">
+              {[
+                { k: "reputation", label: "Reputation", sub: "Public myth or infamy", icon: Award },
+                { k: "vice", label: "Vice", sub: "Moral flaw / craving", icon: Flame },
+                { k: "virtue", label: "Virtue", sub: "Unwavering principle", icon: Heart },
+                { k: "fear", label: "Fear", sub: "Paralyzing primal terror", icon: Skull },
+                { k: "obsession", label: "Obsession", sub: "Compulsive fixation", icon: Eye },
+                { k: "tell", label: "Tell", sub: "Involuntary physical tic", icon: Zap },
+                { k: "loyalty", label: "Loyalty", sub: "Sworn faction / mentor", icon: Bookmark },
+                { k: "blindSpot", label: "Blind Spot", sub: "Perceptual blind spot", icon: EyeOff },
+                { k: "survivalInstinct", label: "Survival Instinct", sub: "Reflex under mortal threat", icon: ShieldAlert },
+                { k: "legacyFear", label: "Legacy Fear", sub: "Existential oblivion", icon: Moon }
+              ].map((trait, i) => {
+                const TraitIcon = trait.icon;
+                const val = (sheetData as any).signatureAttributes?.[trait.k] || "";
+                return (
+                  <div key={trait.k} className="dna-seal sheet-card border p-3.5 transition" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                    <div className="dna-index" style={{ color: c.accent }}>{String(i + 1).padStart(2, "0")}</div>
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                      <TraitIcon className="w-3.5 h-3.5 shrink-0" style={{ color: c.accent }} />
+                      <div className="mono text-[10px] font-bold uppercase tracking-wider truncate" style={{ color: c.text }}>{trait.label}</div>
+                    </div>
+                    <div className="mono text-[8px] mb-2" style={{ color: c.muted2 }}>{trait.sub}</div>
+                    <textarea
+                      value={val}
+                      onChange={e => updateField(`signatureAttributes.${trait.k}`, e.target.value)}
+                      rows={2}
+                      className="w-full text-[13px] leading-tight resize-none bg-transparent text-center"
+                      style={{ color: c.text }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="persona-grid">
+              {[
+                { k: "traits", label: "Core Traits" },
+                { k: "ideals", label: "Ideals & Axioms" },
+                { k: "flaws", label: "Flaws & Fatal Errors" },
+                { k: "fears", label: "Fears & Triggers" },
+                { k: "mannerisms", label: "Mannerisms & Habits" },
+                { k: "speech", label: "First-Person Quote & Voice" }
+              ].map((item) => (
+                <div key={item.k} className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3 font-semibold" style={{ color: c.muted }}>{item.label}</div>
+                  <textarea
+                    value={(sheetData.personality as any)[item.k]}
+                    onChange={(e) => updateField(`personality.${item.k}`, e.target.value)}
+                    rows={4}
+                    className="w-full text-[14px] leading-[1.6] resize-none bg-transparent"
+                    style={{ color: c.text }}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Relationships */}
+          <section ref={(el) => { sectionRefs.current.relationships = el; }} id="relationships" className="sheet-page sheet-page--relationships scroll-mt-[88px]">
+            <SectionHeader k="07" title="Relationships & Bonds" subtitle="Case files for allies, rivals, mentors, and kin" c={c} currentTheme={currentTheme} />
+            <div className="bond-grid">
+              {[
+                { k: "allies", label: "Allies & Companions", tab: "ALLY" },
+                { k: "enemies", label: "Enemies & Rivals", tab: "RIVAL" },
+                { k: "mentors", label: "Mentors & Patrons", tab: "PATRON" },
+                { k: "family", label: "Family, Kin & Sworn Oaths", tab: "KIN" }
+              ].map((item) => (
+                <div key={item.k} className="bond-file sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <span className="bond-tab mono" style={{ backgroundColor: c.accent, color: c.accentText }}>{item.tab}</span>
+                  <div className="mono text-[10px] tracking-[0.14em] uppercase mb-3 font-semibold" style={{ color: c.muted }}>{item.label}</div>
+                  <textarea
+                    value={(sheetData.relationships as any)[item.k]}
+                    onChange={(e) => updateField(`relationships.${item.k}`, e.target.value)}
+                    rows={5}
+                    className="w-full text-[14px] leading-[1.6] resize-none bg-transparent"
+                    style={{ color: c.text }}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Stats */}
+          <section ref={(el) => { sectionRefs.current.stats = el; }} id="stats" className="sheet-page sheet-page--stats scroll-mt-[88px]">
+            <SectionHeader k="08" title="Stats & Attributes" subtitle="Combat HUD, core attributes, and class resources" c={c} currentTheme={currentTheme} />
+            <div className="stat-hud">
+
+            {/* Derived Combat Matrix */}
+            <div className="combat-orbs">
+              {/* HP */}
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
+                  <span>Hit Points (HP)</span>
+                  <Heart className="w-3.5 h-3.5 text-rose-500" />
+                </div>
+                <div className="flex items-center justify-between gap-1 my-1">
+                  <span className="display text-2xl font-bold" style={{ color: c.text }}>
+                    {(sheetData as any).derivedStats?.hpCurrent ?? 74}
+                  </span>
+                  <span className="mono text-xs" style={{ color: c.muted2 }}>
+                    / {(sheetData as any).derivedStats?.hpMax ?? 74}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label="Decrease hit points"
+                      onClick={() => adjustDerivedResource("hpCurrent", "hpMax", -1, 74, 74)}
+                      className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
+                      style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
+                    >-</button>
+                    <button
+                      type="button"

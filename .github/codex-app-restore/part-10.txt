@@ -1,0 +1,216 @@
+                      aria-label="Increase hit points"
+                      onClick={() => adjustDerivedResource("hpCurrent", "hpMax", 1, 74, 74)}
+                      className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
+                      style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
+                    >+</button>
+                  </div>
+                </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: c.bg2 }}>
+                  <div
+                    className="h-full bg-rose-500 transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, (((sheetData as any).derivedStats?.hpCurrent ?? 74) / Math.max(1, ((sheetData as any).derivedStats?.hpMax ?? 74))) * 100))}%`
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Armor Class */}
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
+                  <span>Armor Class (AC)</span>
+                  <Shield className="w-3.5 h-3.5 text-sky-400" />
+                </div>
+                <div className="display text-2xl font-bold my-1" style={{ color: c.text }}>
+                  {(sheetData as any).derivedStats?.ac ?? 14}
+                </div>
+                <div className="mono text-[9px]" style={{ color: c.muted2 }}>Base Defensive Matrix</div>
+              </div>
+
+              {/* Initiative */}
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
+                  <span>Initiative</span>
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                </div>
+                <div className="display text-2xl font-bold my-1" style={{ color: c.text }}>
+                  {(sheetData as any).derivedStats?.initiative ?? "+1"}
+                </div>
+                <div className="mono text-[9px]" style={{ color: c.muted2 }}>Turn Order Modifier</div>
+              </div>
+
+              {/* Speed */}
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
+                  <span>Movement Speed</span>
+                  <Compass className="w-3.5 h-3.5 text-emerald-400" />
+                </div>
+                <div className="display text-2xl font-bold my-1" style={{ color: c.text }}>
+                  {(sheetData as any).derivedStats?.speed ?? "30 ft"}
+                </div>
+                <div className="mono text-[9px]" style={{ color: c.muted2 }}>Tactical Grid Velocity</div>
+              </div>
+
+              {/* Class Resource Tracker */}
+              <div className="orb sheet-card border p-4 flex flex-col justify-between" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div className="mono text-[10px] uppercase tracking-wider mb-1 flex items-center justify-between" style={{ color: c.muted }}>
+                  <span className="truncate">{(sheetData as any).derivedStats?.resourceName ?? "Class Resource"}</span>
+                  <Sparkles className="w-3.5 h-3.5" style={{ color: c.accent }} />
+                </div>
+                <div className="flex items-center justify-between gap-1 my-1">
+                  <span className="display text-2xl font-bold" style={{ color: c.text }}>
+                    {(sheetData as any).derivedStats?.resourceCurrent ?? 6}
+                  </span>
+                  <span className="mono text-xs" style={{ color: c.muted2 }}>
+                    / {(sheetData as any).derivedStats?.resourceMax ?? 6}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label="Decrease class resource"
+                      onClick={() => adjustDerivedResource("resourceCurrent", "resourceMax", -1, 6, 6)}
+                      className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
+                      style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
+                    >-</button>
+                    <button
+                      type="button"
+                      aria-label="Increase class resource"
+                      onClick={() => adjustDerivedResource("resourceCurrent", "resourceMax", 1, 6, 6)}
+                      className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs hover:opacity-80"
+                      style={{ borderColor: c.border, color: c.text, backgroundColor: c.bg2 }}
+                    >+</button>
+                  </div>
+                </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: c.bg2 }}>
+                  <div
+                    className="h-full transition-all duration-300"
+                    style={{
+                      backgroundColor: c.accent,
+                      width: `${Math.min(100, Math.max(0, (((sheetData as any).derivedStats?.resourceCurrent ?? 6) / Math.max(1, ((sheetData as any).derivedStats?.resourceMax ?? 6))) * 100))}%`
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Archetype Baseline Radar Chart Comparison Overlay */}
+            <StatsRadarComparison
+              currentStats={sheetData.stats}
+              activePresetName={activePresetName}
+              allPresets={PRESETS}
+              c={c}
+              currentTheme={currentTheme}
+              isOpen={showStatsRadarOverlay}
+              onToggle={() => setShowStatsRadarOverlay(prev => !prev)}
+              onApplyBaselineToSheet={handleApplyBaselineToSheet}
+            />
+
+            <div className="attr-grid">
+              {sheetData.stats.map((st, idx) => (
+                <div key={st.key} className="attr-cell sheet-card border p-5 relative overflow-hidden group" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="mono text-[10px] tracking-[0.2em] uppercase" style={{ color: c.muted }}>{st.key}</div>
+                      <div className="display text-[22px] tracking-tight" style={{ fontFamily: currentTheme.fonts.display }}>{st.label}</div>
+                    </div>
+                    <input
+                      type="number"
+                      min={1}
+                      max={24}
+                      value={st.value}
+                      onChange={(e) => handleStatChange(idx, Number(e.target.value))}
+                      className="w-14 h-10 rounded-full border text-center mono text-[16px] font-medium"
+                      style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}
+                    />
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden mb-3" style={{ backgroundColor: c.bg2 }}>
+                    <div className="h-full transition-all duration-500" style={{ width: `${(st.value / 24) * 100}%`, backgroundColor: c.text }} />
+                  </div>
+                  <div className="flex justify-between mono text-[10px]" style={{ color: c.muted2 }}>
+                    <span>1</span>
+                    <span>Mod: {Math.floor((st.value - 10) / 2) >= 0 ? `+${Math.floor((st.value - 10) / 2)}` : Math.floor((st.value - 10) / 2)}</span>
+                    <span>24</span>
+                  </div>
+                  <input
+                    value={st.desc}
+                    onChange={(e) => {
+                      let stats = [...sheetData.stats];
+                      stats[idx] = { ...stats[idx], desc: e.target.value };
+                      updateField("stats", stats);
+                    }}
+                    className="mt-3 w-full text-[12px] placeholder:opacity-30 bg-transparent border-b pb-1"
+                    style={{ borderColor: c.border, color: c.muted }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Passive Skills and Class Specialization */}
+            {((sheetData as any).derivedStats?.passives || []).length > 0 && (
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <div className="mono text-[10px] tracking-[0.14em] uppercase font-bold mb-3 flex items-center gap-2" style={{ color: c.accent }}>
+                  <Award className="w-4 h-4" /> PASSIVE SKILLS & SPECIALIZATIONS
+                </div>
+                <div className="grid md:grid-cols-3 gap-3">
+                  {((sheetData as any).derivedStats?.passives || []).map((p: string, i: number) => (
+                    <div key={i} className="rounded-xl border p-3 mono text-xs leading-relaxed" style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}>
+                      {p}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            </div>
+          </section>
+
+        </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="pt-10 pb-12 border-t text-center mono text-[11px] tracking-wider" style={{ borderColor: c.border, color: c.muted2 }}>
+        WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
+      </footer>
+      </div>
+
+      {showImageEditor && (
+        <ImageEditorModal
+          imageUrl={portraitSrc}
+          characterName={sheetData.name}
+          sheetStyle={canonicalizeSheetStyle((sheetData as UiSheetData).sheet_style || sheetStyle)}
+          onClose={() => setShowImageEditor(false)}
+          onSave={(newUrl) => setImageUrl(newUrl)}
+          onGenerateSimilar={async (customPrompt, refImage) => {
+            const style = canonicalizeSheetStyle((sheetData as UiSheetData).sheet_style || sheetStyle);
+            const promptText = customPrompt
+              ? `${compilePortraitPrompt(portraitPromptContext(sheetData as UiSheetData), style)} Additional direction: ${customPrompt}`
+              : compilePortraitPrompt(portraitPromptContext(sheetData as UiSheetData), style);
+            await generatePortraitImage(promptText, style, refImage || undefined, sheetData as UiSheetData);
+          }}
+        />
+      )}
+
+      {showChatModal && (
+        <GeminiChatModal
+          onClose={() => setShowChatModal(false)}
+          characterContext={{
+            ...sheetData,
+            imageUrl: portraitSrc,
+            character_name: sheetData.name,
+            character_class: sheetData.overview.classRole,
+            character_lore: sheetData.lore.backstory,
+            signature_attributes: (sheetData as UiSheetData).signatureAttributes,
+          }}
+        />
+      )}
+
+      {showPlate && (
+        <div className="no-print fixed inset-0 z-[70] overflow-auto p-4" style={{ backgroundColor: "#211813" }}>
+          <div className="mx-auto max-w-[1100px]">
+            <button
+              type="button"
+              onClick={() => setShowPlate(false)}
+              className="mb-3 min-h-[44px] min-w-[44px] px-4 rounded-full border"
+              style={{ color: "#F2E7CF", borderColor: "#B37B3D", background: "transparent" }}
+            >
+              Close plate
+            </button>

@@ -1,0 +1,66 @@
+---
+description: Codex Page Finalizer — immutable A4 illuminated plate. The generator stays a mutable workshop.
+globs: src/features/codex/**/*
+alwaysApply: false
+---
+
+# WorldVision Summons: Codex Page Finalizer
+
+The generator is the mutable workshop. A finalized Codex Page is an immutable, deterministic, print-ready artifact: A4 portrait, illuminated manuscript / equipment plate.
+
+Do not write the sealed page back into `UiSheetData`. Do not call `Date.now()` inside normalize, compose, hash, or export. The caller supplies `finalizedAt`. The content hash is SHA-256 of canonical JSON with sorted keys, excluding `contentHash`.
+
+## Directory
+
+```
+src/features/codex/
+├── schema/
+│   ├── codexSnapshotV1.ts
+│   ├── normalizeSnapshot.ts
+│   └── migrateSnapshot.ts
+├── composition/
+│   ├── types.ts
+│   ├── composeCodex.ts
+│   ├── fitText.ts
+│   ├── selectContent.ts
+│   └── routeCallouts.ts
+├── templates/illuminated-codex/
+│   ├── manifest.ts
+│   ├── tokens.ts
+│   └── ornaments.tsx
+├── components/
+│   ├── CodexPage.tsx
+│   ├── CodexTitleCartouche.tsx
+│   ├── CodexIdentityRail.tsx
+│   ├── CodexPortraitStage.tsx
+│   ├── CodexGearRail.tsx
+│   ├── CodexBottomSystem.tsx
+│   ├── CodexFooterProvenance.tsx
+│   ├── FinalizeReviewDialog.tsx
+│   ├── CodexPreviewShell.tsx
+│   └── CodexFinalizer.tsx
+├── export/
+│   ├── outputProfiles.ts
+│   └── exportCodex.ts
+├── tests/
+│   ├── snapshot.test.ts
+│   ├── composition.test.ts
+│   ├── overflow.test.ts
+│   └── calloutRouting.test.ts
+└── index.ts
+```
+
+## Plate
+
+| Region | Component | Content |
+|---|---|---|
+| A | CodexTitleCartouche | Name, epithet, title, motto |
+| B | CodexIdentityRail | Role, crest, marks, top 6 traits |
+| C | CodexPortraitStage | Fixed crop, alpha matte, leader anchors |
+| D | CodexGearRail | 6 gear callouts |
+| E F G | CodexBottomSystem | Vitals, attributes, chronicle |
+| H | CodexFooterProvenance | Revision, template, hash, timestamp |
+
+The normative spec is `codex.mdc`. Palette: Ink `#211813`, Oxblood `#6B3324`, Gilded Bronze `#B37B3D`, Aged Fiber `#DBC69F`, Parchment `#F2E7CF`. Frame weights 0.4pt and 1.2pt. Page 210mm × 297mm. PNG profile 2480×3508. PDF page size 210mm × 297mm. US Letter is a second output profile, not a second composition. `schemaVersion` is `"codex.snapshot.v1"`. The content hash is `provenance.sourceHash`.
+
+Mount with `CodexFinalizer` from `src/features/codex`, passing the live `UiSheetData` workshop object. Locking copies fields into `CodexSnapshotV1` and freezes them.

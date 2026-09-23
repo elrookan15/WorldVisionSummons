@@ -1,0 +1,201 @@
+                  <span className="mono text-[9px] tracking-[0.18em] uppercase flex items-center gap-1.5" style={{ color: c.muted }}>
+                    Hero portrait
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleRerollPortrait}
+                      disabled={generatingImage}
+                      className="mono text-[9px] px-2.5 py-1 rounded border transition hover:opacity-80 font-bold flex items-center gap-1 shadow-sm"
+                      style={{ borderColor: c.borderStrong, color: c.accentText || '#000', backgroundColor: c.accent }}
+                    >
+                      <RefreshCw className={`w-3 h-3 ${generatingImage ? 'animate-spin' : ''}`} />
+                      <span>Reroll Portrait</span>
+                    </button>
+                    <button
+                      onClick={() => setShowImageEditor(true)}
+                      className="mono text-[9px] px-2 py-0.5 rounded border transition hover:opacity-80"
+                      style={{ borderColor: c.borderStrong, color: c.accent, backgroundColor: c.bg2 }}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+                <div className="portrait-frame relative bg-black">
+                  <img src={portraitSrc} alt="Hero Portrait" />
+                  {generatingImage && (
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+                      <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />
+                      <span className="mono text-xs text-stone-200">Rendering 2K portrait...</span>
+                    </div>
+                  )}
+                  {imageError && !generatingImage && (
+                    <div className="absolute bottom-0 inset-x-0 bg-black/75 px-3 py-2">
+                      <p className="mono text-[10px] text-amber-200 leading-snug">{imageError}</p>
+                    </div>
+                  )}
+                  {imageEngine && !generatingImage && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/70 border border-white/10">
+                      <span className="mono text-[9px] text-amber-200">{imageEngine}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <FieldBox label="Height" value={sheetData.physical.height} onChange={(v: string) => updateField("physical.height", v)} c={c} />
+                  <FieldBox label="Weight" value={sheetData.physical.weight} onChange={(v: string) => updateField("physical.weight", v)} c={c} />
+                </div>
+              </div>
+
+              <div className="trait-rail">
+                {Object.entries({
+                  build: "Build",
+                  eyes: "Eyes",
+                  hair: "Hair",
+                  skin: "Skin",
+                  marks: "Distinguishing Marks",
+                  scars: "Scars / Tattoos",
+                  clothing: "Clothing Style",
+                  voice: "Voice",
+                  posture: "Posture / Movement"
+                }).map(([key, label]) => {
+                  const isAiPrioritized = ["build", "eyes", "hair", "marks", "clothing"].includes(key);
+                  return (
+                    <div
+                      key={key}
+                      className="trait-chip sheet-card border relative"
+                      style={{
+                        backgroundColor: c.card,
+                        borderColor: isAiPrioritized ? c.accent : c.border,
+                        boxShadow: isAiPrioritized ? `0 0 20px ${c.accent}15` : undefined
+                      }}
+                    >
+                      <div>
+                        <div className="mono text-[10px] tracking-[0.14em] uppercase" style={{ color: c.muted }}>{label}</div>
+                        {isAiPrioritized && (
+                          <span className="mono text-[8px] mt-1 inline-block px-2 py-0.5 rounded-full font-bold tracking-wider" style={{ backgroundColor: c.accent, color: c.accentText || '#000' }}>
+                            ANCHOR
+                          </span>
+                        )}
+                      </div>
+                      <textarea
+                        value={(sheetData.physical as any)[key]}
+                        onChange={(e) => updateField(`physical.${key}`, e.target.value)}
+                        rows={2}
+                        className="w-full text-[15px] leading-[1.45] resize-none placeholder:opacity-30 bg-transparent"
+                        style={{ color: c.text }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* Lore */}
+          <section ref={(el) => { sectionRefs.current.lore = el; }} id="lore" className="sheet-page sheet-page--lore scroll-mt-[88px]">
+            <SectionHeader k="03" title="Lore & Backstory" subtitle="A manuscript of origin, conflict, and oath" c={c} currentTheme={currentTheme} />
+            <div className="lore-manuscript">
+              <div className="lore-backstory sheet-card border" style={{ backgroundColor: c.card2, borderColor: c.borderStrong, color: c.text, boxShadow: `0 24px 70px ${c.shadow}` }}>
+                <p className="lore-kicker mono text-[10px] tracking-[0.28em] uppercase mb-4" style={{ color: c.clash }}>Folio I · Recorded history</p>
+                <TextAreaField label="Detailed Backstory" value={sheetData.lore.backstory} onChange={(v: string) => updateField("lore.backstory", v)} rows={10} c={c} />
+              </div>
+              <div className="lore-stack">
+                <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <TextAreaField label="Childhood" value={sheetData.lore.childhood} onChange={(v: string) => updateField("lore.childhood", v)} rows={3} c={c} />
+                </div>
+                <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <TextAreaField label="Formative Events" value={sheetData.lore.formative} onChange={(v: string) => updateField("lore.formative", v)} rows={3} c={c} />
+                </div>
+              </div>
+            </div>
+            <div className="lore-footer">
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <TextAreaField label="Motivations" value={sheetData.lore.motivations} onChange={(v: string) => updateField("lore.motivations", v)} rows={3} c={c} />
+              </div>
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <TextAreaField label="Secrets" value={sheetData.lore.secrets} onChange={(v: string) => updateField("lore.secrets", v)} rows={3} c={c} />
+              </div>
+              <div className="sheet-card border p-5" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                <TextAreaField label="World Context" value={sheetData.lore.world} onChange={(v: string) => updateField("lore.world", v)} rows={3} c={c} />
+              </div>
+            </div>
+          </section>
+
+          {/* Abilities */}
+          <section ref={(el) => { sectionRefs.current.abilities = el; }} id="abilities" className="sheet-page sheet-page--abilities scroll-mt-[88px]">
+            <SectionHeader k="04" title="Abilities & Skills" subtitle="Spell cards, proficiencies, and system mechanics" c={c} currentTheme={currentTheme} />
+            <div className="ability-layout">
+              <div className="ability-stack">
+                {sheetData.abilities.map((ability, idx) => (
+                  <div key={idx} className="ability-card sheet-card border" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                    <div className="ability-rail" aria-hidden="true" />
+                    <div className="ability-body">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="mono text-[10px] tracking-[0.22em] uppercase" style={{ color: c.muted }}>Manifestation {String(idx + 1).padStart(2, "0")}</span>
+                        <input
+                          value={ability.type}
+                          onChange={(e) => {
+                            let ab = [...sheetData.abilities];
+                            ab[idx] = { ...ab[idx], type: e.target.value };
+                            updateField("abilities", ab);
+                          }}
+                          className="mono text-[10px] border rounded-full px-2.5 py-0.5"
+                          style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.accent }}
+                        />
+                      </div>
+                      <input
+                        value={ability.name}
+                        onChange={(e) => {
+                          let ab = [...sheetData.abilities];
+                          ab[idx] = { ...ab[idx], name: e.target.value };
+                          updateField("abilities", ab);
+                        }}
+                        className="w-full display text-[22px] mb-2 border-b pb-1"
+                        style={{ fontFamily: currentTheme.fonts.display, borderColor: c.border, color: c.text }}
+                      />
+                      <textarea
+                        value={ability.desc}
+                        onChange={(e) => {
+                          let ab = [...sheetData.abilities];
+                          ab[idx] = { ...ab[idx], desc: e.target.value };
+                          updateField("abilities", ab);
+                        }}
+                        rows={2}
+                        className="w-full text-[14px] leading-[1.55] resize-none bg-transparent"
+                        style={{ color: c.muted }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="skill-column">
+                <div className="skill-panel sheet-card border" style={{ backgroundColor: c.card, borderColor: c.border }}>
+                  <div className="mono text-[10px] tracking-[0.14em] uppercase mb-4 flex items-center gap-2" style={{ color: c.muted }}>
+                    <ChartColumn className="w-3.5 h-3.5" /> Skill Proficiencies
+                  </div>
+                  <div className="space-y-4">
+                    {sheetData.skills.map((sk, idx) => (
+                      <div key={idx}>
+                        <div className="flex justify-between mb-1">
+                          <input
+                            value={sk.name}
+                            onChange={(e) => {
+                              let sks = [...sheetData.skills];
+                              sks[idx] = { ...sks[idx], name: e.target.value };
+                              updateField("skills", sks);
+                            }}
+                            className="text-[13px] font-medium w-[160px] border-b pb-0.5"
+                            style={{ borderColor: c.border, color: c.text }}
+                          />
+                          <span className="mono text-[11px]" style={{ color: c.accent }}>{sk.value}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={sk.value}
+                          onChange={(e) => handleSkillChange(idx, Number(e.target.value))}
+                          className="w-full h-1 mt-2"
+                          style={{ accentColor: c.accent }}
+                        />
+                      </div>
