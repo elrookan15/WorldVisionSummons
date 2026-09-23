@@ -1,4 +1,4 @@
-import type { EquipmentTarget } from "../schema/codexSnapshotV1";
+import type { EquipmentTarget, GenreTheme } from "../schema/codexSnapshotV1";
 
 export interface RectMm {
   x: number;
@@ -66,4 +66,5 @@ export interface CodexRenderModel {
   portraitUrl: string | null;
   portraitCrop: { x: number; y: number; width: number; height: number };
   focalPoint: { x: number; y: number };
+  genre: GenreTheme;
 }

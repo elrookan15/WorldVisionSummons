@@ -113,9 +113,14 @@ function genreFor(style: string | null): GenreTheme {
   const text = (style ?? "").toLowerCase();
   if (text.includes("cyber")) return "cyberpunk";
   if (text.includes("steam")) return "steampunk";
-  if (text.includes("cosmic") || text.includes("eldritch")) return "cosmic";
   if (text.includes("samurai")) return "samurai";
+  if (text.includes("victorian")) return "victorian";
+  if (text.includes("eldritch")) return "eldritch";
+  if (text.includes("cosmic")) return "cosmic";
   if (text.includes("gothic")) return "gothic";
+  if (text.includes("8-bit") || text.includes("8bit") || text.includes("retro")) return "retro";
+  if (text.includes("apocalyp") || text.includes("wasteland")) return "wasteland";
+  if (text.includes("high fantasy") || text.includes("arcane")) return "highFantasy";
   return "default";
 }
 
