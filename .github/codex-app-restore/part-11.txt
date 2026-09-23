@@ -1,0 +1,85 @@
+            <CodexFinalizer
+              sheet={sheetData as UiSheetData}
+              portraitUrl={imageUrl}
+              characterId={activeCodexId}
+              onEditSection={() => setShowPlate(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <CharacterCodex
+        open={showCodex}
+        onClose={() => setShowCodex(false)}
+        entries={codexEntries}
+        activeId={activeCodexId}
+        c={c}
+        fonts={currentTheme.fonts}
+        onSaveCurrent={() => persistToCodex(false)}
+        onSaveAsNew={() => persistToCodex(true)}
+        onLoad={loadFromCodex}
+        onDelete={(id) => {
+          const next = deleteCodexEntry(id);
+          setCodexEntries(next);
+          if (activeCodexId === id) setActiveCodexId(null);
+        }}
+        onDuplicate={(id) => {
+          const { entries, entry } = duplicateCodexEntry(id);
+          setCodexEntries(entries);
+          if (entry) setSheetsStatusMsg(`Duplicated ${entry.name} in the Codex.`);
+        }}
+      />
+
+      <DiceTray
+        sheet={sheetData as UiSheetData}
+        open={showDiceTray}
+        onToggle={() => setShowDiceTray((v) => !v)}
+        c={c}
+        fonts={currentTheme.fonts}
+      />
+    </div>
+  );
+}
+
+function SectionHeader({ k, title, subtitle, c, currentTheme }: { k: string; title: string; subtitle: string; c: any; currentTheme: any }) {
+  return (
+    <div className="section-kicker">
+      <span className="mono text-[11px] tracking-[0.18em] border px-2.5 py-1 rounded-full" style={{ color: c.clashText, borderColor: c.clash, backgroundColor: c.clash }}>
+        {k}
+      </span>
+      <h2 className="display text-[28px] md:text-[32px] tracking-[-0.02em] font-light" style={{ fontFamily: currentTheme.fonts.display, color: c.text }}>
+        {title}
+      </h2>
+      <span className="hidden md:inline mono text-[11px] tracking-wide" style={{ color: c.muted2 }}>— {subtitle}</span>
+    </div>
+  );
+}
+
+function FieldBox({ label, value, onChange, c }: { label: string; value: string; onChange: any; c: any }) {
+  return (
+    <div className="rounded-[12px] border p-3" style={{ backgroundColor: c.bg2, borderColor: c.border }}>
+      <div className="mono text-[9px] uppercase tracking-wide mb-1" style={{ color: c.muted2 }}>{label}</div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full text-[13px] placeholder:opacity-30 bg-transparent"
+        style={{ color: c.text }}
+      />
+    </div>
+  );
+}
+
+function TextAreaField({ label, value, onChange, rows, c }: { label: string; value: string; onChange: any; rows: number; c: any }) {
+  return (
+    <div>
+      <div className="mono text-[10px] tracking-[0.14em] uppercase opacity-60 mb-2" style={{ color: c.muted }}>{label}</div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={rows}
+        className="w-full text-[15px] leading-[1.6] placeholder:opacity-30 resize-none bg-transparent border rounded-lg p-3"
+        style={{ borderColor: c.border, color: c.text }}
+      />
+    </div>
+  );
+}

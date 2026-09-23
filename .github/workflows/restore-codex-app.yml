@@ -1,0 +1,44 @@
+name: restore-codex-app
+on:
+  push:
+    branches:
+      - Cursor/jonathan-codex-page-finalizer-8663
+    paths:
+      - .github/codex-app-restore/**
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Cursor/jonathan-codex-page-finalizer-8663
+      - name: Assemble src/App.tsx
+        run: |
+          python3 - << 'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path(".github/codex-app-restore")
+          manifest = json.loads((root / "manifest.json").read_text())
+          chunks = []
+          for item in manifest["files"]:
+              text = (root / item["name"]).read_text()
+              digest = hashlib.sha256(text.encode()).hexdigest()
+              if digest != item["sha256"] or len(text) != item["chars"]:
+                  raise SystemExit(f"part mismatch {item['name']}")
+              chunks.append(text)
+          body = "".join(chunks)
+          if hashlib.sha256(body.encode()).hexdigest() != manifest["sha256"]:
+              raise SystemExit("assembled hash mismatch")
+          Path("src/App.tsx").write_text(body)
+          PY
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add src/App.tsx
+          if git diff --cached --quiet; then
+            echo "App.tsx already matches"
+            exit 0
+          fi
+          git commit -m "fix(codex): restore App.tsx with the Seal Page mount"
+          git push
