@@ -1,85 +1,103 @@
-import type { AnchorId, GearSlotId } from "../schema/codexSnapshotV1";
-import type { CalloutRoute, RectMm } from "./types";
+import type { EquipmentTarget } from "../schema/codexSnapshotV1";
+import type { CalloutRoute, PointMm, RectMm } from "./types";
 
-export const PREFERRED_ANCHOR: Record<GearSlotId, AnchorId> = {
-  primaryWeapon: "hand-r",
-  secondaryFocus: "hand-l",
-  armor: "torso",
-  utilityTools: "waist",
-  consumables: "shoulder-l",
-  relics: "shoulder-r",
-};
-
-export const ANCHOR_FALLBACK: readonly AnchorId[] = [
-  "hand-r",
-  "hand-l",
-  "torso",
-  "waist",
-  "shoulder-l",
-  "shoulder-r",
-  "head",
-  "feet",
-];
-
-export const ANCHOR_FRACTION: Record<AnchorId, { fx: number; fy: number }> = {
+export const ANCHOR_FRACTION: Record<Exclude<EquipmentTarget, "free">, { fx: number; fy: number }> = {
   head: { fx: 0.5, fy: 0.12 },
-  "shoulder-l": { fx: 0.18, fy: 0.28 },
-  "shoulder-r": { fx: 0.82, fy: 0.28 },
-  "hand-l": { fx: 0.1, fy: 0.56 },
-  "hand-r": { fx: 0.9, fy: 0.56 },
-  torso: { fx: 0.5, fy: 0.46 },
-  waist: { fx: 0.5, fy: 0.68 },
+  torso: { fx: 0.5, fy: 0.48 },
+  leftHand: { fx: 0.12, fy: 0.58 },
+  rightHand: { fx: 0.88, fy: 0.58 },
+  waist: { fx: 0.5, fy: 0.7 },
   feet: { fx: 0.5, fy: 0.9 },
 };
 
-export interface AnchorRequest {
-  id: string;
-  preferred: AnchorId;
-}
-
-export function assignAnchors(requests: readonly AnchorRequest[]): Array<{ id: string; anchor: AnchorId }> {
-  const used = new Set<AnchorId>();
-  return requests.map((request) => {
-    const order = [request.preferred, ...ANCHOR_FALLBACK.filter((anchor) => anchor !== request.preferred)];
-    const anchor = order.find((candidate) => !used.has(candidate));
-    if (!anchor) throw new Error("Codex plate ran out of portrait anchors");
-    used.add(anchor);
-    return { id: request.id, anchor };
-  });
-}
+const FACE: { fx: number; fy: number; fw: number; fh: number } = { fx: 0.28, fy: 0.14, fw: 0.44, fh: 0.34 };
 
 function roundMm(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-export function anchorPoint(rect: RectMm, anchor: AnchorId): { x: number; y: number } {
-  const fraction = ANCHOR_FRACTION[anchor];
-  return {
-    x: roundMm(rect.x + rect.w * fraction.fx),
-    y: roundMm(rect.y + rect.h * fraction.fy),
-  };
+function point(rect: RectMm, fx: number, fy: number): PointMm {
+  return { x: roundMm(rect.x + rect.w * fx), y: roundMm(rect.y + rect.h * fy) };
+}
+
+function hits(x1: number, y1: number, x2: number, y2: number, rect: RectMm): boolean {
+  const edge = 0.05;
+  if (y1 === y2) {
+    if (y1 <= rect.y + edge || y1 >= rect.y + rect.h - edge) return false;
+    return Math.max(x1, x2) > rect.x + edge && Math.min(x1, x2) < rect.x + rect.w - edge;
+  }
+  if (x1 === x2) {
+    if (x1 <= rect.x + edge || x1 >= rect.x + rect.w - edge) return false;
+    return Math.max(y1, y2) > rect.y + edge && Math.min(y1, y2) < rect.y + rect.h - edge;
+  }
+  return false;
+}
+
+function pathHits(points: PointMm[], obstacles: RectMm[]): boolean {
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const from = points[index];
+    const to = points[index + 1];
+    if (obstacles.some((rect) => hits(from.x, from.y, to.x, to.y, rect))) return true;
+  }
+  return false;
+}
+
+export interface RoutedCallouts {
+  callouts: CalloutRoute[];
+  leadersDropped: boolean;
 }
 
 export function routeCallouts(
-  gear: ReadonlyArray<{ slot: GearSlotId; label: string; name: string; anchor: AnchorId; truncated: boolean }>,
+  gear: ReadonlyArray<{ id: string; name: string; annotation: string; target: EquipmentTarget; truncated: boolean }>,
   portrait: RectMm,
   gearRail: RectMm,
-): CalloutRoute[] {
+  title: RectMm,
+): RoutedCallouts {
+  const face: RectMm = {
+    x: roundMm(portrait.x + portrait.w * FACE.fx),
+    y: roundMm(portrait.y + portrait.h * FACE.fy),
+    w: roundMm(portrait.w * FACE.fw),
+    h: roundMm(portrait.h * FACE.fh),
+  };
+  const targets = gear.map((item) => item.target).filter((target) => target !== "free");
+  const collided = targets.some((target, index) => targets.indexOf(target) !== index);
   const cardH = gearRail.h / Math.max(1, gear.length);
-  return gear.map((item, index) => {
-    const anchor = anchorPoint(portrait, item.anchor);
+
+  const drafted = gear.map((item, index) => {
     const callout = {
-      x: roundMm(gearRail.x + 1.5),
+      x: roundMm(gearRail.x),
       y: roundMm(gearRail.y + cardH * index + cardH / 2),
     };
+    if (item.target === "free") {
+      return { item, callout, anchor: callout, bend: null as PointMm | null, leader: false };
+    }
+    const fraction = ANCHOR_FRACTION[item.target];
+    const anchor = point(portrait, fraction.fx, fraction.fy);
+    const elbowH: PointMm[] = [anchor, { x: callout.x, y: anchor.y }, callout];
+    const elbowV: PointMm[] = [anchor, { x: anchor.x, y: callout.y }, callout];
+    const chosen = !pathHits(elbowH, [face, title]) ? elbowH : !pathHits(elbowV, [face, title]) ? elbowV : null;
     return {
-      slotId: item.slot,
-      label: item.label,
-      name: item.name,
-      anchor: item.anchor,
-      anchorPoint: anchor,
-      calloutPoint: callout,
-      truncated: item.truncated,
+      item,
+      callout,
+      anchor,
+      bend: chosen ? chosen[1] : null,
+      leader: chosen !== null,
     };
   });
+
+  const leadersDropped = collided || drafted.some((route) => route.item.target !== "free" && !route.leader);
+  return {
+    leadersDropped,
+    callouts: drafted.map((route) => ({
+      id: route.item.id,
+      name: route.item.name,
+      annotation: route.item.annotation,
+      target: route.item.target,
+      anchorPoint: route.anchor,
+      bend: leadersDropped ? null : route.bend,
+      calloutPoint: route.callout,
+      leader: leadersDropped ? false : route.leader,
+      truncated: route.item.truncated,
+    })),
+  };
 }

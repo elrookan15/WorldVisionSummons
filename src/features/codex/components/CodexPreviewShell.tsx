@@ -1,47 +1,37 @@
+import { useEffect, useRef, useState } from "react";
 import type { CodexRenderModel } from "../composition/types";
-import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
 import { CodexPage } from "./CodexPage";
+
+const PAGE_WIDTH_PX = (210 / 25.4) * 96;
 
 export interface CodexPreviewShellProps {
   model: CodexRenderModel;
-  zoom: number;
-  onZoomChange: (zoom: number) => void;
 }
 
-const MIN_ZOOM = 0.35;
-const MAX_ZOOM = 1.4;
+export function CodexPreviewShell({ model }: CodexPreviewShellProps) {
+  const frame = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
-export function CodexPreviewShell({ model, zoom, onZoomChange }: CodexPreviewShellProps) {
-  const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
+  useEffect(() => {
+    const node = frame.current;
+    if (!node) return;
+    const measure = () => {
+      const width = node.clientWidth;
+      setScale(width > 0 ? Math.min(1, width / PAGE_WIDTH_PX) : 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div>
-      <div className="codex-preview-chrome" style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        <button type="button" onClick={() => onZoomChange(Math.max(MIN_ZOOM, Math.round((clamped - 0.1) * 100) / 100))} style={zoomButton}>
-          Zoom out
-        </button>
-        <button type="button" onClick={() => onZoomChange(0.72)} style={zoomButton}>
-          Fit
-        </button>
-        <button type="button" onClick={() => onZoomChange(Math.min(MAX_ZOOM, Math.round((clamped + 0.1) * 100) / 100))} style={zoomButton}>
-          Zoom in
-        </button>
-      </div>
-      <div style={{ overflow: "auto", background: "#1c140e", padding: 16 }}>
-        <div style={{ width: `calc(210mm * ${clamped})`, height: `calc(297mm * ${clamped})` }}>
-          <div style={{ transform: `scale(${clamped})`, transformOrigin: "top left", width: "210mm", height: "297mm" }}>
-            <CodexPage model={model} />
-          </div>
+    <div ref={frame} style={{ width: "100%", overflow: "auto", background: "#211813", padding: 16 }}>
+      <div style={{ width: `calc(210mm * ${scale})`, height: `calc(297mm * ${scale})` }}>
+        <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: "210mm", height: "297mm" }}>
+          <CodexPage model={model} />
         </div>
       </div>
     </div>
   );
 }
-
-const zoomButton = {
-  minHeight: 44,
-  minWidth: 44,
-  padding: "0 12px",
-  border: `1px solid ${ILLUMINATED_TOKENS.gildedBronze}`,
-  background: ILLUMINATED_TOKENS.ink,
-  color: ILLUMINATED_TOKENS.parchment,
-} as const;

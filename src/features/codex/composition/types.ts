@@ -1,4 +1,4 @@
-import type { AnchorId } from "../schema/codexSnapshotV1";
+import type { EquipmentTarget } from "../schema/codexSnapshotV1";
 
 export interface RectMm {
   x: number;
@@ -37,28 +37,33 @@ export interface PlateRule {
 }
 
 export interface CalloutRoute {
-  slotId: string;
-  label: string;
+  id: string;
   name: string;
-  anchor: AnchorId;
+  annotation: string;
+  target: EquipmentTarget;
   anchorPoint: PointMm;
+  bend: PointMm | null;
   calloutPoint: PointMm;
+  leader: boolean;
   truncated: boolean;
 }
 
 export interface CodexRenderModel {
   templateId: "illuminated-codex";
+  templateVersion: "1.0.0";
   page: { widthMm: number; heightMm: number };
   snapshotHash: string;
   revision: number;
-  locked: boolean;
+  sealed: boolean;
   texts: TextRun[];
   rules: PlateRule[];
   callouts: CalloutRoute[];
+  leadersDropped: boolean;
   regions: Record<RegionId, RectMm>;
-  warnings: readonly string[];
   overflowIds: readonly string[];
-  crest: string;
+  crest: string | null;
+  silhouette: string | null;
   portraitUrl: string | null;
-  portraitCrop: { x: number; y: number; w: number; h: number };
+  portraitCrop: { x: number; y: number; width: number; height: number };
+  focalPoint: { x: number; y: number };
 }

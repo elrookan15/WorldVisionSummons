@@ -1,6 +1,6 @@
+import type { CodexRenderModel } from "../composition/types";
 import { regionBox } from "../templates/illuminated-codex/ornaments";
 import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
-import type { CodexRenderModel } from "../composition/types";
 
 export function CodexPortraitStage({ model }: { model: CodexRenderModel }) {
   const region = model.regions.portrait;
@@ -10,11 +10,10 @@ export function CodexPortraitStage({ model }: { model: CodexRenderModel }) {
       <div
         style={{
           position: "absolute",
-          inset: "2mm",
-          background: ILLUMINATED_TOKENS.parchmentDeep,
-          WebkitMaskImage: "radial-gradient(ellipse at center, #000 62%, transparent 100%)",
-          maskImage: "radial-gradient(ellipse at center, #000 62%, transparent 100%)",
+          inset: "3mm",
+          background: ILLUMINATED_TOKENS.agedFiber,
           overflow: "hidden",
+          border: `0.6pt solid ${ILLUMINATED_TOKENS.gildedBronze}`,
         }}
       >
         {model.portraitUrl ? (
@@ -22,10 +21,12 @@ export function CodexPortraitStage({ model }: { model: CodexRenderModel }) {
             src={model.portraitUrl}
             alt=""
             style={{
-              width: "100%",
-              height: "100%",
+              width: `${100 / Math.max(crop.width, 0.05)}%`,
+              height: `${100 / Math.max(crop.height, 0.05)}%`,
+              marginLeft: `${-(crop.x / Math.max(crop.width, 0.05)) * 100}%`,
+              marginTop: `${-(crop.y / Math.max(crop.height, 0.05)) * 100}%`,
               objectFit: "cover",
-              objectPosition: `${crop.x / 10}% ${crop.y / 10}%`,
+              objectPosition: `${model.focalPoint.x * 100}% ${model.focalPoint.y * 100}%`,
             }}
           />
         ) : (
@@ -36,11 +37,17 @@ export function CodexPortraitStage({ model }: { model: CodexRenderModel }) {
               display: "grid",
               placeItems: "center",
               color: ILLUMINATED_TOKENS.oxblood,
-              fontFamily: '"Cinzel", Palatino, serif',
-              fontSize: "22pt",
+              fontFamily: '"Cinzel", "Noto Serif", Palatino, serif',
+              textAlign: "center",
+              padding: "8mm",
             }}
           >
-            {model.crest}
+            <div>
+              <div style={{ fontSize: "22pt" }}>{model.crest ?? model.silhouette ?? "WV"}</div>
+              <div style={{ marginTop: "4mm", fontSize: "9pt", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                Portrait not set
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -12,7 +12,7 @@ export function CodexPage({ model }: { model: CodexRenderModel }) {
   return (
     <article
       className="codex-page"
-      aria-label={model.locked ? "Sealed codex page" : "Unsealed codex proof"}
+      aria-label={model.sealed ? "Sealed codex page" : "Unsealed codex proof"}
       style={{
         position: "relative",
         width: "210mm",
@@ -24,25 +24,18 @@ export function CodexPage({ model }: { model: CodexRenderModel }) {
       }}
     >
       <style>
-        {`@page { size: A4 portrait; margin: 0; }
+        {`@page { size: 210mm 297mm; margin: 0; }
           @media print {
             .codex-preview-chrome { display: none !important; }
             .codex-page { box-shadow: none !important; }
           }`}
       </style>
-      <CodexOrnamentFrame />
+      <CodexOrnamentFrame rules={model.rules} />
       <CodexTitleCartouche model={model} />
       <CodexIdentityRail model={model} />
       <CodexPortraitStage model={model} />
       <CodexGearRail model={model} />
-      <CodexLeaderLines
-        lines={model.callouts.map((callout) => ({
-          x1: callout.anchorPoint.x,
-          y1: callout.anchorPoint.y,
-          x2: callout.calloutPoint.x,
-          y2: callout.calloutPoint.y,
-        }))}
-      />
+      {model.leadersDropped ? null : <CodexLeaderLines routes={model.callouts} />}
       <CodexBottomSystem model={model} />
       <CodexFooterProvenance model={model} />
     </article>
