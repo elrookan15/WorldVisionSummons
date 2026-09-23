@@ -1,27 +1,70 @@
-import type { CodexRenderModel } from "../composition/types";
-import { plateFont, regionBox } from "../templates/illuminated-codex/ornaments";
+import type { CalloutRoute, CodexRenderModel } from "../composition/types";
+import { CodexItemVignette, plateFont, regionBox } from "../templates/illuminated-codex/ornaments";
 import { ILLUMINATED_TOKENS } from "../templates/illuminated-codex/tokens";
+
+function blurb(callout: CalloutRoute): string {
+  const prefix = `${callout.name} `;
+  if (callout.annotation.startsWith(prefix)) return callout.annotation.slice(prefix.length);
+  if (callout.annotation === callout.name) return "";
+  return callout.annotation;
+}
 
 export function CodexGearRail({ model }: { model: CodexRenderModel }) {
   const region = model.regions.gear;
   const cardH = region.h / Math.max(1, model.callouts.length);
   return (
     <section style={{ ...regionBox(region), borderLeft: `0.4pt solid ${ILLUMINATED_TOKENS.gildedBronze}` }} aria-label="Gear rail">
-      {model.callouts.map((callout, index) => (
-        <div
-          key={callout.id}
-          style={{
-            position: "absolute",
-            left: "1.5mm",
-            top: `${index * cardH + 1}mm`,
-            width: `${region.w - 3}mm`,
-          }}
-        >
-          <div style={{ fontFamily: plateFont("body"), fontSize: "8pt", color: ILLUMINATED_TOKENS.ink, overflow: "hidden" }}>
-            {callout.annotation || callout.name}
+      {model.callouts.map((callout, index) => {
+        const note = blurb(callout);
+        return (
+          <div
+            key={callout.id}
+            style={{
+              position: "absolute",
+              left: "1.2mm",
+              top: `${index * cardH + 1.2}mm`,
+              width: `${region.w - 2.4}mm`,
+              height: `${Math.max(0, cardH - 2)}mm`,
+              overflow: "hidden",
+              borderBottom: `0.4pt solid ${ILLUMINATED_TOKENS.gildedBronze}`,
+            }}
+          >
+            <div style={{ display: "flex", gap: "1.4mm", alignItems: "flex-start" }}>
+              <div style={{ flex: "0 0 auto" }}>
+                <CodexItemVignette target={callout.target} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: plateFont("label"),
+                    fontSize: "7.5pt",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: ILLUMINATED_TOKENS.oxblood,
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {callout.name}
+                </div>
+                {note ? (
+                  <div
+                    style={{
+                      marginTop: "0.6mm",
+                      fontFamily: plateFont("body"),
+                      fontStyle: "italic",
+                      fontSize: "8pt",
+                      lineHeight: 1.15,
+                      color: ILLUMINATED_TOKENS.ink,
+                    }}
+                  >
+                    {note}
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </section>
   );
 }

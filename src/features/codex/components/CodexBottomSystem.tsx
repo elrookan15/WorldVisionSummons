@@ -6,7 +6,14 @@ import { PlateText, textsWithPrefix } from "./PlateText";
 function Band({ model, regionKey, label, ids }: { model: CodexRenderModel; regionKey: "vitals" | "attributes" | "chronicle"; label: string; ids: string[] }) {
   const region = model.regions[regionKey];
   return (
-    <section style={{ ...regionBox(region), borderTop: `0.8pt solid ${ILLUMINATED_TOKENS.oxblood}` }} aria-label={label}>
+    <section
+      style={{
+        ...regionBox(region),
+        border: `0.6pt solid ${ILLUMINATED_TOKENS.oxblood}`,
+        boxShadow: `inset 0 0 0 0.6mm transparent, inset 0 0 0 0.8mm ${ILLUMINATED_TOKENS.gildedBronze}`,
+      }}
+      aria-label={label}
+    >
       {ids.map((id) => (
         <PlateText key={id} model={model} id={id} origin={region} />
       ))}

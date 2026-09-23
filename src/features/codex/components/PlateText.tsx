@@ -15,9 +15,11 @@ export function PlateText({ model, id, origin }: { model: CodexRenderModel; id: 
         fontSize: `${run.fontPt}pt`,
         lineHeight: run.wrap ? 1.2 : 1.1,
         color: run.color,
-        fontFamily: plateFont(run.role),
-        letterSpacing: run.role === "label" ? "0.08em" : "0",
+        letterSpacing: run.role === "label" || run.id.startsWith("title.") ? "0.06em" : "0",
         textTransform: run.role === "label" ? "uppercase" : "none",
+        textAlign: run.id.startsWith("title.") ? "center" : run.wrap ? "justify" : "left",
+        fontStyle: run.id === "footer.provenance" || run.id === "title.motto" ? "italic" : "normal",
+        fontFamily: run.id === "footer.provenance" || run.id === "title.motto" ? '"Newsreader", "Cormorant Garamond", Palatino, serif' : plateFont(run.role),
         whiteSpace: run.wrap ? "pre-wrap" : "nowrap",
         overflow: "hidden",
       }}
