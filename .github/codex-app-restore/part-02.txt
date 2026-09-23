@@ -1,0 +1,283 @@
+  {
+    name: "Cassian — Deep-Space Navigator",
+    style: "Starship Log",
+    category: "Tech & Cyber",
+    charName: "Cassian Drake",
+    charClass: "Star-Navigator",
+    lore: "Charting hyperspace lanes aboard the cruiser Odyssey, Cassian calculates quantum gravitational anomalies before they tear his vessel apart.",
+    items: "Quantum Sextant,Holo-Map Projector,Grav-Booties,Emergency Beacon"
+  },
+  {
+    name: "Lyra-X — Android Pilot",
+    style: "Starship Log",
+    category: "Tech & Cyber",
+    charName: "Lyra-X",
+    charClass: "Synthetic Flight Officer",
+    lore: "An advanced combat android designed for extreme atmospheric entry, Lyra-X pilots interceptor craft through asteroid fields at sub-light velocities.",
+    items: "Pilot Visor,Thruster Pack,Data-Link Tether,Alloy Wrench"
+  },
+  {
+    name: "Cyrus — Pixel Knight",
+    style: "8-Bit Retro RPG",
+    category: "Combat & Martial",
+    charName: "Cyrus",
+    charClass: "8-Bit Paladin",
+    lore: "Guarding the 8-Bit Kingdom against Glitch Dragons and pixelated bandits, Cyrus fights with unwavering blocky honor.",
+    items: "Retro Broadsword,Blocky Shield,Heart Container,8-Bit Potion"
+  },
+  {
+    name: "Pixelia — Chiptune Sorceress",
+    style: "8-Bit Retro RPG",
+    category: "Arcane & Cosmic",
+    charName: "Pixelia",
+    charClass: "Chiptune Mage",
+    lore: "Casting spells synthesized from 4-channel square wave audio frequencies that stun enemies with pure nostalgic frequency power.",
+    items: "Wand of Beeps,Floppy Disk Tome,Pixel Dust,Mana Crystal"
+  },
+  {
+    name: "Sylvia — Glade Ranger",
+    style: "Feywild Bloom",
+    category: "Nature & Wild",
+    charName: "Sylvia Greenbriar",
+    charClass: "Fey Ranger",
+    lore: "Tracking poachers and shadow beasts through the eternal twilight of the Feywild with arrows fletched from shimmering hummingbird feathers.",
+    items: "Yew Longbow,Quiver of Star-Arrows,Cloak of Leaves,Hunting Horn"
+  },
+  {
+    name: "Oberon — Autumn Wardens",
+    style: "Feywild Bloom",
+    category: "Nature & Wild",
+    charName: "Oberon Vane",
+    charClass: "Autumn Warden",
+    lore: "Embodied spirit of falling leaves and crisp harvest winds, protecting the sacred boundaries between the mortal realm and Faerie.",
+    items: "Staff of Amber Leaves,Acorn Grenades,Frost-Ivy Crown,Woven Basket"
+  },
+  {
+    name: "Raven — Shadow Extraction",
+    style: "Shadow Protocol",
+    category: "Stealth & Rogue",
+    charName: "Raven",
+    charClass: "Extraction Specialist",
+    lore: "Extracting high-value informants from heavily fortified black sites under cover of absolute radio silence and artificial darkness.",
+    items: "Grapple Launcher,Suppressor Pistol,Encrypted Terminal,Smoke Canister"
+  },
+  {
+    name: "Viper — Ghost Infiltrator",
+    style: "Shadow Protocol",
+    category: "Stealth & Rogue",
+    charName: "Viper",
+    charClass: "Ghost Operative",
+    lore: "Equipped with active camouflage netting and silent monofilament wire, Viper is the unseen whisper that eliminates syndicate kingpins.",
+    items: "Cammo Suit,Monofilament Wire,Night-Vision Shroud,Silent Blade"
+  },
+  {
+    name: "Krynn — Cursed Scavenger",
+    style: "Wasteland Scavenger",
+    category: "Science & Lab",
+    charName: "Krynn",
+    charClass: "Fallout Scrapper",
+    lore: "Surviving the irradiated badlands of Sector 7 by turning rusted car chassis into functional plasma rifles and makeshift armor plating.",
+    items: "Scrap-Metal Rifle,Geiger Counter,Filtered Canteen,Welders Mask"
+  },
+  {
+    name: "RUST — Junk-Pile Automaton",
+    style: "Wasteland Scavenger",
+    category: "Tech & Cyber",
+    charName: "RUST-01",
+    charClass: "Sentient Scrapyard Golem",
+    lore: "Awakened in a mountain of discarded electronics, RUST-01 defends nomadic desert caravans using hydraulic arms built from excavator scrap.",
+    items: "Hydraulic Claw,Solar Recharger,Scrap Armor,Core Beacon"
+  },
+  {
+    name: "Evangeline — Sepulcher Undertaker",
+    style: "Victorian Gothic",
+    category: "Dark & Necrotic",
+    charName: "Evangeline Frost",
+    charClass: "Gothic Undertaker",
+    lore: "Managing the gaslit catacombs beneath St. Jude's Cathedral, Evangeline ensures restless spirits remain safely entombed with silver pins.",
+    items: "Silver Coffin Nails,Embalming Kit,Gaslamp of Souls,Mourning Veil"
+  },
+  {
+    name: "Alistair — Ravenwood Aristocrat",
+    style: "Victorian Gothic",
+    category: "Royal & Noble",
+    charName: "Lord Alistair",
+    charClass: "Nocturnal Aristocrat",
+    lore: "Hosting lavish masquerade balls in his crumbling moorland estate while secretly leading a coven of midnight aristocrats.",
+    items: "Ivory Cane,Masquerade Mask,Signet Ring,Pocket Watch"
+  },
+  {
+    name: "Genevieve — High Chancellor",
+    style: "Royal Court",
+    category: "Royal & Noble",
+    charName: "Genevieve du Pont",
+    charClass: "Royal Chancellor",
+    lore: "Wielding absolute political leverage across the Imperial Senate through meticulous record-keeping, razor-sharp wit, and poisoned wine.",
+    items: "Imperial Seal Stamp,Silk Scroll,Poison Ring,Golden Quill"
+  },
+  {
+    name: "Bio-Vex — Gene-Hacker",
+    style: "BioHacker",
+    category: "Science & Lab",
+    charName: "Dr. Vex",
+    charClass: "Genetic Splicer",
+    lore: "Modifying his own cellular structure in an underground bio-lab to grow chitinous armor plating and venom-secreting dermal glands.",
+    items: "Gene-Sequencer,Mutagen Vials,Bio-Injector,Surgical Lasers"
+  },
+  {
+    name: "Kuro — Obsidian Zealot",
+    style: "Obsidian Cult",
+    category: "Dark & Necrotic",
+    charName: "Kuro",
+    charClass: "Obsidian Zealot",
+    lore: "Fasting for forty days inside the volcanic caldera of Mount Ash, Kuro forged his flesh into an unyielding conduit for black basalt magic.",
+    items: "Basalt Staff,Obsidian Dagger,Vial of Magma,Cindershroud"
+  }
+];
+
+export default function App() {
+  const [themeId, setThemeId] = useState("gothicDarkFantasy");
+  const currentTheme = THEMES.find(t => t.id === themeId) || THEMES[0];
+  const c = currentTheme.tokens;
+
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // Input states for AI generation / Summon
+  const [characterName, setCharacterName] = useState("");
+  const [characterClass, setCharacterClass] = useState("");
+  const [characterLevel, setCharacterLevel] = useState("16");
+  const [characterLore, setCharacterLore] = useState("");
+  const [inventoryItems, setInventoryItems] = useState("");
+  const [sheetStyle, setSheetStyle] = useState("Gothic Dark Fantasy");
+  const [presetStyleFilter, setPresetStyleFilter] = useState("All");
+  const [presetCategoryFilter, setPresetCategoryFilter] = useState("All");
+  const [presetSearchQuery, setPresetSearchQuery] = useState("");
+  const [favoritesOnlyFilter, setFavoritesOnlyFilter] = useState(false);
+
+  // Pinned favorites persisted in localStorage with safe in-memory fallback
+  const [favoritePresets, setFavoritePresets] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("worldvision_favorite_presets");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // safe fallback for restricted iframe environments
+    }
+    // Default 2 popular archetypes pinned initially for immediate UX feedback
+    return ["Gelbinor — The Shy Grave", "Kaelen Vex - Netrunner"];
+  });
+
+  const toggleFavoritePreset = (presetName: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setFavoritePresets(prev => {
+      const next = prev.includes(presetName)
+        ? prev.filter(name => name !== presetName)
+        : [...prev, presetName];
+      try {
+        localStorage.setItem("worldvision_favorite_presets", JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  };
+
+  const uniquePresetStyles = Array.from(new Set(PRESETS.map(p => p.style)));
+  const uniquePresetCategories = Array.from(new Set(PRESETS.map(p => p.category)));
+  const filteredPresets = PRESETS.filter(p => {
+    let matchStyle = presetStyleFilter === "All" || p.style === presetStyleFilter;
+    let matchCat = presetCategoryFilter === "All" || p.category === presetCategoryFilter;
+    let q = presetSearchQuery.toLowerCase().trim();
+    let matchSearch = !q || p.name.toLowerCase().includes(q) || p.charClass.toLowerCase().includes(q) || p.lore.toLowerCase().includes(q) || p.style.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+    let matchFav = !favoritesOnlyFilter || favoritePresets.includes(p.name);
+    return matchStyle && matchCat && matchSearch && matchFav;
+  }).sort((a, b) => {
+    const aFav = favoritePresets.includes(a.name) ? 1 : 0;
+    const bFav = favoritePresets.includes(b.name) ? 1 : 0;
+    if (bFav !== aFav) {
+      return bFav - aFav; // Pinned favorites always float to the top
+    }
+    return 0;
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageEngine, setImageEngine] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [generatingImage, setGeneratingImage] = useState(false);
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [activePresetName, setActivePresetName] = useState<string>("Gelbinor — The Shy Grave");
+  const [showStatsRadarOverlay, setShowStatsRadarOverlay] = useState<boolean>(false);
+
+  // Google Workspace & Sheets state
+  const [googleUser, setGoogleUser] = useState<any>(null);
+  const [, setGoogleToken] = useState<string | null>(null);
+  const [isSigningInGoogle, setIsSigningInGoogle] = useState(false);
+  const [sheetsStatusMsg, setSheetsStatusMsg] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [spreadsheetIdInput, setSpreadsheetIdInput] = useState("");
+
+  useEffect(() => {
+    const unsub = initAuth(
+      (user, token) => {
+        setGoogleUser(user);
+        setGoogleToken(token);
+      },
+      () => {
+        setGoogleUser(null);
+        setGoogleToken(null);
+      }
+    );
+    return () => unsub();
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    setIsSigningInGoogle(true);
+    setSheetsStatusMsg(null);
+    try {
+      const res = await googleSignIn();
+      if (res) {
+        setGoogleUser(res.user);
+        setGoogleToken(res.accessToken);
+        setSheetsStatusMsg("Successfully connected to Google Workspace & Sheets!");
+      }
+    } catch (err: any) {
+      setSheetsStatusMsg(`Sign-in failed: ${err.message}`);
+    } finally {
+      setIsSigningInGoogle(false);
+    }
+  };
+
+  const handleExportSheets = async () => {
+    setSheetsStatusMsg("Exporting character record to Google Sheets...");
+    try {
+      const { spreadsheetId, spreadsheetUrl } = await exportCharacterToGoogleSheet(sheetData);
+      setSheetsStatusMsg(`Export successful! ID: ${spreadsheetId}`);
+      window.open(spreadsheetUrl, "_blank");
+    } catch (err: any) {
+      setSheetsStatusMsg(`Export failed: ${err.message}`);
+    }
+  };
+
+  const handleImportSheets = async () => {
+    if (!spreadsheetIdInput.trim()) return;
+    setSheetsStatusMsg("Importing character record from Google Sheets...");
+    try {
+      const data = await importCharacterFromGoogleSheet(spreadsheetIdInput.trim());
+      setSheetData((prev) => mergeImportedSheet(prev as UiSheetData, data));
+      const importedStyle = canonicalizeSheetStyle(data.sheet_style);
+      setSheetStyle(importedStyle);
+      setThemeId(themeIdForStyle(importedStyle));
+      setSheetsStatusMsg("Character imported successfully from Google Sheet!");
+      setShowImportModal(false);
+      setSpreadsheetIdInput("");
+    } catch (err: any) {
+      setSheetsStatusMsg(`Import failed: ${err.message}`);
+    }
+  };
