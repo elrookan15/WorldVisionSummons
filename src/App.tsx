@@ -11,6 +11,7 @@ import { CharacterSheetData, SheetPreset } from "./types";
 import StatsRadarComparison from "./components/StatsRadarComparison";
 import CharacterCodex from "./components/CharacterCodex";
 import CodexFinalizer from "./components/CodexFinalizer";
+import { codexReady } from "./lib/codexSnapshot";
 import DiceTray from "./components/DiceTray";
 import { StatBaseline } from "./lib/statBaselines";
 import ImageEditorModal from "./components/ImageEditorModal";
@@ -1272,13 +1273,20 @@ export default function App() {
 
             <button
               type="button"
-              onClick={() => setShowCodexPage(true)}
+              onClick={() => {
+                const gate = codexReady(sheetData as UiSheetData);
+                if (!gate.ok) {
+                  setSheetsStatusMsg(`Finalize needs ${gate.missing.join(" and ")} before the Codex can lock.`);
+                  return;
+                }
+                setShowCodexPage(true);
+              }}
               className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
               style={{ backgroundColor: c.accent, borderColor: c.borderStrong, color: c.accentText }}
               title="Open the print-ready Codex page"
             >
               <Scroll className="w-3.5 h-3.5" />
-              <span className="mono text-[11px]">Codex Page</span>
+              <span className="mono text-[11px]">Finalize Codex</span>
             </button>
 
             <button

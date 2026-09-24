@@ -630,6 +630,31 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
 app.post("/api/chat", handleChatTurn);
 app.post("/api/summons/chat", handleChatTurn);
 
+const codexSnapshots = new Map<string, unknown>();
+
+app.post("/api/codex/snapshots", (req, res) => {
+  const body = req.body as { snapshotId?: string; character?: unknown; contentHash?: string };
+  if (!body?.snapshotId || !body.character || !body.contentHash) {
+    res.status(400).json({ error: "snapshot requires snapshotId, character, and contentHash" });
+    return;
+  }
+  if (codexSnapshots.has(body.snapshotId)) {
+    res.status(409).json({ error: "snapshot is immutable" });
+    return;
+  }
+  codexSnapshots.set(body.snapshotId, body);
+  res.status(201).json(body);
+});
+
+app.get("/api/codex/snapshots/:id", (req, res) => {
+  const row = codexSnapshots.get(String(req.params.id));
+  if (!row) {
+    res.status(404).json({ error: "snapshot not found" });
+    return;
+  }
+  res.json(row);
+});
+
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",

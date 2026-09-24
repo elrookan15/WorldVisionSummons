@@ -9,9 +9,9 @@ import {
   CODEX_STYLES,
   codexStyleById,
   resolvePlateStyle,
-  writePlateSnapshot,
   type CodexStyleId,
 } from "../lib/codexStyles";
+import { mintSnapshot, type CodexPageSize, type CodexSnapshot } from "../lib/codexSnapshot";
 import "../codex-finalizer.css";
 
 type CodexFinalizerProps = {
@@ -133,15 +133,19 @@ function EmptyPlate({ initials, name }: { initials: string; name: string }) {
 }
 
 export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFinalizerProps) {
-  const page = buildCodexPageModel(sheet);
-  const displayName = page.name || "Unnamed Summon";
-  const leftCallouts = page.abilities.slice(0, 3);
-  const rightCallouts = page.callouts;
   const [styleId, setStyleId] = useState<CodexStyleId>(() => resolvePlateStyle({
     sheetName: sheet.name,
     sheetStyle: sheet.sheet_style,
   }));
-  const skin = codexStyleById(styleId);
+  const [pageSize, setPageSize] = useState<CodexPageSize>("A4");
+  const [locked, setLocked] = useState<CodexSnapshot | null>(null);
+  const sourceSheet = locked?.character ?? sheet;
+  const sourcePortrait = locked ? locked.assets.portrait.url : portraitUrl;
+  const page = buildCodexPageModel(sourceSheet);
+  const displayName = page.name || "Unnamed Summon";
+  const leftCallouts = page.abilities.slice(0, 3);
+  const rightCallouts = page.callouts;
+  const skin = codexStyleById(locked?.styleId ?? styleId);
   const skinVars = {
     "--codex-ground": skin.ground,
     "--codex-ground2": skin.ground2,
@@ -155,18 +159,43 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
     color: skin.ink,
   } as CSSProperties;
 
-  const bake = (id: CodexStyleId) => {
-    writePlateSnapshot({
-      plateStyleId: id,
-      sheetName: sheet.name,
-      sheetStyle: sheet.sheet_style,
-      recordedAt: new Date().toISOString(),
-    });
+  const publish = async (next: CodexSnapshot) => {
+    setLocked(next);
+    try {
+      await fetch("/api/codex/snapshots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+    } catch {
+      /* local revision remains the artifact */
+    }
   };
 
   const choose = (id: CodexStyleId) => {
     setStyleId(id);
-    bake(id);
+    if (!locked) return;
+    void mintSnapshot({
+      sheet: locked.character,
+      portraitUrl: locked.assets.portrait.url,
+      styleId: id,
+      pageSize: locked.pageSize,
+    }).then(publish);
+  };
+
+  const confirm = () => {
+    void mintSnapshot({ sheet, portraitUrl, styleId, pageSize }).then(publish);
+  };
+
+  const exportJson = () => {
+    if (!locked) return;
+    const blob = new Blob([JSON.stringify(locked, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${locked.character.name || "codex"}-r${locked.revision}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -174,7 +203,14 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Shippori+Mincho&family=Special+Elite&family=UnifrakturMaguntia&display=swap" />
       <div className="codex-toolbar no-print">
         <button type="button" onClick={onClose}>Return to atelier</button>
-        <button type="button" onClick={() => { bake(styleId); window.print(); }}>Print A4</button>
+        <button type="button" onClick={() => setPageSize((size) => size === "A4" ? "US-Letter" : "A4")}>{pageSize}</button>
+        {locked ? (
+          <span className="codex-lock" data-codex-revision={locked.revision}>Revision {locked.revision} locked</span>
+        ) : (
+          <button type="button" onClick={confirm}>Lock snapshot</button>
+        )}
+        <button type="button" onClick={exportJson} disabled={!locked}>Export JSON</button>
+        <button type="button" onClick={() => window.print()} disabled={!locked}>Print PDF</button>
         <div className="codex-picker" role="listbox" aria-label="Codex plate style">
           {CODEX_STYLES.map((style) => (
             <button
@@ -182,7 +218,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
               type="button"
               className="codex-swatch"
               role="option"
-              aria-pressed={style.id === styleId}
+              aria-pressed={style.id === skin.id}
               onClick={() => choose(style.id)}
             >
               <span
@@ -200,6 +236,8 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
           className="codex-sheet"
           data-codex-style={skin.id}
           data-codex-style-name={skin.name}
+          data-page-size={locked?.pageSize ?? pageSize}
+          data-codex-locked={locked ? "true" : "false"}
           style={skinVars}
           aria-label={`${displayName} codex page`}
         >
@@ -253,8 +291,8 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
               </div>
 
               <div className="codex-portrait-well" data-codex-zone="portrait">
-                {portraitUrl ? (
-                  <img src={portraitUrl} alt="" data-codex-portrait="live" />
+                {sourcePortrait ? (
+                  <img src={sourcePortrait} alt="" data-codex-portrait="live" />
                 ) : (
                   <EmptyPlate initials={page.initials} name={displayName} />
                 )}

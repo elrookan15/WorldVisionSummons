@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import CodexFinalizer from "../components/CodexFinalizer";
 import { buildCodexPageModel } from "../lib/codexPageModel";
 import { CODEX_STYLES, defaultCodexStyleForGenre } from "../lib/codexStyles";
+import { hashSheet } from "../lib/codexSnapshot";
 import type { UiSheetData } from "../lib/sheetMapper";
 
 function emptySheet(): UiSheetData {
@@ -80,10 +81,10 @@ describe("codex finalizer page", () => {
     expect(CODEX_STYLES).toHaveLength(17);
     expect(new Set(CODEX_STYLES.map((style) => style.id)).size).toBe(17);
     expect(defaultCodexStyleForGenre("Gothic Dark Fantasy")).toBe("illuminated-parchment");
-    expect(defaultCodexStyleForGenre("Cyberpunk")).toBe("cyberpunk-neon-dossier");
+    expect(defaultCodexStyleForGenre("Cyberpunk")).toBe("cyberpunk-dossier");
     expect(defaultCodexStyleForGenre("Samurai Era")).toBe("samurai-emakimono");
     expect(defaultCodexStyleForGenre("8-Bit Retro RPG")).toBe("retro-8bit");
-    expect(defaultCodexStyleForGenre("Victorian Gothic")).toBe("victorian-gothic-mourning");
+    expect(defaultCodexStyleForGenre("Victorian Gothic")).toBe("victorian-gothic");
     const sheet = emptySheet();
     sheet.name = "Neon";
     sheet.sheet_style = "Cyberpunk";
@@ -91,8 +92,16 @@ describe("codex finalizer page", () => {
     const html = renderToStaticMarkup(
       <CodexFinalizer sheet={sheet} portraitUrl={null} onClose={() => undefined} />
     );
-    expect(html).toContain('data-codex-style="cyberpunk-neon-dossier"');
+    expect(html).toContain('data-codex-style="cyberpunk-dossier"');
     expect(html).toContain("Laser skateboard");
     expect(html).toContain("Recorded in the codex");
+  });
+
+  it("hashes identical sheet text to the same snapshot digest", async () => {
+    const spaced = emptySheet();
+    spaced.name = " Gelbinor \r\n";
+    const trimmed = emptySheet();
+    trimmed.name = "Gelbinor";
+    expect(await hashSheet(spaced)).toBe(await hashSheet(trimmed));
   });
 });
