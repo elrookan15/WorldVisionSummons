@@ -122,6 +122,28 @@
   mix-blend-mode: multiply;
 }
 
+.codex-sheet[data-codex-style="illuminated-parchment"] {
+  background-image:
+    radial-gradient(ellipse at 8% 0%, rgba(201, 162, 39, 0.22), transparent 28%),
+    radial-gradient(ellipse at 92% 100%, rgba(48, 22, 10, 0.55), transparent 34%),
+    radial-gradient(circle at 18% 72%, rgba(90, 52, 28, 0.35), transparent 18%),
+    repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.05) 2px 3px),
+    linear-gradient(165deg, #3d2f1f, #2a2118 55%, #1a120c);
+}
+
+.codex-sheet[data-codex-style="illuminated-parchment"] .codex-frame {
+  border: 1.4px solid #c9a227;
+  box-shadow:
+    inset 0 0 0 1.1mm transparent,
+    inset 0 0 0 1.5mm #c9a227,
+    inset 0 0 40px rgba(48, 22, 10, 0.35);
+}
+
+.codex-crest--high {
+  width: 22mm;
+  height: 26mm;
+}
+
 .codex-frame {
   position: absolute;
   inset: 7mm;

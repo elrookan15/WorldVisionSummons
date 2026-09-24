@@ -1,25 +1,42 @@
 import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { UiSheetData } from "../lib/sheetMapper";
-import {
-  buildCodexPageModel,
-  type CodexCallout,
-  type DnaLine,
-} from "../lib/codexPageModel";
+import { compose } from "../lib/codex/compose";
+import type { CodexCallout, DnaLine } from "../lib/codexPageModel";
 import {
   CODEX_STYLES,
   codexStyleById,
-  resolvePlateStyle,
+  defaultCodexStyleForGenre,
   type CodexStyleId,
 } from "../lib/codexStyles";
-import { mintSnapshot, type CodexPageSize, type CodexSnapshot } from "../lib/codexSnapshot";
-import { rasterizeCodexSheet } from "../lib/codexRaster";
+import { mintSnapshot, normalizeSheet, pinPortrait, type CodexSnapshot } from "../lib/codex/finalizer";
+import { armPdfTitle, exportSnapshotJson, exportSnapshotPdf, exportSnapshotPng } from "../lib/codex/export";
 import "../codex-finalizer.css";
 
 type CodexFinalizerProps = {
   sheet: UiSheetData;
   portraitUrl: string | null;
+  sourceKey?: string;
   onClose: () => void;
 };
+
+function openPreview(sheet: UiSheetData, portraitUrl: string | null, sourceKey: string): CodexSnapshot {
+  const styleId = defaultCodexStyleForGenre(sheet.sheet_style);
+  return {
+    snapshotId: "draft",
+    revision: 0,
+    sourceKey,
+    createdAt: "",
+    contentHash: "",
+    styleId,
+    pageSize: "A4",
+    character: normalizeSheet(sheet),
+    assets: {
+      portrait: { url: pinPortrait(portraitUrl), fallback: "sigil" },
+      crest: { url: null, fallback: "sigil" },
+      itemVignettes: {},
+    },
+  };
+}
 
 function Corner() {
   return (
@@ -133,24 +150,18 @@ function EmptyPlate({ initials, name }: { initials: string; name: string }) {
   );
 }
 
-export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFinalizerProps) {
-  const [styleId, setStyleId] = useState<CodexStyleId>(() => resolvePlateStyle({
-    sheetName: sheet.name,
-    sheetStyle: sheet.sheet_style,
-  }));
-  const [pageSize, setPageSize] = useState<CodexPageSize>("A4");
-  const [locked, setLocked] = useState<CodexSnapshot | null>(null);
+export default function CodexFinalizer({ sheet, portraitUrl, sourceKey = "current", onClose }: CodexFinalizerProps) {
+  const [artifact, setArtifact] = useState<CodexSnapshot>(() => openPreview(sheet, portraitUrl, sourceKey));
+  const [portraitBroken, setPortraitBroken] = useState(false);
   const [exportNote, setExportNote] = useState("");
   const plateRef = useRef<HTMLElement>(null);
-  const diverged = Boolean(locked && (styleId !== locked.styleId || pageSize !== locked.pageSize));
-  const viewing = locked && !diverged ? locked : null;
-  const sourceSheet = viewing?.character ?? sheet;
-  const sourcePortrait = viewing ? viewing.assets.portrait.url : portraitUrl;
-  const page = buildCodexPageModel(sourceSheet);
+  const locked = artifact.snapshotId !== "draft";
+  const page = compose(artifact);
+  const sourcePortrait = portraitBroken ? null : artifact.assets.portrait.url;
   const displayName = page.name || "Unnamed Summon";
   const leftCallouts = page.abilities.slice(0, 3);
   const rightCallouts = page.callouts;
-  const skin = codexStyleById(locked?.styleId ?? styleId);
+  const skin = codexStyleById(artifact.styleId);
   const skinVars = {
     "--codex-ground": skin.ground,
     "--codex-ground2": skin.ground2,
@@ -165,7 +176,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
   } as CSSProperties;
 
   const publish = async (next: CodexSnapshot) => {
-    setLocked(next);
+    setArtifact(next);
     try {
       await fetch("/api/codex/snapshots", {
         method: "POST",
@@ -178,46 +189,39 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
   };
 
   const choose = (id: CodexStyleId) => {
-    setStyleId(id);
+    if (locked) return;
+    setArtifact((current) => ({ ...current, styleId: id }));
     setExportNote("");
   };
 
   const confirm = () => {
-    void mintSnapshot({ sheet, portraitUrl, styleId, pageSize }).then(publish);
+    if (locked) return;
+    void mintSnapshot({
+      sheet: artifact.character,
+      portraitUrl: artifact.assets.portrait.url,
+      styleId: artifact.styleId,
+      pageSize: artifact.pageSize,
+      sourceKey: artifact.sourceKey,
+    }).then(publish);
   };
 
-  const canExport = Boolean(locked && !diverged);
-
   const exportJson = () => {
-    if (!locked || diverged) return;
-    const blob = new Blob([JSON.stringify(locked, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${locked.character.name || "codex"}-r${locked.revision}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    if (!locked) return;
+    exportSnapshotJson(artifact);
   };
 
   const exportPng = () => {
-    if (!locked || diverged || !plateRef.current) return;
-    const plate = plateRef.current;
-    const revision = locked.revision;
-    const size = locked.pageSize;
-    const name = locked.character.name || "codex";
+    if (!locked || !plateRef.current) return;
     setExportNote("");
-    void rasterizeCodexSheet(plate, size)
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${name}-r${revision}.png`;
-        link.click();
-        URL.revokeObjectURL(url);
-      })
-      .catch(() => {
-        setExportNote("PNG export failed. Print PDF still uses this plate.");
-      });
+    void exportSnapshotPng(plateRef.current, artifact).catch(() => {
+      setExportNote("PNG export failed. Print PDF still uses this plate.");
+    });
+  };
+
+  const exportPdf = () => {
+    if (!locked) return;
+    armPdfTitle(artifact);
+    exportSnapshotPdf();
   };
 
   return (
@@ -225,15 +229,21 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Shippori+Mincho&family=Special+Elite&family=UnifrakturMaguntia&display=swap" />
       <div className="codex-toolbar no-print">
         <button type="button" onClick={onClose}>Return to atelier</button>
-        <button type="button" onClick={() => setPageSize((size) => size === "A4" ? "US-Letter" : "A4")}>{pageSize}</button>
-        {locked && !diverged ? (
-          <span className="codex-lock" data-codex-revision={locked.revision}>Revision {locked.revision} locked</span>
+        <button
+          type="button"
+          onClick={() => {
+            if (locked) return;
+            setArtifact((current) => ({ ...current, pageSize: current.pageSize === "A4" ? "US-Letter" : "A4" }));
+          }}
+        >{artifact.pageSize}</button>
+        {locked ? (
+          <span className="codex-lock" data-codex-revision={artifact.revision}>Revision {artifact.revision} · finalized {artifact.createdAt.slice(0, 10)}</span>
         ) : (
-          <button type="button" onClick={confirm}>{locked ? `Mint revision ${locked.revision + 1}` : "Lock snapshot"}</button>
+          <button type="button" onClick={confirm}>Lock snapshot</button>
         )}
-        <button type="button" onClick={exportJson} disabled={!canExport}>Export JSON</button>
-        <button type="button" onClick={exportPng} disabled={!canExport}>Export PNG</button>
-        <button type="button" onClick={() => window.print()} disabled={!canExport}>Print PDF</button>
+        <button type="button" onClick={exportJson} disabled={!locked}>Export JSON</button>
+        <button type="button" onClick={exportPng} disabled={!locked}>Export PNG</button>
+        <button type="button" onClick={exportPdf} disabled={!locked}>Print PDF</button>
         {exportNote ? <span className="codex-lock" role="status">{exportNote}</span> : null}
         <div className="codex-picker" role="listbox" aria-label="Codex plate style">
           {CODEX_STYLES.map((style) => (
@@ -243,6 +253,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
               className="codex-swatch"
               role="option"
               aria-pressed={style.id === skin.id}
+              disabled={locked}
               onClick={() => choose(style.id)}
             >
               <span
@@ -261,8 +272,8 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
           className="codex-sheet"
           data-codex-style={skin.id}
           data-codex-style-name={skin.name}
-          data-page-size={viewing?.pageSize ?? pageSize}
-          data-codex-locked={viewing ? "true" : "false"}
+          data-page-size={artifact.pageSize}
+          data-codex-locked={locked ? "true" : "false"}
           style={skinVars}
           aria-label={`${displayName} codex page`}
         >
@@ -273,7 +284,9 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
             <span className="codex-corner codex-corner--br"><Corner /></span>
 
             <header className="codex-title" data-codex-zone="title">
-              <div className="codex-style-seal" aria-hidden="true">{page.style ? page.style.slice(0, 18) : "Codex"}</div>
+              <div className="codex-crest codex-crest--high" data-codex-zone="heraldry-high">
+                <Crest initials={page.initials} />
+              </div>
               <div>
                 {page.style ? <p className="codex-kicker">{page.style}</p> : null}
                 <h1 className={displayName.length > 18 ? "codex-name codex-name--long" : "codex-name"}>{displayName}</h1>
@@ -321,7 +334,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
 
               <div className="codex-portrait-well" data-codex-zone="portrait">
                 {sourcePortrait ? (
-                  <img src={sourcePortrait} alt="" data-codex-portrait="live" />
+                  <img src={sourcePortrait} alt="" data-codex-portrait="live" onError={() => setPortraitBroken(true)} />
                 ) : (
                   <EmptyPlate initials={page.initials} name={displayName} />
                 )}

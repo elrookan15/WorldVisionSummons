@@ -2489,6 +2489,7 @@ export default function App() {
         <CodexFinalizer
           sheet={sheetData as UiSheetData}
           portraitUrl={imageUrl}
+          sourceKey={activeCodexId || "current"}
           onClose={() => setShowCodexPage(false)}
         />
       )}
