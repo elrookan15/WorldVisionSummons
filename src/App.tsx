@@ -10,6 +10,8 @@ import {
 import { CharacterSheetData, SheetPreset } from "./types";
 import StatsRadarComparison from "./components/StatsRadarComparison";
 import CharacterCodex from "./components/CharacterCodex";
+import CodexFinalizer from "./components/CodexFinalizer";
+import { codexReady } from "./lib/codexSnapshot";
 import DiceTray from "./components/DiceTray";
 import { StatBaseline } from "./lib/statBaselines";
 import ImageEditorModal from "./components/ImageEditorModal";
@@ -706,6 +708,7 @@ export default function App() {
   const [codexEntries, setCodexEntries] = useState<CodexEntry[]>(() => loadCodex());
   const [activeCodexId, setActiveCodexId] = useState<string | null>(null);
   const [showCodex, setShowCodex] = useState(false);
+  const [showCodexPage, setShowCodexPage] = useState(false);
   const [showDiceTray, setShowDiceTray] = useState(false);
 
   const persistToCodex = (asNew: boolean) => {
@@ -1267,6 +1270,18 @@ export default function App() {
                 </button>
               </div>
             )}
+
+            <button
+              type="button"
+              disabled={!codexReady(sheetData as UiSheetData).ok}
+              onClick={() => setShowCodexPage(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] disabled:opacity-40"
+              style={{ backgroundColor: c.accent, borderColor: c.borderStrong, color: c.accentText }}
+              title={codexReady(sheetData as UiSheetData).ok ? "Open the print-ready Codex page" : "Name and class are required"}
+            >
+              <Scroll className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Finalize Codex</span>
+            </button>
 
             <button
               type="button"
@@ -2464,6 +2479,14 @@ export default function App() {
         />
       )}
 
+      {showCodexPage && (
+        <CodexFinalizer
+          sheet={sheetData as UiSheetData}
+          portraitUrl={imageUrl}
+          sourceKey={activeCodexId || "current"}
+          onClose={() => setShowCodexPage(false)}
+        />
+      )}
       <CharacterCodex
         open={showCodex}
         onClose={() => setShowCodex(false)}

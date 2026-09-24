@@ -2,6 +2,10 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-24 | Review and locked Codex shared one mutable screen | ui-theming | frontend | Active |
+| 2026-09-24 | Saved plate style overrode the parchment genre default | ui-theming | frontend | Active |
+| 2026-09-24 | Codex plate zones and PNG export diverged from the integration contract | ui-theming | frontend | Active |
+| 2026-09-24 | Codex finalizer page was a dashboard, not a plate | ui-theming | frontend | Active |
 | 2026-09-22 | Character Codex + dice tray missing on main | ui-state | frontend | Active |
 | 2026-09-22 | Genre page backgrounds lack style motif props | ui-theming | frontend | Active |
 | 2026-09-22 | FEDOROV_AI Arch-Chronologer lore persona | build-config | other | Active |
@@ -13,6 +17,58 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-24] Review and locked Codex shared one mutable screen
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexPage.tsx, src/components/CodexFinalizer.tsx, src/lib/codex/styles/, src/App.tsx, src/__tests__/codexFinalizer.test.tsx
+- Root Cause: Style picking, the plate, and the locked export chrome were one component, and older revisions could not be reopened. Style tokens lived in a single table.
+- Patch: CodexPage renders a snapshot only. The style picker hides after Lock. A revision select reloads stored snapshots for the same source key without rewriting them. Seventeen style files carry border, callout medium, and footer device. Finalize Codex is disabled until name and class are present.
+- Red Test: No revision select; minting a second snapshot could have been untested against the first hash.
+- Green Test: `npm test` 40 passed. Browser: picker gone after lock, badge “Revision 3 · finalized 2026-09-24”, Export PNG enabled.
+- Regression Guard: `mints the next revision without rewriting the previous character` and the six-callout / long-name case.
+- Residual Risk: The review chrome still lives in CodexFinalizer rather than a separate modal file. Server snapshot storage is still in-memory.
+- Recurrence Count: 1
+- Status: Active
+
+## [2026-09-24] Saved plate style overrode the parchment genre default
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexFinalizer.tsx, src/codex-finalizer.css, src/lib/codex/finalizer.ts, src/lib/codexSnapshot.ts
+- Root Cause: `resolvePlateStyle` restored a previous localStorage skin, so Gothic Gelbinor opened as a light plate instead of Illuminated Parchment. The crest had also left the title cartouche.
+- Patch: Review opens from `defaultCodexStyleForGenre` and a frozen draft snapshot. Illuminated Parchment uses a dark mottled ground and a double gold rule. The shield crest sits at the top left again; the bottom strip still has a heraldry panel.
+- Red Test: A stored plate snapshot could select a non-genre skin before Lock.
+- Green Test: Browser colophon reads Illuminated Parchment; dark ground; top-left crest; gold double frame. `npm test` 37 passed.
+- Regression Guard: Gothic sheet test still expects `data-codex-style="illuminated-parchment"`.
+- Residual Risk: After Lock, style is baked. A new review of the same character starts at the genre default again, not the last locked skin.
+- Recurrence Count: 1
+- Status: Active
+
+## [2026-09-24] Codex plate zones and PNG export diverged from the integration contract
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexFinalizer.tsx, src/codex-finalizer.css, src/lib/codexRaster.ts, src/__tests__/codexFinalizer.test.tsx
+- Root Cause: Bonds sat in the bottom strip and the crest sat in the title, so zone D/E did not match the integration brief. Export offered JSON and print only. A style click after lock minted a revision immediately.
+- Patch: Bonds render inside the lore column. Heraldry is a bottom-strip panel with the sigil fallback. PNG rasterizes the same plate DOM at 300 DPI (A4 2480×3508, US Letter 2550×3300). Style or page-size changes after lock stay a preview until Mint revision.
+- Red Test: Filled markup put “The grave choir” in the bottom strip and had no Export PNG control.
+- Green Test: `npm test` 37 passed; lore slice contains bonds; bottom slice contains heraldry and omits the ally line; `codexPngPixels` matches 300 DPI.
+- Regression Guard: `renders live sheet zones for a filled character` and `sizes the shared plate raster at 300 DPI`.
+- Residual Risk: PNG depends on `html-to-image` foreignObject capture; cross-origin portraits can fail and the UI falls back to Print PDF. Vignettes remain ink sigils tinted by the style, not painted plates.
+- Recurrence Count: 1
+- Status: Active
+
+## [2026-09-24] Codex finalizer page was a dashboard, not a plate
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexFinalizer.tsx, src/codex-finalizer.css, src/lib/codexPageModel.ts, src/App.tsx
+- Root Cause: The live dossier is an editable multi-section web sheet. There was no single print plate with parchment, border, central portrait, and annotated equipment callouts.
+- Patch: One A4 Codex page bound to UiSheetData. Empty fields collapse. Missing portrait renders a framed sigil. Header control opens it; print uses A4 @page.
+- Red Test: No `data-codex-page` markup; empty equipment still had no omission rule.
+- Green Test: `src/__tests__/codexFinalizer.test.tsx` — empty sheet omits panels; filled Gelbinor renders weapon, quote, combat, live portrait.
+- Regression Guard: `codex finalizer page` vitest cases.
+- Residual Risk: Item vignettes are ink drawings, not per-item AI plates. Browser print is the 300 DPI path (vector/text), not a rasterized PNG export.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-22] Character Codex + dice tray missing on main
 - Category: ui-state
