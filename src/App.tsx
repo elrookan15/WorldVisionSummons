@@ -1273,17 +1273,11 @@ export default function App() {
 
             <button
               type="button"
-              onClick={() => {
-                const gate = codexReady(sheetData as UiSheetData);
-                if (!gate.ok) {
-                  setSheetsStatusMsg(`Finalize needs ${gate.missing.join(" and ")} before the Codex can lock.`);
-                  return;
-                }
-                setShowCodexPage(true);
-              }}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+              disabled={!codexReady(sheetData as UiSheetData).ok}
+              onClick={() => setShowCodexPage(true)}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] disabled:opacity-40"
               style={{ backgroundColor: c.accent, borderColor: c.borderStrong, color: c.accentText }}
-              title="Open the print-ready Codex page"
+              title={codexReady(sheetData as UiSheetData).ok ? "Open the print-ready Codex page" : "Name and class are required"}
             >
               <Scroll className="w-3.5 h-3.5" />
               <span className="mono text-[11px]">Finalize Codex</span>

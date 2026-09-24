@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import CodexFinalizer from "../components/CodexFinalizer";
 import { buildCodexPageModel } from "../lib/codexPageModel";
 import { CODEX_STYLES, defaultCodexStyleForGenre } from "../lib/codexStyles";
-import { hashSheet } from "../lib/codexSnapshot";
+import { hashSheet, listSnapshots, mintSnapshot } from "../lib/codexSnapshot";
 import { codexPngPixels } from "../lib/codexRaster";
 import type { UiSheetData } from "../lib/sheetMapper";
 
@@ -110,6 +110,53 @@ describe("codex finalizer page", () => {
     expect(html).toContain('data-codex-style="cyberpunk-dossier"');
     expect(html).toContain("Laser skateboard");
     expect(html).toContain("Recorded in the codex");
+  });
+
+  it("keeps six equipment callouts and steps a long name down", () => {
+    const sheet = emptySheet();
+    sheet.name = "A Very Long Summon Name Indeed";
+    sheet.equipment.primaryWeapon = "Blade";
+    sheet.equipment.secondaryFocus = "Focus";
+    sheet.equipment.armor = "Mail";
+    sheet.equipment.utilityTools = "Kit";
+    sheet.equipment.consumables = "Vial";
+    sheet.equipment.relics = "Relic";
+    expect(buildCodexPageModel(sheet).callouts).toHaveLength(6);
+    const html = renderToStaticMarkup(
+      <CodexFinalizer sheet={sheet} portraitUrl={null} onClose={() => undefined} />
+    );
+    expect(html).toContain("codex-name--long");
+    expect(html).toContain('data-codex-zone="heraldry-high"');
+    expect(html).not.toContain("Lorem");
+  });
+
+  it("stores a callout medium on every style", () => {
+    for (const style of CODEX_STYLES) {
+      expect(style.borderOrnament.length).toBeGreaterThan(3);
+      expect(style.calloutMedium.length).toBeGreaterThan(3);
+      expect(style.footerDevice.length).toBeGreaterThan(2);
+    }
+  });
+
+  it("mints the next revision without rewriting the previous character", async () => {
+    const mem = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => mem.get(key) ?? null,
+      setItem: (key: string, value: string) => { mem.set(key, value); },
+      removeItem: (key: string) => { mem.delete(key); },
+    });
+    const first = emptySheet();
+    first.name = "Gelbinor";
+    const opened = await mintSnapshot({ sheet: first, portraitUrl: null, sourceKey: "hero" });
+    const edited = emptySheet();
+    edited.name = "Gelbinor Renamed";
+    const next = await mintSnapshot({ sheet: edited, portraitUrl: null, sourceKey: "hero" });
+    const stored = listSnapshots("hero");
+    expect(next.revision).toBe(opened.revision + 1);
+    expect(stored[0].contentHash).toBe(opened.contentHash);
+    expect(stored[0].character.name).toBe("Gelbinor");
+    expect(stored[1].character.name).toBe("Gelbinor Renamed");
+    vi.unstubAllGlobals();
   });
 
   it("hashes identical sheet text to the same snapshot digest", async () => {
