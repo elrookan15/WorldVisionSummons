@@ -4,6 +4,7 @@ import CodexFinalizer from "../components/CodexFinalizer";
 import { buildCodexPageModel } from "../lib/codexPageModel";
 import { CODEX_STYLES, defaultCodexStyleForGenre } from "../lib/codexStyles";
 import { hashSheet } from "../lib/codexSnapshot";
+import { codexPngPixels } from "../lib/codexRaster";
 import type { UiSheetData } from "../lib/sheetMapper";
 
 function emptySheet(): UiSheetData {
@@ -61,6 +62,7 @@ describe("codex finalizer page", () => {
     sheet.lore.backstory = "Born over a mass grave.";
     sheet.equipment.primaryWeapon = "Mister Cracks — cracked skull grimoire";
     sheet.personality.speech = "Mumbles apologies.";
+    sheet.relationships.allies = "The grave choir";
     sheet.stats = [{ key: "INT", label: "Intelligence", value: 22, desc: "Names" }];
     sheet.derivedStats.hpMax = 74;
     sheet.derivedStats.hpCurrent = 74;
@@ -75,6 +77,19 @@ describe("codex finalizer page", () => {
     expect(html).toContain('data-codex-portrait="live"');
     expect(html).toContain("74 / 74");
     expect(html).toContain('data-codex-style="illuminated-parchment"');
+    const lore = html.slice(html.indexOf('data-codex-zone="lore"'), html.indexOf('data-codex-zone="portrait"'));
+    expect(lore).toContain("The grave choir");
+    expect(lore).toContain('data-codex-zone="bonds"');
+    const bottom = html.slice(html.indexOf('data-codex-zone="bottom"'));
+    expect(bottom).toContain('data-codex-zone="heraldry"');
+    expect(bottom).not.toContain("The grave choir");
+    expect(html).toContain("Export PNG");
+    expect(html).toContain("disabled=\"\"");
+  });
+
+  it("sizes the shared plate raster at 300 DPI", () => {
+    expect(codexPngPixels("A4")).toEqual({ width: 2480, height: 3508 });
+    expect(codexPngPixels("US-Letter")).toEqual({ width: 2550, height: 3300 });
   });
 
   it("maps each generator genre to one codex skin and keeps seventeen distinct styles", () => {

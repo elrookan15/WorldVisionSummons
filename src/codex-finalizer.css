@@ -155,9 +155,16 @@
   margin-bottom: 2.5mm;
 }
 
+.codex-crest-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .codex-crest {
-  width: 22mm;
-  height: 26mm;
+  width: 18mm;
+  height: 22mm;
+  margin: 0 auto;
 }
 
 .codex-crest svg,
@@ -485,6 +492,8 @@
 
 @media print {
   @page { size: A4 portrait; margin: 0; }
+  @page letter { size: letter portrait; margin: 0; }
+  .codex-sheet[data-page-size="US-Letter"] { page: letter; }
   .codex-toolbar { display: none !important; }
   .codex-finalizer {
     position: static;

@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { UiSheetData } from "../lib/sheetMapper";
 import {
   buildCodexPageModel,
@@ -12,6 +12,7 @@ import {
   type CodexStyleId,
 } from "../lib/codexStyles";
 import { mintSnapshot, type CodexPageSize, type CodexSnapshot } from "../lib/codexSnapshot";
+import { rasterizeCodexSheet } from "../lib/codexRaster";
 import "../codex-finalizer.css";
 
 type CodexFinalizerProps = {
@@ -139,8 +140,12 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
   }));
   const [pageSize, setPageSize] = useState<CodexPageSize>("A4");
   const [locked, setLocked] = useState<CodexSnapshot | null>(null);
-  const sourceSheet = locked?.character ?? sheet;
-  const sourcePortrait = locked ? locked.assets.portrait.url : portraitUrl;
+  const [exportNote, setExportNote] = useState("");
+  const plateRef = useRef<HTMLElement>(null);
+  const diverged = Boolean(locked && (styleId !== locked.styleId || pageSize !== locked.pageSize));
+  const viewing = locked && !diverged ? locked : null;
+  const sourceSheet = viewing?.character ?? sheet;
+  const sourcePortrait = viewing ? viewing.assets.portrait.url : portraitUrl;
   const page = buildCodexPageModel(sourceSheet);
   const displayName = page.name || "Unnamed Summon";
   const leftCallouts = page.abilities.slice(0, 3);
@@ -174,21 +179,17 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
 
   const choose = (id: CodexStyleId) => {
     setStyleId(id);
-    if (!locked) return;
-    void mintSnapshot({
-      sheet: locked.character,
-      portraitUrl: locked.assets.portrait.url,
-      styleId: id,
-      pageSize: locked.pageSize,
-    }).then(publish);
+    setExportNote("");
   };
 
   const confirm = () => {
     void mintSnapshot({ sheet, portraitUrl, styleId, pageSize }).then(publish);
   };
 
+  const canExport = Boolean(locked && !diverged);
+
   const exportJson = () => {
-    if (!locked) return;
+    if (!locked || diverged) return;
     const blob = new Blob([JSON.stringify(locked, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -198,19 +199,42 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
     URL.revokeObjectURL(url);
   };
 
+  const exportPng = () => {
+    if (!locked || diverged || !plateRef.current) return;
+    const plate = plateRef.current;
+    const revision = locked.revision;
+    const size = locked.pageSize;
+    const name = locked.character.name || "codex";
+    setExportNote("");
+    void rasterizeCodexSheet(plate, size)
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${name}-r${revision}.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        setExportNote("PNG export failed. Print PDF still uses this plate.");
+      });
+  };
+
   return (
     <div className="codex-finalizer" data-codex-page="final">
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Shippori+Mincho&family=Special+Elite&family=UnifrakturMaguntia&display=swap" />
       <div className="codex-toolbar no-print">
         <button type="button" onClick={onClose}>Return to atelier</button>
         <button type="button" onClick={() => setPageSize((size) => size === "A4" ? "US-Letter" : "A4")}>{pageSize}</button>
-        {locked ? (
+        {locked && !diverged ? (
           <span className="codex-lock" data-codex-revision={locked.revision}>Revision {locked.revision} locked</span>
         ) : (
-          <button type="button" onClick={confirm}>Lock snapshot</button>
+          <button type="button" onClick={confirm}>{locked ? `Mint revision ${locked.revision + 1}` : "Lock snapshot"}</button>
         )}
-        <button type="button" onClick={exportJson} disabled={!locked}>Export JSON</button>
-        <button type="button" onClick={() => window.print()} disabled={!locked}>Print PDF</button>
+        <button type="button" onClick={exportJson} disabled={!canExport}>Export JSON</button>
+        <button type="button" onClick={exportPng} disabled={!canExport}>Export PNG</button>
+        <button type="button" onClick={() => window.print()} disabled={!canExport}>Print PDF</button>
+        {exportNote ? <span className="codex-lock" role="status">{exportNote}</span> : null}
         <div className="codex-picker" role="listbox" aria-label="Codex plate style">
           {CODEX_STYLES.map((style) => (
             <button
@@ -233,11 +257,12 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
       </div>
       <div className="codex-stage">
         <article
+          ref={plateRef}
           className="codex-sheet"
           data-codex-style={skin.id}
           data-codex-style-name={skin.name}
-          data-page-size={locked?.pageSize ?? pageSize}
-          data-codex-locked={locked ? "true" : "false"}
+          data-page-size={viewing?.pageSize ?? pageSize}
+          data-codex-locked={viewing ? "true" : "false"}
           style={skinVars}
           aria-label={`${displayName} codex page`}
         >
@@ -248,9 +273,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
             <span className="codex-corner codex-corner--br"><Corner /></span>
 
             <header className="codex-title" data-codex-zone="title">
-              <div className="codex-crest" data-codex-zone="heraldry">
-                <Crest initials={page.initials} />
-              </div>
+              <div className="codex-style-seal" aria-hidden="true">{page.style ? page.style.slice(0, 18) : "Codex"}</div>
               <div>
                 {page.style ? <p className="codex-kicker">{page.style}</p> : null}
                 <h1 className={displayName.length > 18 ? "codex-name codex-name--long" : "codex-name"}>{displayName}</h1>
@@ -279,6 +302,12 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
                   <section className="codex-panel">
                     <h2 className="codex-label">Psychological Seal</h2>
                     <SpecList lines={page.dna} limit={8} />
+                  </section>
+                )}
+                {page.relationships.length > 0 && (
+                  <section className="codex-panel" data-codex-zone="bonds">
+                    <h2 className="codex-label">Bonds</h2>
+                    <SpecList lines={page.relationships} limit={4} />
                   </section>
                 )}
                 {page.physicalLines.length > 0 && (
@@ -315,8 +344,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
               </div>
             </div>
 
-            {(page.attributes.length > 0 || page.combat.length > 0 || page.skills.length > 0 || page.relationships.length > 0) && (
-              <footer className="codex-bottom" data-codex-zone="bottom">
+            <footer className="codex-bottom" data-codex-zone="bottom">
                 {page.attributes.length > 0 && (
                   <section className="codex-panel" data-codex-zone="attributes">
                     <h2 className="codex-label">Attributes</h2>
@@ -346,14 +374,13 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
                     />
                   </section>
                 )}
-                {page.relationships.length > 0 && (
-                  <section className="codex-panel" data-codex-zone="bonds">
-                    <h2 className="codex-label">Bonds</h2>
-                    <SpecList lines={page.relationships} limit={4} />
-                  </section>
-                )}
+                <section className="codex-panel codex-crest-panel" data-codex-zone="heraldry">
+                  <h2 className="codex-label">Heraldry</h2>
+                  <div className="codex-crest">
+                    <Crest initials={page.initials} />
+                  </div>
+                </section>
               </footer>
-            )}
 
             <p className="codex-footer" data-codex-zone="footer">
               {page.quote ? <span className="codex-clip-3">“{page.quote}”</span> : null}

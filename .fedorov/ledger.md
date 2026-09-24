@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-24 | Codex plate zones and PNG export diverged from the integration contract | ui-theming | frontend | Active |
 | 2026-09-24 | Codex finalizer page was a dashboard, not a plate | ui-theming | frontend | Active |
 | 2026-09-22 | Character Codex + dice tray missing on main | ui-state | frontend | Active |
 | 2026-09-22 | Genre page backgrounds lack style motif props | ui-theming | frontend | Active |
@@ -14,6 +15,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-24] Codex plate zones and PNG export diverged from the integration contract
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexFinalizer.tsx, src/codex-finalizer.css, src/lib/codexRaster.ts, src/__tests__/codexFinalizer.test.tsx
+- Root Cause: Bonds sat in the bottom strip and the crest sat in the title, so zone D/E did not match the integration brief. Export offered JSON and print only. A style click after lock minted a revision immediately.
+- Patch: Bonds render inside the lore column. Heraldry is a bottom-strip panel with the sigil fallback. PNG rasterizes the same plate DOM at 300 DPI (A4 2480×3508, US Letter 2550×3300). Style or page-size changes after lock stay a preview until Mint revision.
+- Red Test: Filled markup put “The grave choir” in the bottom strip and had no Export PNG control.
+- Green Test: `npm test` 37 passed; lore slice contains bonds; bottom slice contains heraldry and omits the ally line; `codexPngPixels` matches 300 DPI.
+- Regression Guard: `renders live sheet zones for a filled character` and `sizes the shared plate raster at 300 DPI`.
+- Residual Risk: PNG depends on `html-to-image` foreignObject capture; cross-origin portraits can fail and the UI falls back to Print PDF. Vignettes remain ink sigils tinted by the style, not painted plates.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-24] Codex finalizer page was a dashboard, not a plate
 - Category: ui-theming
