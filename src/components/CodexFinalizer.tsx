@@ -1,13 +1,18 @@
-import type { ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import type { UiSheetData } from "../lib/sheetMapper";
 import {
   buildCodexPageModel,
   type CodexCallout,
   type DnaLine,
 } from "../lib/codexPageModel";
+import {
+  CODEX_STYLES,
+  codexStyleById,
+  resolvePlateStyle,
+  writePlateSnapshot,
+  type CodexStyleId,
+} from "../lib/codexStyles";
 import "../codex-finalizer.css";
-
-const INK = "#1a110c";
 
 type CodexFinalizerProps = {
   sheet: UiSheetData;
@@ -18,10 +23,10 @@ type CodexFinalizerProps = {
 function Corner() {
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M6 58 V14 H50" fill="none" stroke={INK} strokeWidth="2.2" />
-      <path d="M12 52 V20 H44" fill="none" stroke={INK} strokeWidth="1" />
-      <circle cx="14" cy="14" r="3.2" fill="none" stroke={INK} strokeWidth="1.4" />
-      <path d="M14 8 V4 M8 14 H4" stroke={INK} strokeWidth="1.2" />
+      <path d="M6 58 V14 H50" fill="none" stroke="currentColor" strokeWidth="2.2" />
+      <path d="M12 52 V20 H44" fill="none" stroke="currentColor" strokeWidth="1" />
+      <circle cx="14" cy="14" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M14 8 V4 M8 14 H4" stroke="currentColor" strokeWidth="1.2" />
     </svg>
   );
 }
@@ -30,17 +35,17 @@ function Crest({ initials }: { initials: string }) {
   const mark = initials || "—";
   return (
     <svg viewBox="0 0 88 104" role="img" aria-label="Heraldic crest">
-      <path d="M44 4 L80 18 V52 C80 74 64 90 44 100 C24 90 8 74 8 52 V18 Z" fill="rgba(255,244,220,0.35)" stroke={INK} strokeWidth="2" />
-      <path d="M44 14 L70 24 V50 C70 66 58 78 44 86 C30 78 18 66 18 50 V24 Z" fill="none" stroke={INK} strokeWidth="1" />
-      <path d="M44 28 V62 M30 46 H58" stroke={INK} strokeWidth="1.3" />
-      <circle cx="44" cy="46" r="10" fill="none" stroke={INK} strokeWidth="1.2" />
-      <text x="44" y="50" textAnchor="middle" fontFamily="Cinzel, Palatino, serif" fontSize="11" fill={INK}>{mark}</text>
+      <path d="M44 4 L80 18 V52 C80 74 64 90 44 100 C24 90 8 74 8 52 V18 Z" fill="rgba(255,244,220,0.18)" stroke="currentColor" strokeWidth="2" />
+      <path d="M44 14 L70 24 V50 C70 66 58 78 44 86 C30 78 18 66 18 50 V24 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+      <path d="M44 28 V62 M30 46 H58" stroke="currentColor" strokeWidth="1.3" />
+      <circle cx="44" cy="46" r="10" fill="none" stroke="currentColor" strokeWidth="1.2" />
+      <text x="44" y="50" textAnchor="middle" fontFamily="Cinzel, Palatino, serif" fontSize="11" fill="currentColor">{mark}</text>
     </svg>
   );
 }
 
 function Vignette({ kind }: { kind: CodexCallout["vignette"] }) {
-  const common = { fill: "none" as const, stroke: INK, strokeWidth: 1.6 };
+  const common = { fill: "none" as const, stroke: "currentColor", strokeWidth: 1.6 };
   let drawing: ReactNode = null;
   if (kind === "weapon") {
     drawing = <path d="M18 78 L48 14 L54 20 L28 78 Z M22 78 H40 M48 14 L58 8" {...common} />;
@@ -112,16 +117,16 @@ function EmptyPlate({ initials, name }: { initials: string; name: string }) {
   return (
     <div className="codex-empty-plate" data-codex-portrait="empty" style={{ width: "100%", height: "100%" }}>
       <svg viewBox="0 0 240 420" role="img" aria-label="Empty portrait sigil">
-        <rect x="16" y="16" width="208" height="388" fill="rgba(255,244,220,0.2)" stroke={INK} strokeWidth="2" />
-        <rect x="26" y="26" width="188" height="368" fill="none" stroke={INK} strokeWidth="1" />
-        <circle cx="120" cy="168" r="54" fill="none" stroke={INK} strokeWidth="1.4" />
-        <circle cx="120" cy="168" r="36" fill="none" stroke={INK} strokeWidth="1" />
-        <path d="M120 114 V222 M66 168 H174" stroke={INK} strokeWidth="1" />
-        <text x="120" y="174" textAnchor="middle" fontFamily="Cinzel, Palatino, serif" fontSize="22" fill={INK}>{initials || "WV"}</text>
-        <text x="120" y="300" textAnchor="middle" fontFamily="Cormorant Garamond, Palatino, serif" fontSize="13" fontStyle="italic" fill={INK}>
+        <rect x="16" y="16" width="208" height="388" fill="rgba(255,244,220,0.12)" stroke="currentColor" strokeWidth="2" />
+        <rect x="26" y="26" width="188" height="368" fill="none" stroke="currentColor" strokeWidth="1" />
+        <circle cx="120" cy="168" r="54" fill="none" stroke="currentColor" strokeWidth="1.4" />
+        <circle cx="120" cy="168" r="36" fill="none" stroke="currentColor" strokeWidth="1" />
+        <path d="M120 114 V222 M66 168 H174" stroke="currentColor" strokeWidth="1" />
+        <text x="120" y="174" textAnchor="middle" fontFamily="Cinzel, Palatino, serif" fontSize="22" fill="currentColor">{initials || "WV"}</text>
+        <text x="120" y="300" textAnchor="middle" fontFamily="Cormorant Garamond, Palatino, serif" fontSize="13" fontStyle="italic" fill="currentColor">
           {name ? name.slice(0, 28) : "Unsealed"}
         </text>
-        <text x="120" y="322" textAnchor="middle" fontFamily="Cinzel, Palatino, serif" fontSize="8" letterSpacing="2" fill={INK}>PORTRAIT SEAL</text>
+        <text x="120" y="322" textAnchor="middle" fontFamily="Cinzel, Palatino, serif" fontSize="8" letterSpacing="2" fill="currentColor">PORTRAIT SEAL</text>
       </svg>
     </div>
   );
@@ -132,15 +137,72 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
   const displayName = page.name || "Unnamed Summon";
   const leftCallouts = page.abilities.slice(0, 3);
   const rightCallouts = page.callouts;
+  const [styleId, setStyleId] = useState<CodexStyleId>(() => resolvePlateStyle({
+    sheetName: sheet.name,
+    sheetStyle: sheet.sheet_style,
+  }));
+  const skin = codexStyleById(styleId);
+  const skinVars = {
+    "--codex-ground": skin.ground,
+    "--codex-ground2": skin.ground2,
+    "--codex-ink": skin.ink,
+    "--codex-accent": skin.accent,
+    "--codex-accent2": skin.accent2,
+    "--codex-display": skin.display,
+    "--codex-body": skin.body,
+    "--codex-caps": skin.caps,
+    "--codex-portrait": skin.portrait,
+    color: skin.ink,
+  } as CSSProperties;
+
+  const bake = (id: CodexStyleId) => {
+    writePlateSnapshot({
+      plateStyleId: id,
+      sheetName: sheet.name,
+      sheetStyle: sheet.sheet_style,
+      recordedAt: new Date().toISOString(),
+    });
+  };
+
+  const choose = (id: CodexStyleId) => {
+    setStyleId(id);
+    bake(id);
+  };
 
   return (
     <div className="codex-finalizer" data-codex-page="final">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Shippori+Mincho&family=Special+Elite&family=UnifrakturMaguntia&display=swap" />
       <div className="codex-toolbar no-print">
         <button type="button" onClick={onClose}>Return to atelier</button>
-        <button type="button" onClick={() => window.print()}>Print A4</button>
+        <button type="button" onClick={() => { bake(styleId); window.print(); }}>Print A4</button>
+        <div className="codex-picker" role="listbox" aria-label="Codex plate style">
+          {CODEX_STYLES.map((style) => (
+            <button
+              key={style.id}
+              type="button"
+              className="codex-swatch"
+              role="option"
+              aria-pressed={style.id === styleId}
+              onClick={() => choose(style.id)}
+            >
+              <span
+                className="codex-swatch-chip"
+                style={{ "--swatch-ground": style.ground, "--swatch-ground2": style.ground2, "--swatch-accent": style.accent } as CSSProperties}
+              />
+              <strong>{style.name}</strong>
+              <em>{style.mood}</em>
+            </button>
+          ))}
+        </div>
       </div>
       <div className="codex-stage">
-        <article className="codex-sheet" aria-label={`${displayName} codex page`}>
+        <article
+          className="codex-sheet"
+          data-codex-style={skin.id}
+          data-codex-style-name={skin.name}
+          style={skinVars}
+          aria-label={`${displayName} codex page`}
+        >
           <div className="codex-frame">
             <span className="codex-corner codex-corner--tl"><Corner /></span>
             <span className="codex-corner codex-corner--tr"><Corner /></span>
@@ -255,12 +317,11 @@ export default function CodexFinalizer({ sheet, portraitUrl, onClose }: CodexFin
               </footer>
             )}
 
-            {page.quote ? (
-              <p className="codex-footer" data-codex-zone="footer">
-                <span className="codex-clip-3">“{page.quote}”</span>
-                {page.quoteAttribution ? <cite>— {page.quoteAttribution}</cite> : null}
-              </p>
-            ) : null}
+            <p className="codex-footer" data-codex-zone="footer">
+              {page.quote ? <span className="codex-clip-3">“{page.quote}”</span> : null}
+              {page.quote && page.quoteAttribution ? <cite>— {page.quoteAttribution}</cite> : null}
+              <span className="codex-colophon">Recorded in the codex · {skin.name}</span>
+            </p>
           </div>
         </article>
       </div>

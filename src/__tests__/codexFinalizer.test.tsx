@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import CodexFinalizer from "../components/CodexFinalizer";
 import { buildCodexPageModel } from "../lib/codexPageModel";
+import { CODEX_STYLES, defaultCodexStyleForGenre } from "../lib/codexStyles";
 import type { UiSheetData } from "../lib/sheetMapper";
 
 function emptySheet(): UiSheetData {
@@ -72,5 +73,26 @@ describe("codex finalizer page", () => {
     expect(html).toContain('data-codex-zone="combat"');
     expect(html).toContain('data-codex-portrait="live"');
     expect(html).toContain("74 / 74");
+    expect(html).toContain('data-codex-style="illuminated-parchment"');
+  });
+
+  it("maps each generator genre to one codex skin and keeps seventeen distinct styles", () => {
+    expect(CODEX_STYLES).toHaveLength(17);
+    expect(new Set(CODEX_STYLES.map((style) => style.id)).size).toBe(17);
+    expect(defaultCodexStyleForGenre("Gothic Dark Fantasy")).toBe("illuminated-parchment");
+    expect(defaultCodexStyleForGenre("Cyberpunk")).toBe("cyberpunk-neon-dossier");
+    expect(defaultCodexStyleForGenre("Samurai Era")).toBe("samurai-emakimono");
+    expect(defaultCodexStyleForGenre("8-Bit Retro RPG")).toBe("retro-8bit");
+    expect(defaultCodexStyleForGenre("Victorian Gothic")).toBe("victorian-gothic-mourning");
+    const sheet = emptySheet();
+    sheet.name = "Neon";
+    sheet.sheet_style = "Cyberpunk";
+    sheet.equipment.primaryWeapon = "Laser skateboard";
+    const html = renderToStaticMarkup(
+      <CodexFinalizer sheet={sheet} portraitUrl={null} onClose={() => undefined} />
+    );
+    expect(html).toContain('data-codex-style="cyberpunk-neon-dossier"');
+    expect(html).toContain("Laser skateboard");
+    expect(html).toContain("Recorded in the codex");
   });
 });
