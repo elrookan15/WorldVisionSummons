@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-24 | Saved plate style overrode the parchment genre default | ui-theming | frontend | Active |
 | 2026-09-24 | Codex plate zones and PNG export diverged from the integration contract | ui-theming | frontend | Active |
 | 2026-09-24 | Codex finalizer page was a dashboard, not a plate | ui-theming | frontend | Active |
 | 2026-09-22 | Character Codex + dice tray missing on main | ui-state | frontend | Active |
@@ -15,6 +16,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-24] Saved plate style overrode the parchment genre default
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexFinalizer.tsx, src/codex-finalizer.css, src/lib/codex/finalizer.ts, src/lib/codexSnapshot.ts
+- Root Cause: `resolvePlateStyle` restored a previous localStorage skin, so Gothic Gelbinor opened as a light plate instead of Illuminated Parchment. The crest had also left the title cartouche.
+- Patch: Review opens from `defaultCodexStyleForGenre` and a frozen draft snapshot. Illuminated Parchment uses a dark mottled ground and a double gold rule. The shield crest sits at the top left again; the bottom strip still has a heraldry panel.
+- Red Test: A stored plate snapshot could select a non-genre skin before Lock.
+- Green Test: Browser colophon reads Illuminated Parchment; dark ground; top-left crest; gold double frame. `npm test` 37 passed.
+- Regression Guard: Gothic sheet test still expects `data-codex-style="illuminated-parchment"`.
+- Residual Risk: After Lock, style is baked. A new review of the same character starts at the genre default again, not the last locked skin.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-24] Codex plate zones and PNG export diverged from the integration contract
 - Category: ui-theming
