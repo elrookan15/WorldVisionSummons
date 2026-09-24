@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-24 | Codex finalizer page was a dashboard, not a plate | ui-theming | frontend | Active |
 | 2026-09-22 | Character Codex + dice tray missing on main | ui-state | frontend | Active |
 | 2026-09-22 | Genre page backgrounds lack style motif props | ui-theming | frontend | Active |
 | 2026-09-22 | FEDOROV_AI Arch-Chronologer lore persona | build-config | other | Active |
@@ -13,6 +14,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-24] Codex finalizer page was a dashboard, not a plate
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexFinalizer.tsx, src/codex-finalizer.css, src/lib/codexPageModel.ts, src/App.tsx
+- Root Cause: The live dossier is an editable multi-section web sheet. There was no single print plate with parchment, border, central portrait, and annotated equipment callouts.
+- Patch: One A4 Codex page bound to UiSheetData. Empty fields collapse. Missing portrait renders a framed sigil. Header control opens it; print uses A4 @page.
+- Red Test: No `data-codex-page` markup; empty equipment still had no omission rule.
+- Green Test: `src/__tests__/codexFinalizer.test.tsx` — empty sheet omits panels; filled Gelbinor renders weapon, quote, combat, live portrait.
+- Regression Guard: `codex finalizer page` vitest cases.
+- Residual Risk: Item vignettes are ink drawings, not per-item AI plates. Browser print is the 300 DPI path (vector/text), not a rasterized PNG export.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-22] Character Codex + dice tray missing on main
 - Category: ui-state
