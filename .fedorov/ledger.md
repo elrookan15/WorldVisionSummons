@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-24 | Review and locked Codex shared one mutable screen | ui-theming | frontend | Active |
 | 2026-09-24 | Saved plate style overrode the parchment genre default | ui-theming | frontend | Active |
 | 2026-09-24 | Codex plate zones and PNG export diverged from the integration contract | ui-theming | frontend | Active |
 | 2026-09-24 | Codex finalizer page was a dashboard, not a plate | ui-theming | frontend | Active |
@@ -16,6 +17,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-24] Review and locked Codex shared one mutable screen
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/components/CodexPage.tsx, src/components/CodexFinalizer.tsx, src/lib/codex/styles/, src/App.tsx, src/__tests__/codexFinalizer.test.tsx
+- Root Cause: Style picking, the plate, and the locked export chrome were one component, and older revisions could not be reopened. Style tokens lived in a single table.
+- Patch: CodexPage renders a snapshot only. The style picker hides after Lock. A revision select reloads stored snapshots for the same source key without rewriting them. Seventeen style files carry border, callout medium, and footer device. Finalize Codex is disabled until name and class are present.
+- Red Test: No revision select; minting a second snapshot could have been untested against the first hash.
+- Green Test: `npm test` 40 passed. Browser: picker gone after lock, badge “Revision 3 · finalized 2026-09-24”, Export PNG enabled.
+- Regression Guard: `mints the next revision without rewriting the previous character` and the six-callout / long-name case.
+- Residual Risk: The review chrome still lives in CodexFinalizer rather than a separate modal file. Server snapshot storage is still in-memory.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-24] Saved plate style overrode the parchment genre default
 - Category: ui-theming
