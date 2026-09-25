@@ -2,6 +2,8 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-09-25 | MotifPalette missing bg/bg2 after elevation | typing | frontend | Active |
+| 2026-09-25 | Unauthenticated Gemini proxy routes | security | security | Active |
 | 2026-09-24 | Review and locked Codex shared one mutable screen | ui-theming | frontend | Active |
 | 2026-09-24 | Saved plate style overrode the parchment genre default | ui-theming | frontend | Active |
 | 2026-09-24 | Codex plate zones and PNG export diverged from the integration contract | ui-theming | frontend | Active |
@@ -17,6 +19,32 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-09-25] MotifPalette missing bg/bg2 after elevation
+- Category: typing
+- Persona: frontend
+- File(s): src/lib/sheetGenreMotifs.ts
+- Root Cause: Motif elevation (#18) used `p.bg` / `p.bg2` in SVG drawers while `MotifPalette` only declared accent/accent2/clash; runtime passed full `BgPalette` so UI worked and `tsc` failed.
+- Patch: Extend `MotifPalette` with `bg` + `bg2` (exported; matches BgPalette plate colors).
+- Red Test: `npm run lint` → TS2339 ×7 on sheetGenreMotifs.ts
+- Green Test: `npm run lint` clean; motif Vitest cases still pass
+- Regression Guard: CI workflow runs `npm run lint` on PRs
+- Residual Risk: MotifPalette and BgPalette remain duplicate shapes (no shared import to avoid cycles)
+- Recurrence Count: 1
+- Status: Active
+
+## [2026-09-25] Unauthenticated Gemini proxy routes
+- Category: security
+- Persona: security
+- File(s): src/lib/apiAuth.ts, src/lib/apiClientHeaders.ts, server.ts, .env.example, README.md, src/App.tsx, GeminiChatModal, NanoBanana providers
+- Root Cause: Express Gemini routes had no requester auth; production deploy would expose billed Gemini traffic.
+- Patch: `evaluateApiAuth` / `requireWvsApiAuth` — optional `WVS_API_SECRET`; open in non-prod when unset; 403 fail-closed in production when unset; header `X-WVS-API-Key` (or Bearer) when set. Client sends via `VITE_WVS_API_SECRET`.
+- Red Test: production + unset secret → 403; set secret + missing header → 401
+- Green Test: `src/__tests__/apiAuth.test.ts`; authorized header → ok
+- Regression Guard: Vitest apiAuth suite + health `apiAuth.gateMode`
+- Residual Risk: `VITE_*` secret is client-visible (deploy gate, not OAuth); NanoBanana `Authorization` Bearer may overwrite Bearer path when `VITE_NANO_BANANA_API_KEY` set — `X-WVS-API-Key` remains authoritative
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-24] Review and locked Codex shared one mutable screen
 - Category: ui-theming
@@ -105,7 +133,7 @@
 - Red Test: No `fedorov-ai-arch-chronologer.mdc`; lore prompts lacked Arch-Chronologer preamble / Five-Fold anchors.
 - Green Test: `npm test` asserts exports + five-fold sections + lore prompt preamble; `npm run lint` clean.
 - Regression Guard: AGENTS.md + rules README document FEDOROV_AI; unit test on `archChronologer.ts` exports.
-- Residual Risk: `**/*character*` / `**/*lore*` globs may attach on type files; coexistence block defers engineering authority.
+- Residual Risk: `**/*character*` / `**/*lore*` globs may attach on type files; coexistence block defers engineering authority. `/api/generate-sheet` now binds `archChronologerSheetSystemInstruction`; portrait/image prompts still use atmospheric matrices only (not full Vaelith system prompt).
 - Recurrence Count: 1
 - Status: Active
 
