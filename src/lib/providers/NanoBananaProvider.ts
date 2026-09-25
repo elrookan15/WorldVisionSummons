@@ -1,4 +1,5 @@
 import { ImageGenerationProvider, ImageGenerationRequest, GeneratedImage, ProviderResult } from '../../types/providers';
+import { withWvsApiHeaders } from '../apiClientHeaders';
 
 export interface CharacterPromptInput {
   characterName: string;
@@ -185,9 +186,9 @@ export class NanoBananaProvider implements ImageGenerationProvider {
         referenceStrength: request.referenceStrength
       };
 
-      const headers: Record<string, string> = {
+      const headers: Record<string, string> = withWvsApiHeaders({
         'Content-Type': 'application/json'
-      };
+      });
       if (this.apiKey) {
         headers['Authorization'] = `Bearer ${this.apiKey}`;
       }

@@ -1,5 +1,6 @@
 import { ImageGenerationProvider, ImageGenerationRequest, GeneratedImage, ProviderResult } from '../../types/providers';
 import { buildProceduralPortrait } from '../portraitFallback';
+import { withWvsApiHeaders } from '../apiClientHeaders';
 
 /**
  * LRU In-Memory Idempotency Cache for NanoBanana requests
@@ -170,10 +171,10 @@ export class NanoBananaImageAdapter implements ImageGenerationProvider {
       // Also support /api/summons/image or /api/generate-image
       const res = await fetch(this.endpointUrl, {
         method: 'POST',
-        headers: {
+        headers: withWvsApiHeaders({
           'Content-Type': 'application/json',
           'X-Idempotency-Key': key
-        },
+        }),
         body: JSON.stringify(payload),
         signal: controller.signal
       });
