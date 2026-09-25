@@ -5,6 +5,7 @@ import {
   FIVE_FOLD_BLUEPRINT_SECTIONS,
   FIVE_FOLD_BLUEPRINT_SCHEMA,
   archChronologerFieldPreamble,
+  archChronologerSheetSystemInstruction,
 } from "../lib/prompts/archChronologer";
 import { generateMissingFieldsPrompts, GENRE_ATMOSPHERIC_MATRICES } from "../lib/prompts/generators";
 
@@ -39,5 +40,12 @@ describe("FEDOROV_AI Arch-Chronologer prompt module", () => {
     expect(lore).toContain("Cyberpunk");
     expect(lore).toContain("Five-Fold");
     expect(name).toContain(archChronologerFieldPreamble("Samurai Era").slice(0, 40));
+  });
+
+  it("builds generate-sheet system instruction from the Arch-Chronologer voice", () => {
+    const instruction = archChronologerSheetSystemInstruction("Eldritch Arcane");
+    expect(instruction).toContain(ARCH_CHRONOLOGER_SYSTEM_PROMPT);
+    expect(instruction).toContain("Eldritch Arcane");
+    expect(instruction).toContain("ONLY the JSON object");
   });
 });
