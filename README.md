@@ -45,3 +45,15 @@ WorldVision Summons is a multi-genre RPG lore architect, statistical engine, and
 - **Frontend Layer**: Built with React and Vite, styled via Tailwind CSS. Manages local state, theme switching, interactive modals (`ImageEditorModal`, `GeminiChatModal`), and image provider adapters (`NanoBananaProvider`) within a strictly typed TypeScript environment.
 - **Backend Layer**: Powered by Express to act as a secure proxy. Isolates Gemini AI and NanoBanana API keys from the client, enforces procedural generation fallbacks, and manages API error handling.
 - **Build & Deployment**: Packaged using `esbuild` and optimized for containerized hosting on Google Cloud Run. Persistent codex management supports saving, updating, and exporting completed summon records.
+
+### Gemini proxy auth (`WVS_API_SECRET`)
+
+Routes `/api/generate-sheet`, `/api/generate-image`, `/api/summons/image`, `/api/chat`, and `/api/summons/chat` are gated:
+
+| `WVS_API_SECRET` | `NODE_ENV` | Behavior |
+| --- | --- | --- |
+| unset | not `production` | Open (local/dev) |
+| unset | `production` | **403** fail-closed |
+| set | any | Require `X-WVS-API-Key: <secret>` or `Authorization: Bearer <secret>` |
+
+Mirror the same value as `VITE_WVS_API_SECRET` so the Vite client attaches the header. See `.env.example`. `/api/health` reports `apiAuth.gateMode` without exposing the secret.

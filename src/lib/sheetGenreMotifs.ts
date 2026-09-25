@@ -3,7 +3,14 @@
  * Local SVG only — three readable motifs per genre, low-presence props (not wallpaper).
  */
 
-type MotifPalette = { accent: string; accent2: string; clash: string };
+/** Motif drawers need plate ground colors for contrast fills (elevated props). Matches BgPalette. */
+export type MotifPalette = {
+  bg: string;
+  bg2: string;
+  accent: string;
+  accent2: string;
+  clash: string;
+};
 
 export type GenreMotifId = string;
 

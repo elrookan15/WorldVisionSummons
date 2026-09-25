@@ -7,6 +7,8 @@ import { compilePortraitPrompt } from "./src/lib/prompts/generators";
 import { canonicalizeSheetStyle } from "./src/lib/themeMap";
 import { buildProceduralPortrait } from "./src/lib/portraitFallback";
 import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
+import { archChronologerSheetSystemInstruction } from "./src/lib/prompts/archChronologer";
+import { requireWvsApiAuth } from "./src/lib/apiAuth";
 import {
   classifyGeminiImageError,
   emptyImageResponseError,
@@ -22,6 +24,9 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: "16mb" }));
+
+/** Gemini proxy routes — shared-secret gate (see src/lib/apiAuth.ts). */
+const geminiProxyAuth = requireWvsApiAuth;
 
 // Initialize Google Gen AI client safely
 const getAiClient = () => {
@@ -163,7 +168,7 @@ function generateFallbackSheet(params: {
 }
 
 // API endpoint to generate character sheet
-app.post("/api/generate-sheet", async (req, res) => {
+app.post("/api/generate-sheet", geminiProxyAuth, async (req, res) => {
   try {
     const { character_name, character_class, character_lore, inventory_items, sheet_style, character_level, high_thinking } = req.body;
     const style = sheet_style || "Gothic Dark Fantasy";
@@ -175,7 +180,9 @@ app.post("/api/generate-sheet", async (req, res) => {
       return res.json(fallbackResult);
     }
 
-    const prompt = `You are the WORLDVISION SUMMONS Generation Engine, operating under Federov's architectural oversight. 
+    // User turn: JSON schema + params. System: Arch-Chronologer voice (FEDOROV_AI).
+    // Does not replace C-TRACES chat; does not override FEDOROV type/security gates.
+    const prompt = `WORLDVISION SUMMONS sheet generation task (FEDOROV engineering owns schema fidelity).
 Generate a complete RPG character sheet JSON payload based on these parameters:
 - Character Name: ${character_name || "(Inquire/Infer)"}
 - Character Class: ${character_class || "(Inquire/Infer)"}
@@ -252,6 +259,8 @@ You MUST output ONLY valid JSON matching this exact structure with no extra mark
     const config: Record<string, unknown> = {
       responseMimeType: "application/json",
       temperature: 0.85,
+      // Arch-Chronologer (Vaelith) — lore/character architecture; output must still be schema-only JSON.
+      systemInstruction: archChronologerSheetSystemInstruction(style),
     };
     if (high_thinking) {
       config.thinkingConfig = {
@@ -488,8 +497,8 @@ const handleImageGeneration = async (req: express.Request, res: express.Response
   }
 };
 
-app.post("/api/generate-image", handleImageGeneration);
-app.post("/api/summons/image", handleImageGeneration);
+app.post("/api/generate-image", geminiProxyAuth, handleImageGeneration);
+app.post("/api/summons/image", geminiProxyAuth, handleImageGeneration);
 
 // Deterministic Persona Dialogue Generator for offline/unkeyed environments
 function generateFallbackPersonaReply(params: {
@@ -627,8 +636,8 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
   }
 };
 
-app.post("/api/chat", handleChatTurn);
-app.post("/api/summons/chat", handleChatTurn);
+app.post("/api/chat", geminiProxyAuth, handleChatTurn);
+app.post("/api/summons/chat", geminiProxyAuth, handleChatTurn);
 
 const codexSnapshots = new Map<string, unknown>();
 
@@ -656,12 +665,19 @@ app.get("/api/codex/snapshots/:id", (req, res) => {
 });
 
 app.get("/api/health", (req, res) => {
+  const secretSet = Boolean(process.env.WVS_API_SECRET?.trim());
+  const isProd = process.env.NODE_ENV === "production";
   res.json({
     status: "ok",
     service: "worldvision-summons-engine",
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
     imageModels: NANO_BANANA_IMAGE_MODELS.map((m) => m.model),
     imagenEnabled: shouldAttemptImagen(),
+    apiAuth: {
+      secretConfigured: secretSet,
+      /** When secret unset: open in dev, fail-closed in production. */
+      gateMode: secretSet ? "shared_secret" : isProd ? "fail_closed" : "open_dev",
+    },
   });
 });
 

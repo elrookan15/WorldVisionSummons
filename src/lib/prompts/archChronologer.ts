@@ -89,3 +89,15 @@ export function archChronologerFieldPreamble(sheetStyle: string): string {
   const style = (sheetStyle || "Gothic Dark Fantasy").trim() || "Gothic Dark Fantasy";
   return `[FEDOROV_AI / Arch-Chronologer] Design under sheet style "${style}". Sensory-concrete, trope-inverted, genre-pure (no anachronisms from other Summons styles). Draw on the Five-Fold Blueprint (epithet/lineage, sensory manifestation, GMC, metaphysical cost, world-seam hooks) even when the output format is a single field.`;
 }
+
+/**
+ * Full system instruction for `/api/generate-sheet`.
+ * Complements FEDOROV schema fidelity — does not replace C-TRACES summon chat.
+ * Remaining gap: portrait/image prompts still use generators.ts matrices, not this voice.
+ */
+export function archChronologerSheetSystemInstruction(sheetStyle: string): string {
+  const style = (sheetStyle || "Gothic Dark Fantasy").trim() || "Gothic Dark Fantasy";
+  return `${ARCH_CHRONOLOGER_SYSTEM_PROMPT}
+
+Operational binding for this turn: honor sensory-concrete, trope-inverted, genre-pure vaultcraft for sheet style "${style}". Respond with ONLY the JSON object requested in the user turn — no ceremonial preamble, no markdown fences.`;
+}

@@ -20,6 +20,7 @@ import { nanoBananaProvider } from "./lib/providers/NanoBananaProvider";
 import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
+import { withWvsApiHeaders } from "./lib/apiClientHeaders";
 import { CANONICAL_SHEET_STYLES, canonicalizeSheetStyle, themeIdForStyle } from "./lib/themeMap";
 import { sheetPageBackgroundCssVars } from "./lib/sheetPageBackgrounds";
 import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromptContext, UiSheetData } from "./lib/sheetMapper";
@@ -997,7 +998,7 @@ export default function App() {
     try {
       const res = await fetch("/api/generate-sheet", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withWvsApiHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           character_name: characterName,
           character_class: characterClass,

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Sparkles, X, Send, Bot, User, Copy, Check, Shield, Activity } from "lucide-react";
+import { withWvsApiHeaders } from "../lib/apiClientHeaders";
 
 interface Message {
   role: "user" | "model";
@@ -50,7 +51,7 @@ export default function GeminiChatModal({ onClose, characterContext }: GeminiCha
     try {
       const res = await fetch("/api/summons/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withWvsApiHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           messages: newMessages,
           characterContext,
