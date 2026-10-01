@@ -57,3 +57,7 @@ Routes `/api/generate-sheet`, `/api/generate-image`, `/api/summons/image`, `/api
 | set | any | Require `X-WVS-API-Key: <secret>` or `Authorization: Bearer <secret>` |
 
 Mirror the same value as `VITE_WVS_API_SECRET` so the Vite client attaches the header. See `.env.example`. `/api/health` reports `apiAuth.gateMode` without exposing the secret.
+
+Those same routes, plus `/api/codex/snapshots`, are limited to 60 requests per minute per client IP (`429` + `Retry-After`). The process trusts one proxy hop so Cloud Run's `X-Forwarded-For` is the client address.
+
+Production static hosting uses Express 4's `*` SPA fallback. The Express 5 pattern `*all` does not match on this server and was returning the default 404 for any path that was not a real file.

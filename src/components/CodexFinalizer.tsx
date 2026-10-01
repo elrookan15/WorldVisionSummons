@@ -9,6 +9,7 @@ import {
 } from "../lib/codexStyles";
 import { listSnapshots, mintSnapshot, normalizeSheet, pinPortrait, type CodexSnapshot } from "../lib/codex/finalizer";
 import { armPdfTitle, exportSnapshotJson, exportSnapshotPdf, exportSnapshotPng } from "../lib/codex/export";
+import { withWvsApiHeaders } from "../lib/apiClientHeaders";
 import "../codex-finalizer.css";
 
 type CodexFinalizerProps = {
@@ -49,7 +50,7 @@ export default function CodexFinalizer({ sheet, portraitUrl, sourceKey = "curren
     try {
       await fetch("/api/codex/snapshots", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: withWvsApiHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(next),
       });
     } catch {

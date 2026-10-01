@@ -9,6 +9,10 @@ import { buildProceduralPortrait } from "./src/lib/portraitFallback";
 import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
 import { archChronologerSheetSystemInstruction } from "./src/lib/prompts/archChronologer";
 import { requireWvsApiAuth } from "./src/lib/apiAuth";
+import { requireGeminiBudget } from "./src/lib/apiRateLimit";
+import { mountProductionSpa } from "./src/lib/productionSpa";
+import { publicProviderError } from "./src/lib/publicError";
+import { writeCodexSnapshot } from "./src/lib/codexSnapshotStore";
 import {
   classifyGeminiImageError,
   emptyImageResponseError,
@@ -23,10 +27,13 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Cloud Run / reverse proxies set X-Forwarded-For. One hop so req.ip is the client.
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "16mb" }));
 
-/** Gemini proxy routes — shared-secret gate (see src/lib/apiAuth.ts). */
-const geminiProxyAuth = requireWvsApiAuth;
+/** Budget then shared-secret gate. See src/lib/apiAuth.ts and src/lib/apiRateLimit.ts. */
+const geminiProxyGate = [requireGeminiBudget, requireWvsApiAuth];
 
 // Initialize Google Gen AI client safely
 const getAiClient = () => {
@@ -168,7 +175,7 @@ function generateFallbackSheet(params: {
 }
 
 // API endpoint to generate character sheet
-app.post("/api/generate-sheet", geminiProxyAuth, async (req, res) => {
+app.post("/api/generate-sheet", ...geminiProxyGate, async (req, res) => {
   try {
     const { character_name, character_class, character_lore, inventory_items, sheet_style, character_level, high_thinking } = req.body;
     const style = sheet_style || "Gothic Dark Fantasy";
@@ -286,7 +293,7 @@ You MUST output ONLY valid JSON matching this exact structure with no extra mark
     const fallbackResult = generateFallbackSheet(req.body);
     return res.json({
       ...fallbackResult,
-      _warning: "Fell back to procedural generator due to API error: " + (error.message || "Unknown error")
+      _warning: "Fell back to procedural generator due to API error: " + publicProviderError(error)
     });
   }
 });
@@ -497,8 +504,8 @@ const handleImageGeneration = async (req: express.Request, res: express.Response
   }
 };
 
-app.post("/api/generate-image", geminiProxyAuth, handleImageGeneration);
-app.post("/api/summons/image", geminiProxyAuth, handleImageGeneration);
+app.post("/api/generate-image", ...geminiProxyGate, handleImageGeneration);
+app.post("/api/summons/image", ...geminiProxyGate, handleImageGeneration);
 
 // Deterministic Persona Dialogue Generator for offline/unkeyed environments
 function generateFallbackPersonaReply(params: {
@@ -636,26 +643,21 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
   }
 };
 
-app.post("/api/chat", geminiProxyAuth, handleChatTurn);
-app.post("/api/summons/chat", geminiProxyAuth, handleChatTurn);
+app.post("/api/chat", ...geminiProxyGate, handleChatTurn);
+app.post("/api/summons/chat", ...geminiProxyGate, handleChatTurn);
 
 const codexSnapshots = new Map<string, unknown>();
 
-app.post("/api/codex/snapshots", (req, res) => {
-  const body = req.body as { snapshotId?: string; character?: unknown; contentHash?: string };
-  if (!body?.snapshotId || !body.character || !body.contentHash) {
-    res.status(400).json({ error: "snapshot requires snapshotId, character, and contentHash" });
+app.post("/api/codex/snapshots", ...geminiProxyGate, (req, res) => {
+  const written = writeCodexSnapshot(codexSnapshots, req.body ?? {});
+  if (written.ok === false) {
+    res.status(written.status).json({ error: written.error });
     return;
   }
-  if (codexSnapshots.has(body.snapshotId)) {
-    res.status(409).json({ error: "snapshot is immutable" });
-    return;
-  }
-  codexSnapshots.set(body.snapshotId, body);
-  res.status(201).json(body);
+  res.status(written.status).json(written.body);
 });
 
-app.get("/api/codex/snapshots/:id", (req, res) => {
+app.get("/api/codex/snapshots/:id", ...geminiProxyGate, (req, res) => {
   const row = codexSnapshots.get(String(req.params.id));
   if (!row) {
     res.status(404).json({ error: "snapshot not found" });
@@ -689,11 +691,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*all", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    mountProductionSpa(app, path.join(process.cwd(), "dist"));
   }
 
   app.listen(PORT, "0.0.0.0", () => {
@@ -701,4 +699,7 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch((error: unknown) => {
+  console.error("WorldVision Summons failed to start:", publicProviderError(error));
+  process.exit(1);
+});

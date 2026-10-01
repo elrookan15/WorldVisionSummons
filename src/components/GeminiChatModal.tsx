@@ -59,7 +59,14 @@ export default function GeminiChatModal({ onClose, characterContext }: GeminiCha
         })
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = typeof data.message === "string" && data.message.trim()
+          ? data.message
+          : `Codex link refused (${res.status}).`;
+        setMessages([...newMessages, { role: "model", text: detail }]);
+        return;
+      }
       if (data.reply) {
         setMessages([...newMessages, { role: "model", text: data.reply, groundingMetadata: data.groundingMetadata }]);
       } else {

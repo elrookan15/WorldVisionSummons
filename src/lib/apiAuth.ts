@@ -8,6 +8,7 @@
  * VITE_WVS_API_SECRET is visible in the browser — use only as a shared gate key.
  */
 
+import { timingSafeEqual } from "node:crypto";
 import type { Request, Response, NextFunction } from "express";
 
 export const WVS_API_KEY_HEADER = "x-wvs-api-key";
@@ -29,6 +30,14 @@ export type ApiAuthResult = ApiAuthOk | ApiAuthDenied;
 type HeaderReader = {
   get(name: string): string | null | undefined;
 };
+
+/** Constant-time compare. Length mismatch still returns false without throwing. */
+export function sharedSecretMatches(provided: string, secret: string): boolean {
+  const a = Buffer.from(provided, "utf8");
+  const b = Buffer.from(secret, "utf8");
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 function readProvidedSecret(headers: HeaderReader): string | undefined {
   const headerKey = headers.get(WVS_API_KEY_HEADER)?.trim()
@@ -66,7 +75,7 @@ export function evaluateApiAuth(
   }
 
   const provided = readProvidedSecret(headers);
-  if (!provided || provided !== secret) {
+  if (!provided || !sharedSecretMatches(provided, secret)) {
     return {
       ok: false,
       status: 401,
