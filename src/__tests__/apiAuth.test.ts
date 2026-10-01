@@ -67,6 +67,16 @@ describe("evaluateApiAuth (WVS Gemini proxy gate)", () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it("rejects a different-length secret without throwing", () => {
+    const denied = expectDenied(
+      evaluateApiAuth(headers({ "X-WVS-API-Key": "x" }), {
+        secret: "test-secret",
+        nodeEnv: "production",
+      })
+    );
+    expect(denied.status).toBe(401);
+  });
+
   it("rejects wrong secret", () => {
     const denied = expectDenied(
       evaluateApiAuth(headers({ "X-WVS-API-Key": "nope" }), {

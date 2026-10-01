@@ -58,6 +58,10 @@ Routes `/api/generate-sheet`, `/api/generate-image`, `/api/summons/image`, `/api
 
 Mirror the same value as `VITE_WVS_API_SECRET` so the Vite client attaches the header. See `.env.example`. `/api/health` reports `apiAuth.gateMode` without exposing the secret.
 
+Those same routes, plus `/api/codex/snapshots`, are limited to 60 requests per minute per client IP (`429` + `Retry-After`). The process trusts one proxy hop so Cloud Run's `X-Forwarded-For` is the client address.
+
+Production static hosting uses Express 4's `*` SPA fallback (`attachProductionFrontend`). The Express 5 pattern `*all` does not match on this server.
+
 ### Launch (Cloud Run)
 
 The container listens on `PORT` (Cloud Run sets this; local production uses `8080` via the image, local dev stays on `3000`). `GET /api/health` is the probe. `SIGTERM` drains in-flight requests for up to 10 seconds.

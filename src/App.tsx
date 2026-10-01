@@ -1009,7 +1009,16 @@ export default function App() {
         })
       });
       if (!res.ok) {
-        throw new Error(`Summoner returned HTTP ${res.status}`);
+        let detail = `Summoner returned HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          if (body && typeof body.message === "string" && body.message.trim()) {
+            detail = body.message;
+          }
+        } catch {
+          /* non-JSON error body */
+        }
+        throw new Error(detail);
       }
       const data: CharacterSheetData = await res.json();
       clearInterval(interval);

@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-01 | Production SPA fallback and ungated Codex snapshots | security | security | Active |
 | 2026-10-01 | PR #24 missing startup docstring | other | review | Active |
 | 2026-10-01 | Cloud Run launch: hardcoded port and dead SPA fallback | build-config | devops | Active |
 | 2026-09-25 | MotifPalette missing bg/bg2 after elevation | typing | frontend | Active |
@@ -21,6 +22,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-01] Production SPA fallback and ungated Codex snapshots
+- Category: security
+- Persona: security
+- File(s): server.ts, src/lib/apiAuth.ts, src/lib/apiRateLimit.ts, src/lib/codexSnapshotStore.ts, src/lib/publicError.ts, GeminiChatModal.tsx, CodexFinalizer.tsx, App.tsx
+- Root Cause: Express 4 registers `app.get("*all")` without matching any path, so production deep links returned the default 404. Codex snapshot routes skipped `requireWvsApiAuth`. Secret compare used `!==`. Sheet fallback forwarded raw provider error text. Chat treated HTTP 401 as an empty reply.
+- Patch: Codex routes share the budget+auth gate and a 200-entry store. `timingSafeEqual` for the shared secret. `publicProviderError` scrubs key-like strings. Chat and summon UI surface `message` from non-OK responses. 60 req/min/IP on gated routes; `trust proxy` 1. SPA fallback itself is `attachProductionFrontend` from the Cloud Run launch (same `*` fix; the duplicate `mountProductionSpa` helper was dropped at merge).
+- Red Test: Probe of Express 4.22 `*all` returned 404 for `/` and `/codex/review`; `*` returned the SPA body. Codex POST had no auth middleware.
+- Green Test: `productionServer.test.ts`, `apiRateLimit.test.ts`, `codexSnapshotStore.test.ts`, `publicError.test.ts`, `apiAuth` length-mismatch case; `npm run lint` + `npm test`.
+- Regression Guard: Vitest boots a real Express app and asserts client routes serve index.html while `/api/health` stays JSON.
+- Residual Risk: Rate-limit counters are per process. Firebase/Prisma high-severity transitive advisories remain; those packages are still imported or present as ballast and were not removed. `VITE_WVS_API_SECRET` is still client-visible.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-10-01] PR #24 missing startup docstring
 - Category: other
