@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-01 | PR #24 missing startup docstring | other | review | Active |
 | 2026-10-01 | Cloud Run launch: hardcoded port and dead SPA fallback | build-config | devops | Active |
 | 2026-09-25 | MotifPalette missing bg/bg2 after elevation | typing | frontend | Active |
 | 2026-09-25 | Unauthenticated Gemini proxy routes | security | security | Active |
@@ -20,6 +21,21 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-01] PR #24 missing startup docstring
+- Category: other
+- Persona: review
+- File(s): server.ts
+- Requester / Rationale: User requested resolution of PR #24's failing 80% docstring coverage gate.
+- Root Cause: `startServer` lacked JSDoc; only three of the four named functions touched by the PR were documented.
+- Patch: Document frontend selection, configured port/default, and graceful shutdown registration above `startServer`.
+- Red Test: Local audit of the four named functions at PR revision `c2d945f4bba2476a86458306182f4d7ce2766d1b` found 3/4 documented (75%).
+- Green Test: The same audit after the patch found 4/4 documented (100%); removing the added comment reproduces the original `server.ts` exactly.
+- Regression Guard: PR Docstring Coverage check (80% threshold).
+- Residual Risk: The hosted coverage check still needs to rerun; the local audit is independent of its implementation.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — documentation only; executable code is unchanged.
 
 ## [2026-10-01] Cloud Run launch: hardcoded port and dead SPA fallback
 - Category: build-config

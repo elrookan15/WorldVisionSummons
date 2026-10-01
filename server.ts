@@ -684,6 +684,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+/**
+ * Attaches Vite middleware in development or the built frontend in production,
+ * listens on the configured PORT (default 3000), and registers graceful shutdown.
+ */
 async function startServer() {
   const port = resolveListenPort(process.env.PORT);
 
