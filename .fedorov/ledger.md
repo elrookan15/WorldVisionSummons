@@ -2,6 +2,8 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-01 | PR #24 missing startup docstring | other | review | Active |
+| 2026-10-01 | Cloud Run launch: hardcoded port and dead SPA fallback | build-config | devops | Active |
 | 2026-09-25 | MotifPalette missing bg/bg2 after elevation | typing | frontend | Active |
 | 2026-09-25 | Unauthenticated Gemini proxy routes | security | security | Active |
 | 2026-09-24 | Review and locked Codex shared one mutable screen | ui-theming | frontend | Active |
@@ -19,6 +21,34 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-01] PR #24 missing startup docstring
+- Category: other
+- Persona: review
+- File(s): server.ts
+- Requester / Rationale: User requested resolution of PR #24's failing 80% docstring coverage gate.
+- Root Cause: `startServer` lacked JSDoc; only three of the four named functions touched by the PR were documented.
+- Patch: Document frontend selection, configured port/default, and graceful shutdown registration above `startServer`.
+- Red Test: Local audit of the four named functions at PR revision `c2d945f4bba2476a86458306182f4d7ce2766d1b` found 3/4 documented (75%).
+- Green Test: The same audit after the patch found 4/4 documented (100%); removing the added comment reproduces the original `server.ts` exactly.
+- Regression Guard: PR Docstring Coverage check (80% threshold).
+- Residual Risk: The hosted coverage check still needs to rerun; the local audit is independent of its implementation.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — documentation only; executable code is unchanged.
+
+## [2026-10-01] Cloud Run launch: hardcoded port and dead SPA fallback
+- Category: build-config
+- Persona: devops
+- File(s): server.ts, src/lib/productionServer.ts, Dockerfile, cloudbuild.yaml, .dockerignore, .gitignore, package.json, README.md
+- Root Cause: The process always listened on 3000, so Cloud Run's injected PORT was ignored. Production SPA fallback used Express 5's `*all` pattern, which Express 4.22 registers and then matches no path, so client routes 404 after the static build. No image or Cloud Build config existed, and package-lock.json was gitignored so a container build could not `npm ci`.
+- Patch: `resolveListenPort` + `attachProductionFrontend` (`*`) + SIGTERM drain. Multi-stage Dockerfile (no secrets in the image). `cloudbuild.yaml` deploys to Cloud Run with Secret Manager for GEMINI_API_KEY and WVS_API_SECRET. package-lock.json is tracked.
+- Red Test: Express 4 probe — `app.get("*all")` returns 404 for `/` and `/codex`; `PORT` was a constant 3000.
+- Green Test: `src/__tests__/productionServer.test.ts`; `NODE_ENV=production` server on an ephemeral PORT serves `/` and `/api/health`.
+- Regression Guard: Vitest covers port parsing, SPA shell, static asset, and `/api/health` precedence.
+- Residual Risk: First Cloud Run deploy still needs operator-created secrets and `roles/secretmanager.secretAccessor`. Codex snapshots remain in-memory and reset on scale-to-zero. `VITE_WVS_API_SECRET` is visible in the client bundle.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-09-25] MotifPalette missing bg/bg2 after elevation
 - Category: typing
