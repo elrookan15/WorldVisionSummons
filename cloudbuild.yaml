@@ -1,0 +1,53 @@
+# Build and deploy WorldVision Summons to Cloud Run.
+# Do not put GEMINI_API_KEY or WVS_API_SECRET in this file.
+# Create them in Secret Manager first (see README "Launch").
+# Pass the client gate at build time:
+#   gcloud builds submit --config=cloudbuild.yaml \
+#     --substitutions=_VITE_WVS_API_SECRET=YOUR_GATE_KEY
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE: worldvision-summons
+  _IMAGE: gcr.io/${PROJECT_ID}/worldvision-summons:${SHORT_SHA}
+  _VITE_WVS_API_SECRET: ""
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - VITE_WVS_API_SECRET=${_VITE_WVS_API_SECRET}
+      - -t
+      - ${_IMAGE}
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args: ["push", "${_IMAGE}"]
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_IMAGE}
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=8080
+      - --allow-unauthenticated
+      - --memory=1Gi
+      - --cpu=1
+      - --timeout=300
+      - --concurrency=4
+      - --min-instances=0
+      - --max-instances=3
+      - --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest,WVS_API_SECRET=WVS_API_SECRET:latest
+
+images:
+  - ${_IMAGE}

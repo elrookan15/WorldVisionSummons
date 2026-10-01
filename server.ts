@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import dotenv from "dotenv";
 import { compilePortraitPrompt } from "./src/lib/prompts/generators";
@@ -9,6 +8,11 @@ import { buildProceduralPortrait } from "./src/lib/portraitFallback";
 import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
 import { archChronologerSheetSystemInstruction } from "./src/lib/prompts/archChronologer";
 import { requireWvsApiAuth } from "./src/lib/apiAuth";
+import {
+  attachProductionFrontend,
+  registerGracefulShutdown,
+  resolveListenPort,
+} from "./src/lib/productionServer";
 import {
   classifyGeminiImageError,
   emptyImageResponseError,
@@ -21,7 +25,6 @@ import {
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
 
 app.use(express.json({ limit: "16mb" }));
 
@@ -682,23 +685,23 @@ app.get("/api/health", (req, res) => {
 });
 
 async function startServer() {
+  const port = resolveListenPort(process.env.PORT);
+
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*all", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    attachProductionFrontend(app, path.join(process.cwd(), "dist"));
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Worldvision Summons Server running on http://localhost:${PORT}`);
+  const httpServer = app.listen(port, "0.0.0.0", () => {
+    console.log(`Worldvision Summons Server running on http://0.0.0.0:${port}`);
   });
+  registerGracefulShutdown(httpServer);
 }
 
 startServer();
