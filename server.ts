@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import dotenv from "dotenv";
 import { compilePortraitPrompt } from "./src/lib/prompts/generators";
@@ -10,9 +9,13 @@ import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
 import { archChronologerSheetSystemInstruction } from "./src/lib/prompts/archChronologer";
 import { requireWvsApiAuth } from "./src/lib/apiAuth";
 import { requireGeminiBudget } from "./src/lib/apiRateLimit";
-import { mountProductionSpa } from "./src/lib/productionSpa";
 import { publicProviderError } from "./src/lib/publicError";
 import { writeCodexSnapshot } from "./src/lib/codexSnapshotStore";
+import {
+  attachProductionFrontend,
+  registerGracefulShutdown,
+  resolveListenPort,
+} from "./src/lib/productionServer";
 import {
   classifyGeminiImageError,
   emptyImageResponseError,
@@ -25,7 +28,6 @@ import {
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
 
 // Cloud Run / reverse proxies set X-Forwarded-For. One hop so req.ip is the client.
 app.set("trust proxy", 1);
@@ -683,20 +685,28 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+/**
+ * Attaches Vite middleware in development or the built frontend in production,
+ * listens on the configured PORT (default 3000), and registers graceful shutdown.
+ */
 async function startServer() {
+  const port = resolveListenPort(process.env.PORT);
+
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    mountProductionSpa(app, path.join(process.cwd(), "dist"));
+    attachProductionFrontend(app, path.join(process.cwd(), "dist"));
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Worldvision Summons Server running on http://localhost:${PORT}`);
+  const httpServer = app.listen(port, "0.0.0.0", () => {
+    console.log(`Worldvision Summons Server running on http://0.0.0.0:${port}`);
   });
+  registerGracefulShutdown(httpServer);
 }
 
 startServer().catch((error: unknown) => {

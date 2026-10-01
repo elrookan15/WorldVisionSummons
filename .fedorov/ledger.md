@@ -3,6 +3,8 @@
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
 | 2026-10-01 | Production SPA fallback and ungated Codex snapshots | security | security | Active |
+| 2026-10-01 | PR #24 missing startup docstring | other | review | Active |
+| 2026-10-01 | Cloud Run launch: hardcoded port and dead SPA fallback | build-config | devops | Active |
 | 2026-09-25 | MotifPalette missing bg/bg2 after elevation | typing | frontend | Active |
 | 2026-09-25 | Unauthenticated Gemini proxy routes | security | security | Active |
 | 2026-09-24 | Review and locked Codex shared one mutable screen | ui-theming | frontend | Active |
@@ -24,13 +26,41 @@
 ## [2026-10-01] Production SPA fallback and ungated Codex snapshots
 - Category: security
 - Persona: security
-- File(s): server.ts, src/lib/productionSpa.ts, src/lib/apiAuth.ts, src/lib/apiRateLimit.ts, src/lib/codexSnapshotStore.ts, src/lib/publicError.ts, GeminiChatModal.tsx, CodexFinalizer.tsx, App.tsx
+- File(s): server.ts, src/lib/apiAuth.ts, src/lib/apiRateLimit.ts, src/lib/codexSnapshotStore.ts, src/lib/publicError.ts, GeminiChatModal.tsx, CodexFinalizer.tsx, App.tsx
 - Root Cause: Express 4 registers `app.get("*all")` without matching any path, so production deep links returned the default 404. Codex snapshot routes skipped `requireWvsApiAuth`. Secret compare used `!==`. Sheet fallback forwarded raw provider error text. Chat treated HTTP 401 as an empty reply.
-- Patch: `mountProductionSpa` uses `*`. Codex routes share the budget+auth gate and a 200-entry store. `timingSafeEqual` for the shared secret. `publicProviderError` scrubs key-like strings. Chat and summon UI surface `message` from non-OK responses. 60 req/min/IP on gated routes; `trust proxy` 1.
+- Patch: Codex routes share the budget+auth gate and a 200-entry store. `timingSafeEqual` for the shared secret. `publicProviderError` scrubs key-like strings. Chat and summon UI surface `message` from non-OK responses. 60 req/min/IP on gated routes; `trust proxy` 1. SPA fallback itself is `attachProductionFrontend` from the Cloud Run launch (same `*` fix; the duplicate `mountProductionSpa` helper was dropped at merge).
 - Red Test: Probe of Express 4.22 `*all` returned 404 for `/` and `/codex/review`; `*` returned the SPA body. Codex POST had no auth middleware.
-- Green Test: `productionSpa.test.ts`, `apiRateLimit.test.ts`, `codexSnapshotStore.test.ts`, `publicError.test.ts`, `apiAuth` length-mismatch case; `npm run lint` + `npm test`.
-- Regression Guard: Vitest boots a real Express app and asserts `/codex/review` serves index.html while `/api/health` stays JSON.
+- Green Test: `productionServer.test.ts`, `apiRateLimit.test.ts`, `codexSnapshotStore.test.ts`, `publicError.test.ts`, `apiAuth` length-mismatch case; `npm run lint` + `npm test`.
+- Regression Guard: Vitest boots a real Express app and asserts client routes serve index.html while `/api/health` stays JSON.
 - Residual Risk: Rate-limit counters are per process. Firebase/Prisma high-severity transitive advisories remain; those packages are still imported or present as ballast and were not removed. `VITE_WVS_API_SECRET` is still client-visible.
+- Recurrence Count: 1
+- Status: Active
+
+## [2026-10-01] PR #24 missing startup docstring
+- Category: other
+- Persona: review
+- File(s): server.ts
+- Requester / Rationale: User requested resolution of PR #24's failing 80% docstring coverage gate.
+- Root Cause: `startServer` lacked JSDoc; only three of the four named functions touched by the PR were documented.
+- Patch: Document frontend selection, configured port/default, and graceful shutdown registration above `startServer`.
+- Red Test: Local audit of the four named functions at PR revision `c2d945f4bba2476a86458306182f4d7ce2766d1b` found 3/4 documented (75%).
+- Green Test: The same audit after the patch found 4/4 documented (100%); removing the added comment reproduces the original `server.ts` exactly.
+- Regression Guard: PR Docstring Coverage check (80% threshold).
+- Residual Risk: The hosted coverage check still needs to rerun; the local audit is independent of its implementation.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — documentation only; executable code is unchanged.
+
+## [2026-10-01] Cloud Run launch: hardcoded port and dead SPA fallback
+- Category: build-config
+- Persona: devops
+- File(s): server.ts, src/lib/productionServer.ts, Dockerfile, cloudbuild.yaml, .dockerignore, .gitignore, package.json, README.md
+- Root Cause: The process always listened on 3000, so Cloud Run's injected PORT was ignored. Production SPA fallback used Express 5's `*all` pattern, which Express 4.22 registers and then matches no path, so client routes 404 after the static build. No image or Cloud Build config existed, and package-lock.json was gitignored so a container build could not `npm ci`.
+- Patch: `resolveListenPort` + `attachProductionFrontend` (`*`) + SIGTERM drain. Multi-stage Dockerfile (no secrets in the image). `cloudbuild.yaml` deploys to Cloud Run with Secret Manager for GEMINI_API_KEY and WVS_API_SECRET. package-lock.json is tracked.
+- Red Test: Express 4 probe — `app.get("*all")` returns 404 for `/` and `/codex`; `PORT` was a constant 3000.
+- Green Test: `src/__tests__/productionServer.test.ts`; `NODE_ENV=production` server on an ephemeral PORT serves `/` and `/api/health`.
+- Regression Guard: Vitest covers port parsing, SPA shell, static asset, and `/api/health` precedence.
+- Residual Risk: First Cloud Run deploy still needs operator-created secrets and `roles/secretmanager.secretAccessor`. Codex snapshots remain in-memory and reset on scale-to-zero. `VITE_WVS_API_SECRET` is visible in the client bundle.
 - Recurrence Count: 1
 - Status: Active
 

@@ -60,4 +60,35 @@ Mirror the same value as `VITE_WVS_API_SECRET` so the Vite client attaches the h
 
 Those same routes, plus `/api/codex/snapshots`, are limited to 60 requests per minute per client IP (`429` + `Retry-After`). The process trusts one proxy hop so Cloud Run's `X-Forwarded-For` is the client address.
 
-Production static hosting uses Express 4's `*` SPA fallback. The Express 5 pattern `*all` does not match on this server and was returning the default 404 for any path that was not a real file.
+Production static hosting uses Express 4's `*` SPA fallback (`attachProductionFrontend`). The Express 5 pattern `*all` does not match on this server.
+
+### Launch (Cloud Run)
+
+The container listens on `PORT` (Cloud Run sets this; local production uses `8080` via the image, local dev stays on `3000`). `GET /api/health` is the probe. `SIGTERM` drains in-flight requests for up to 10 seconds.
+
+Secrets stay in Secret Manager and are injected at runtime. They are not copied into the image.
+
+```bash
+# Once per project
+gcloud secrets create GEMINI_API_KEY --replication-policy=automatic
+gcloud secrets create WVS_API_SECRET --replication-policy=automatic
+printf '%s' "$GEMINI_API_KEY" | gcloud secrets versions add GEMINI_API_KEY --data-file=-
+printf '%s' "$WVS_API_SECRET" | gcloud secrets versions add WVS_API_SECRET --data-file=-
+
+# Grant the Cloud Run runtime service account secretAccessor on both secrets, then:
+gcloud builds submit --config=cloudbuild.yaml \
+  --substitutions=_VITE_WVS_API_SECRET="$WVS_API_SECRET",_REGION=us-central1
+```
+
+`VITE_WVS_API_SECRET` must equal `WVS_API_SECRET`. It is compiled into the browser bundle as a shared gate, not a user login. If it is omitted, production API routes fail closed (403 when the server secret is also unset, 401 when the server secret is set and the header is missing).
+
+Rollback (previous revision keeps its image):
+
+```bash
+gcloud run revisions list --service=worldvision-summons --region=us-central1
+gcloud run services update-traffic worldvision-summons \
+  --region=us-central1 \
+  --to-revisions=REVISION_NAME=100
+```
+
+This repo does not auto-deploy from GitHub. A launch is an explicit `gcloud builds submit`.
