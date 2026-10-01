@@ -8,10 +8,11 @@
 substitutions:
   _REGION: us-central1
   _SERVICE: worldvision-summons
-  _IMAGE: gcr.io/${PROJECT_ID}/worldvision-summons:${SHORT_SHA}
+  _IMAGE: gcr.io/${PROJECT_ID}/worldvision-summons:${BUILD_ID}
   _VITE_WVS_API_SECRET: ""
 
 options:
+  dynamicSubstitutions: true
   logging: CLOUD_LOGGING_ONLY
 
 steps:
