@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-01 | Runtime image Prisma installer crash | build-config | devops | Active |
 | 2026-10-01 | Production SPA fallback and ungated Codex snapshots | security | security | Active |
 | 2026-10-01 | PR #24 missing startup docstring | other | review | Active |
 | 2026-10-01 | Cloud Run launch: hardcoded port and dead SPA fallback | build-config | devops | Active |
@@ -22,6 +23,21 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-01] Runtime image Prisma installer crash
+- Category: build-config
+- Persona: devops
+- File(s): Dockerfile
+- Requester / Rationale: Cloud Build stage 2 failed after the app image build succeeded. Operator asked for the runtime `npm ci` to skip installers.
+- Root Cause: `npm ci --omit=dev` still runs `@prisma/composer-cli`'s nested esbuild `install.js`, which throws `Expected "0.28.2" but got "0.25.12"`. The production process is `node dist/server.cjs` and does not invoke that CLI.
+- Patch: Runtime stage only: `npm ci --omit=dev --ignore-scripts`. Build stage `npm ci` is unchanged so the Vite/esbuild compile still runs.
+- Red Test: Cloud Build `0f812675-fab6-4a27-841c-178763f024c5` step 14, `npm error path /app/node_modules/@prisma/composer-cli/node_modules/esbuild`, exit 1.
+- Green Test: Not re-run. The failing command is the one this flag skips.
+- Regression Guard: Build stage keeps scripts; only the runtime install ignores them.
+- Residual Risk: Any production dependency that needs a postinstall binary will not get one. `@prisma/client` generate is skipped; `server.ts` does not import Prisma.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — one flag on the runtime install; the compiled server is copied from the build stage.
 
 ## [2026-10-01] Production SPA fallback and ungated Codex snapshots
 - Category: security
