@@ -1,0 +1,51 @@
+diff --git a/src/lib/apiClientHeaders.ts b/src/lib/apiClientHeaders.ts
+index ed96377..09db74d 100644
+--- a/src/lib/apiClientHeaders.ts
++++ b/src/lib/apiClientHeaders.ts
+@@ -7,8 +7,12 @@ import { WVS_API_KEY_HEADER } from "./wvsApiKey";
+ 
+ function readClientSecret(): string | undefined {
+   try {
+-    const meta = import.meta as ImportMeta & { env?: Record<string, string | undefined> };
+-    const value = meta.env?.VITE_WVS_API_SECRET?.trim();
++    // NOTE: access import.meta.env.VITE_* directly (no aliasing through a
++    // variable). Vite only bakes env values via static replacement of the
++    // literal `import.meta.env.VAR` pattern; reading through an aliased
++    // `meta` object leaves a runtime lookup that resolves to undefined in
++    // the production bundle, silently dropping the auth header.
++    const value = import.meta.env.VITE_WVS_API_SECRET?.trim();
+     return value || undefined;
+   } catch {
+     return undefined;
+diff --git a/src/lib/providers/NanoBananaProvider.ts b/src/lib/providers/NanoBananaProvider.ts
+index 423ee4e..88e46f2 100644
+--- a/src/lib/providers/NanoBananaProvider.ts
++++ b/src/lib/providers/NanoBananaProvider.ts
+@@ -39,7 +39,9 @@ export class NanoBananaProvider implements ImageGenerationProvider {
+   private readonly defaultTimeoutMs: number = 120000;
+ 
+   constructor(apiUrl?: string, apiKey?: string) {
+-    const metaEnv = (import.meta as any).env || {};
++    // NOTE: read import.meta.env directly — Vite only bakes values via
++    // static replacement of the literal `import.meta.env.VAR` pattern.
++    const metaEnv = import.meta.env;
+     this.apiUrl = apiUrl || metaEnv.VITE_NANO_BANANA_API_URL || '/api/generate-image';
+     this.apiKey = apiKey || metaEnv.VITE_NANO_BANANA_API_KEY || '';
+   }
+diff --git a/src/vite-env.d.ts b/src/vite-env.d.ts
+new file mode 100644
+index 0000000..2ca4d1a
+--- /dev/null
++++ b/src/vite-env.d.ts
+@@ -0,0 +1,11 @@
++/// <reference types="vite/client" />
++
++interface ImportMetaEnv {
++  readonly VITE_WVS_API_SECRET?: string;
++  readonly VITE_NANO_BANANA_API_URL?: string;
++  readonly VITE_NANO_BANANA_API_KEY?: string;
++}
++
++interface ImportMeta {
++  readonly env: ImportMetaEnv;
++}

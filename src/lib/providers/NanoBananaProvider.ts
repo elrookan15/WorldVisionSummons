@@ -39,7 +39,9 @@ export class NanoBananaProvider implements ImageGenerationProvider {
   private readonly defaultTimeoutMs: number = 120000;
 
   constructor(apiUrl?: string, apiKey?: string) {
-    const metaEnv = (import.meta as any).env || {};
+    // NOTE: read import.meta.env directly — Vite only bakes values via
+    // static replacement of the literal `import.meta.env.VAR` pattern.
+    const metaEnv = import.meta.env;
     this.apiUrl = apiUrl || metaEnv.VITE_NANO_BANANA_API_URL || '/api/generate-image';
     this.apiKey = apiKey || metaEnv.VITE_NANO_BANANA_API_KEY || '';
   }

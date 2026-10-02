@@ -7,8 +7,12 @@ import { WVS_API_KEY_HEADER } from "./wvsApiKey";
 
 function readClientSecret(): string | undefined {
   try {
-    const meta = import.meta as ImportMeta & { env?: Record<string, string | undefined> };
-    const value = meta.env?.VITE_WVS_API_SECRET?.trim();
+    // NOTE: access import.meta.env.VITE_* directly (no aliasing through a
+    // variable). Vite only bakes env values via static replacement of the
+    // literal `import.meta.env.VAR` pattern; reading through an aliased
+    // `meta` object leaves a runtime lookup that resolves to undefined in
+    // the production bundle, silently dropping the auth header.
+    const value = import.meta.env.VITE_WVS_API_SECRET?.trim();
     return value || undefined;
   } catch {
     return undefined;
