@@ -1,0 +1,46 @@
+diff --git a/src/lib/apiAuth.ts b/src/lib/apiAuth.ts
+index 203d6ef..f105809 100644
+--- a/src/lib/apiAuth.ts
++++ b/src/lib/apiAuth.ts
+@@ -11,7 +11,11 @@
+ import { timingSafeEqual } from "node:crypto";
+ import type { Request, Response, NextFunction } from "express";
+ 
+-export const WVS_API_KEY_HEADER = "x-wvs-api-key";
++// Browser-safe constant lives in ./wvsApiKey.ts so the Vite client bundle
++// never pulls node:crypto in via apiClientHeaders.ts. Re-exported here to
++// keep the existing import surface for server code and tests.
++import { WVS_API_KEY_HEADER } from "./wvsApiKey";
++export { WVS_API_KEY_HEADER };
+ 
+ export type ApiAuthEnv = {
+   secret: string | undefined;
+diff --git a/src/lib/apiClientHeaders.ts b/src/lib/apiClientHeaders.ts
+index bc10f37..ed96377 100644
+--- a/src/lib/apiClientHeaders.ts
++++ b/src/lib/apiClientHeaders.ts
+@@ -3,7 +3,7 @@
+  * Reads VITE_WVS_API_SECRET when present and attaches X-WVS-API-Key.
+  */
+ 
+-import { WVS_API_KEY_HEADER } from "./apiAuth";
++import { WVS_API_KEY_HEADER } from "./wvsApiKey";
+ 
+ function readClientSecret(): string | undefined {
+   try {
+diff --git a/src/lib/wvsApiKey.ts b/src/lib/wvsApiKey.ts
+new file mode 100644
+index 0000000..076fc58
+--- /dev/null
++++ b/src/lib/wvsApiKey.ts
+@@ -0,0 +1,10 @@
++/**
++ * Browser-safe WVS API gate constants.
++ *
++ * This module must stay free of Node-only imports (node:crypto, express, …)
++ * because the Vite client bundle imports it via apiClientHeaders.ts.
++ * Server-only auth logic lives in ./apiAuth.ts, which re-exports these.
++ */
++
++/** Header name the client sends the shared gate key on. */
++export const WVS_API_KEY_HEADER = "x-wvs-api-key";

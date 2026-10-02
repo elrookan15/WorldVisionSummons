@@ -11,7 +11,11 @@
 import { timingSafeEqual } from "node:crypto";
 import type { Request, Response, NextFunction } from "express";
 
-export const WVS_API_KEY_HEADER = "x-wvs-api-key";
+// Browser-safe constant lives in ./wvsApiKey.ts so the Vite client bundle
+// never pulls node:crypto in via apiClientHeaders.ts. Re-exported here to
+// keep the existing import surface for server code and tests.
+import { WVS_API_KEY_HEADER } from "./wvsApiKey";
+export { WVS_API_KEY_HEADER };
 
 export type ApiAuthEnv = {
   secret: string | undefined;

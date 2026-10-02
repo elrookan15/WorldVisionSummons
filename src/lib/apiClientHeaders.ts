@@ -3,7 +3,7 @@
  * Reads VITE_WVS_API_SECRET when present and attaches X-WVS-API-Key.
  */
 
-import { WVS_API_KEY_HEADER } from "./apiAuth";
+import { WVS_API_KEY_HEADER } from "./wvsApiKey";
 
 function readClientSecret(): string | undefined {
   try {
