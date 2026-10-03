@@ -44,8 +44,15 @@ export function sharedSecretMatches(provided: string, secret: string): boolean {
 }
 
 function readProvidedSecret(headers: HeaderReader): string | undefined {
-  const headerKey = headers.get(WVS_API_KEY_HEADER)?.trim()
-    || headers.get("X-WVS-API-Key")?.trim();
+  // Node joins duplicate request headers with ", " (e.g. when a client sends
+  // both "x-wvs-api-key" and "X-WVS-API-Key"). Accept the first value so a
+  // duplicated header can't fail the exact secret comparison.
+  const firstHeaderValue = (value: string | null | undefined): string | undefined => {
+    const first = value?.split(",")[0]?.trim();
+    return first ? first : undefined;
+  };
+  const headerKey = firstHeaderValue(headers.get(WVS_API_KEY_HEADER))
+    || firstHeaderValue(headers.get("X-WVS-API-Key"));
   if (headerKey) return headerKey;
 
   const auth = headers.get("authorization")?.trim() || headers.get("Authorization")?.trim();

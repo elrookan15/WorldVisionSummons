@@ -26,9 +26,9 @@ export function withWvsApiHeaders(
   const next: Record<string, string> = { ...headers };
   const secret = readClientSecret();
   if (secret) {
+    // Send exactly one casing. Node joins duplicate headers with ", ",
+    // which would corrupt the value the server compares against.
     next[WVS_API_KEY_HEADER] = secret;
-    // Canonical casing for proxies that preserve case
-    next["X-WVS-API-Key"] = secret;
   }
   return next;
 }

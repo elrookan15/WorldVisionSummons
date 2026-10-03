@@ -1,0 +1,38 @@
+diff --git a/src/lib/apiAuth.ts b/src/lib/apiAuth.ts
+index f105809..2f7eaa2 100644
+--- a/src/lib/apiAuth.ts
++++ b/src/lib/apiAuth.ts
+@@ -44,8 +44,15 @@ export function sharedSecretMatches(provided: string, secret: string): boolean {
+ }
+ 
+ function readProvidedSecret(headers: HeaderReader): string | undefined {
+-  const headerKey = headers.get(WVS_API_KEY_HEADER)?.trim()
+-    || headers.get("X-WVS-API-Key")?.trim();
++  // Node joins duplicate request headers with ", " (e.g. when a client sends
++  // both "x-wvs-api-key" and "X-WVS-API-Key"). Accept the first value so a
++  // duplicated header can't fail the exact secret comparison.
++  const firstHeaderValue = (value: string | null | undefined): string | undefined => {
++    const first = value?.split(",")[0]?.trim();
++    return first ? first : undefined;
++  };
++  const headerKey = firstHeaderValue(headers.get(WVS_API_KEY_HEADER))
++    || firstHeaderValue(headers.get("X-WVS-API-Key"));
+   if (headerKey) return headerKey;
+ 
+   const auth = headers.get("authorization")?.trim() || headers.get("Authorization")?.trim();
+diff --git a/src/lib/apiClientHeaders.ts b/src/lib/apiClientHeaders.ts
+index 09db74d..9cf5e8b 100644
+--- a/src/lib/apiClientHeaders.ts
++++ b/src/lib/apiClientHeaders.ts
+@@ -26,9 +26,9 @@ export function withWvsApiHeaders(
+   const next: Record<string, string> = { ...headers };
+   const secret = readClientSecret();
+   if (secret) {
++    // Send exactly one casing. Node joins duplicate headers with ", ",
++    // which would corrupt the value the server compares against.
+     next[WVS_API_KEY_HEADER] = secret;
+-    // Canonical casing for proxies that preserve case
+-    next["X-WVS-API-Key"] = secret;
+   }
+   return next;
+ }
