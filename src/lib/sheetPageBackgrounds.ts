@@ -30,6 +30,9 @@ export const SHEET_THEME_IDS = [
   "postApocalyptic",
   "eldritchArcane",
   "victorianGothic",
+  "bioMechanical",
+  "eighties3DRender",
+  "solarpunkUtopia",
 ] as const;
 
 export type SheetThemeId = (typeof SHEET_THEME_IDS)[number];
@@ -49,6 +52,9 @@ const THEME_PALETTES: Record<SheetThemeId, BgPalette> = {
   postApocalyptic: { bg: "#2b1f14", bg2: "#4a341c", accent: "#b8451b", accent2: "#ff6b2a", clash: "#a3e635" },
   eldritchArcane: { bg: "#0b0813", bg2: "#241c3d", accent: "#c084fc", accent2: "#38bdf8", clash: "#84cc16" },
   victorianGothic: { bg: "#0e1013", bg2: "#252a32", accent: "#cbd5e1", accent2: "#f59e0b", clash: "#f43f5e" },
+  bioMechanical: { bg: "#0f1012", bg2: "#1d2024", accent: "#dc2626", accent2: "#f59e0b", clash: "#22d3ee" },
+  eighties3DRender: { bg: "#070617", bg2: "#1c194f", accent: "#39ff14", accent2: "#2563eb", clash: "#ff2bd6" },
+  solarpunkUtopia: { bg: "#081410", bg2: "#1a3d32", accent: "#f59e0b", accent2: "#10b981", clash: "#14b8a6" },
 };
 
 /** Genre artifact language — drives ornament geometry, not palette alone. */
@@ -63,6 +69,9 @@ export const THEME_ARTIFACT: Record<SheetThemeId, string> = {
   postApocalyptic: "treasure-map",
   eldritchArcane: "runic-crystal",
   victorianGothic: "gazette-lace",
+  bioMechanical: "chitin-carapace",
+  eighties3DRender: "phosphor-wireframe",
+  solarpunkUtopia: "living-canopy",
 };
 
 /** Per-page document metaphor — distinct composition even within one genre. */
@@ -158,6 +167,30 @@ function genreOrnaments(theme: SheetThemeId, p: BgPalette): string {
         </g>
         <path d="M560 60 Q600 120 640 60 Q680 0 720 60" fill="none" stroke="${p.accent2}" stroke-width="1.5" opacity="0.28"/>
         <rect x="100" y="100" width="1000" height="600" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.12"/>`;
+    case "bioMechanical":
+      return `
+        <path d="M80 80 Q200 240 80 400 Q200 560 80 720" fill="none" stroke="${p.accent}" stroke-width="8" opacity="0.22"/>
+        <path d="M1120 80 Q1000 240 1120 400 Q1000 560 1120 720" fill="none" stroke="${p.accent}" stroke-width="8" opacity="0.2"/>
+        <path d="M200 200 Q400 160 600 220 T1000 200" fill="none" stroke="${p.accent2}" stroke-width="2" opacity="0.28"/>
+        <circle cx="600" cy="400" r="46" fill="none" stroke="${p.clash}" stroke-width="2" opacity="0.3"/>
+        <circle cx="240" cy="520" r="18" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.24"/>`;
+    case "eighties3DRender":
+      return `
+        <g stroke="${p.accent}" stroke-width="1.2" opacity="0.22">
+          <path d="M0 700 L600 220 L1200 700"/>
+          <path d="M120 700 L600 300 L1080 700"/>
+          <path d="M240 700 L600 380 L960 700"/>
+        </g>
+        <path d="M80 80 L220 80 L220 120 L120 120 L120 220 L80 220 Z" fill="none" stroke="${p.accent2}" stroke-width="2" opacity="0.35"/>
+        <path d="M980 80 L1120 80 L1120 220 L1080 220 L1080 120 L980 120 Z" fill="none" stroke="${p.clash}" stroke-width="2" opacity="0.3"/>
+        <circle cx="600" cy="160" r="36" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.28"/>`;
+    case "solarpunkUtopia":
+      return `
+        <path d="M80 720 C220 420 380 520 600 240 C820 520 980 420 1120 720" fill="none" stroke="${p.accent2}" stroke-width="3" opacity="0.24"/>
+        <circle cx="220" cy="180" r="52" fill="${p.accent}" opacity="0.16"/>
+        <circle cx="980" cy="160" r="28" fill="none" stroke="${p.accent}" stroke-width="2" opacity="0.28"/>
+        <path d="M160 560 Q260 480 200 400" fill="none" stroke="${p.clash}" stroke-width="6" stroke-linecap="round" opacity="0.18"/>
+        <path d="M1000 560 Q900 480 960 400" fill="none" stroke="${p.accent2}" stroke-width="6" stroke-linecap="round" opacity="0.16"/>`;
   }
 }
 

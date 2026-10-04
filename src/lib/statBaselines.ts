@@ -35,7 +35,10 @@ export const ARCHETYPE_EXPLICIT_BASELINES: Record<string, StatBaseline> = {
   "Morrigan — Bloodroot Witch": { STR: 8, DEX: 13, CON: 13, INT: 19, WIS: 18, CHA: 13 },
   "Tariq — Silk Road Assassin": { STR: 13, DEX: 19, CON: 13, INT: 14, WIS: 13, CHA: 12 },
   "Valeria — Star-Drift Captain": { STR: 13, DEX: 15, CON: 14, INT: 15, WIS: 14, CHA: 18 },
-  "Dmitri — Neon Street Samurai": { STR: 17, DEX: 17, CON: 15, INT: 12, WIS: 13, CHA: 10 }
+  "Dmitri — Neon Street Samurai": { STR: 17, DEX: 17, CON: 15, INT: 12, WIS: 13, CHA: 10 },
+  "Xylon-Prime — Bio-Chitin Weaver": { STR: 16, DEX: 14, CON: 18, INT: 19, WIS: 12, CHA: 9 },
+  "Vector-9 — Phosphor Raytracer": { STR: 14, DEX: 18, CON: 14, INT: 17, WIS: 13, CHA: 12 },
+  "Solaria — Canopy Architect": { STR: 10, DEX: 14, CON: 15, INT: 18, WIS: 19, CHA: 14 }
 };
 
 export function getArchetypeBaseline(

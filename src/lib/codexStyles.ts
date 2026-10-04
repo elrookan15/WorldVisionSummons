@@ -16,6 +16,9 @@ const GENRE_DEFAULTS: Record<string, CodexStyleId> = {
   "Eldritch Arcane": "eldritch-arcane",
   "Post-Apocalyptic": "wasteland-record",
   "8-Bit Retro RPG": "retro-8bit",
+  BioMechanical: "cyberpunk-dossier",
+  "1980s 3D Render": "retro-8bit",
+  "Solarpunk Utopia": "high-fantasy",
 };
 
 const SNAPSHOT_KEY = "worldvision_codex_plate_snapshot";

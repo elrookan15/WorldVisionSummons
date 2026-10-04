@@ -2,11 +2,12 @@ import { describe, it, expect } from "vitest";
 import { compilePortraitPrompt, compileInventoryPrompt, getAtmosphericMatrix, GENRE_ATMOSPHERIC_MATRICES } from "../lib/prompts/generators";
 
 describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
-  it("should provide atmospheric matrices for all 10 genres", () => {
+  it("should provide atmospheric matrices for all 13 genres", () => {
     const genres = [
       "Gothic Dark Fantasy", "Cyberpunk", "Steampunk", "8-Bit Retro RPG",
       "High Fantasy", "Cosmic Horror", "Samurai Era", "Post-Apocalyptic",
-      "Eldritch Arcane", "Victorian Gothic"
+      "Eldritch Arcane", "Victorian Gothic",
+      "BioMechanical", "1980s 3D Render", "Solarpunk Utopia"
     ];
     for (const genre of genres) {
       const matrix = getAtmosphericMatrix(genre);
@@ -93,14 +94,20 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     expect(parsed.derivedStats.ac).toBe(14);
   });
 
-  it("should canonicalize preset aliases onto the 10 visual genres", async () => {
+  it("should canonicalize preset aliases onto the 13 visual genres", async () => {
     const { canonicalizeSheetStyle, themeIdForStyle, primaryItemFromInventory } = await import("../lib/themeMap");
 
     expect(canonicalizeSheetStyle("Steampunk Tinkerer")).toBe("Steampunk");
     expect(canonicalizeSheetStyle("Neon Ronin")).toBe("Cyberpunk");
     expect(canonicalizeSheetStyle("Wasteland Scavenger")).toBe("Post-Apocalyptic");
     expect(canonicalizeSheetStyle("Obsidian Cult")).toBe("Gothic Dark Fantasy");
+    expect(canonicalizeSheetStyle("biomech")).toBe("BioMechanical");
+    expect(canonicalizeSheetStyle("render80s")).toBe("1980s 3D Render");
+    expect(canonicalizeSheetStyle("solarpunk")).toBe("Solarpunk Utopia");
     expect(themeIdForStyle("High Fantasy")).toBe("highFantasy");
+    expect(themeIdForStyle("BioMechanical")).toBe("bioMechanical");
+    expect(themeIdForStyle("1980s 3D Render")).toBe("eighties3DRender");
+    expect(themeIdForStyle("Solarpunk Utopia")).toBe("solarpunkUtopia");
     expect(primaryItemFromInventory("Runebound Broadsword, Tarnished Iron Shield")).toBe("Runebound Broadsword");
     expect(primaryItemFromInventory(["Rail-Steel Katana", "Tattered Haori"])).toBe("Rail-Steel Katana");
   });
@@ -172,7 +179,7 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     } = await import("../lib/sheetPageBackgrounds");
 
     expect(SHEET_PAGE_IDS).toHaveLength(8);
-    expect(SHEET_THEME_IDS).toHaveLength(10);
+    expect(SHEET_THEME_IDS).toHaveLength(13);
 
     for (const theme of SHEET_THEME_IDS) {
       const vars = sheetPageBackgroundCssVars(theme);
@@ -294,6 +301,9 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
       postApocalyptic: "#a3e635", // treasure-map parchment → lime
       eldritchArcane: "#84cc16",
       victorianGothic: "#f43f5e",
+      bioMechanical: "#22d3ee",
+      eighties3DRender: "#ff2bd6",
+      solarpunkUtopia: "#14b8a6",
     };
 
     for (const theme of SHEET_THEME_IDS) {

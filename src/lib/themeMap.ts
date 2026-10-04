@@ -9,6 +9,9 @@ export const CANONICAL_SHEET_STYLES = [
   "Post-Apocalyptic",
   "Eldritch Arcane",
   "Victorian Gothic",
+  "BioMechanical",
+  "1980s 3D Render",
+  "Solarpunk Utopia",
 ] as const;
 
 export type CanonicalSheetStyle = (typeof CANONICAL_SHEET_STYLES)[number];
@@ -24,6 +27,9 @@ export const STYLE_TO_THEME_ID: Record<CanonicalSheetStyle, string> = {
   "Post-Apocalyptic": "postApocalyptic",
   "Eldritch Arcane": "eldritchArcane",
   "Victorian Gothic": "victorianGothic",
+  BioMechanical: "bioMechanical",
+  "1980s 3D Render": "eighties3DRender",
+  "Solarpunk Utopia": "solarpunkUtopia",
 };
 
 const STYLE_ALIASES: Record<string, CanonicalSheetStyle> = {
@@ -61,6 +67,12 @@ const STYLE_ALIASES: Record<string, CanonicalSheetStyle> = {
   "shadow protocol": "Victorian Gothic",
   "starship log": "Cyberpunk",
   biohacker: "Cyberpunk",
+  biomechanical: "BioMechanical",
+  biomech: "BioMechanical",
+  "1980s 3d render": "1980s 3D Render",
+  render80s: "1980s 3D Render",
+  "solarpunk utopia": "Solarpunk Utopia",
+  solarpunk: "Solarpunk Utopia",
 };
 
 export function canonicalizeSheetStyle(style?: string | null): CanonicalSheetStyle {

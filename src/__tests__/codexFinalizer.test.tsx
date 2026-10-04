@@ -100,6 +100,9 @@ describe("codex finalizer page", () => {
     expect(defaultCodexStyleForGenre("Samurai Era")).toBe("samurai-emakimono");
     expect(defaultCodexStyleForGenre("8-Bit Retro RPG")).toBe("retro-8bit");
     expect(defaultCodexStyleForGenre("Victorian Gothic")).toBe("victorian-gothic");
+    expect(defaultCodexStyleForGenre("BioMechanical")).toBe("cyberpunk-dossier");
+    expect(defaultCodexStyleForGenre("1980s 3D Render")).toBe("retro-8bit");
+    expect(defaultCodexStyleForGenre("Solarpunk Utopia")).toBe("high-fantasy");
     const sheet = emptySheet();
     sheet.name = "Neon";
     sheet.sheet_style = "Cyberpunk";

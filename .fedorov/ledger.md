@@ -2,6 +2,10 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-04 | Port 3 extra themes + presets (13 visual genres) | ui-theming | frontend | Active |
+| 2026-10-04 | FEDOROV chat personas + apply proposal | provider-integration | frontend | Active |
+| 2026-10-04 | Draft auto-save + blank-slate default | persistence | frontend | Active |
+| 2026-10-03 | FEDOROV Instant Summon procedural creator | ui-state | frontend | Active |
 | 2026-10-01 | Runtime image Prisma installer crash | build-config | devops | Active |
 | 2026-10-01 | Production SPA fallback and ungated Codex snapshots | security | security | Active |
 | 2026-10-01 | PR #24 missing startup docstring | other | review | Active |
@@ -23,6 +27,66 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-04] Port 3 extra themes + presets (13 visual genres)
+- Category: ui-theming
+- Persona: frontend
+- File(s): src/lib/themeMap.ts, src/lib/portraitFallback.ts, src/lib/prompts/archChronologer.ts, src/lib/prompts/generators.ts, src/lib/statBaselines.ts, src/App.tsx, src/lib/federovPersonas.ts, src/lib/sheetPageBackgrounds.ts, src/lib/sheetGenreMotifs.ts, src/sheet-themes.css, src/lib/codexStyles.ts, src/__tests__/archChronologer.test.ts, src/__tests__/summons.test.ts
+- Requester / Rationale: Port `wv-port4-themes-presets.patch` (BioMechanical, 1980s 3D Render, Solarpunk Utopia) without applying the stale `server.ts` hunk.
+- Root Cause: Canonical sheet styles were a closed set of 10. The AI Studio patch added 3 styles/presets, but `server.ts` no longer owns the proposal style list, and live dossier CSS/motifs/clash tests still assume `SHEET_THEME_IDS.length === 10`.
+- Patch: Added the 3 styles to theme map, palettes, atmospheric matrices, Arch-Chronologer genres, THEMES/PRESETS, persona proposal allowlist (`federovPersonas.ts`), page backgrounds, 3 motifs each, unique `--sheet-layout` tokens, and closest-existing Codex plate defaults. Did not apply the patch to `server.ts`.
+- Red Test: `SHEET_THEME_IDS` was 10; new theme ids fell back to gothic atmospheres; proposal instruction omitted the 3 styles.
+- Green Test: `npx vitest run` on archChronologer + summons + characterDraft + federovPersonas + fedorovInstantGenerator + codexFinalizer → 39/39 (v5.0.3). `npx tsc --noEmit` exit 0. Browser on http://127.0.0.1:3000: `data-sheet=bioMechanical` / `--sheet-layout: chitin-carapace` with Xylon-Prime; `solarpunkUtopia` / `living-canopy` with Solaria Vane; `eighties3DRender` / `phosphor-wireframe`.
+- Regression Guard: summons + archChronologer now assert 13 genres, unique layouts, clash hexes, and aliases (`biomech`, `render80s`, `solarpunk`).
+- Residual Risk: Codex plates reuse cyberpunk / retro-8bit / high-fantasy skins (no new plate files). `Nature & Fey` is a one-preset filter tab. Not on Cloud Run until commit+rebuild. Instant Summon race/class pool still draws from the older style set unless a preset is applied.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — client theme tokens and static prompt lists only; no secrets, no provider calls.
+
+## [2026-10-04] FEDOROV chat personas + apply proposal
+- Category: provider-integration
+- Persona: frontend
+- File(s): src/lib/federovPersonas.ts, src/lib/characterProposal.ts, src/components/GeminiChatModal.tsx, src/App.tsx, server.ts, src/__tests__/federovPersonas.test.ts
+- Requester / Rationale: Port `wv-port3-personas-proposals.patch` without dropping chat error handling or letting the client set system prompts.
+- Root Cause: Chat always roleplayed the summoned character via C-TRACES-GOAL. AI Studio had 15 Federov brainstorm personas and a `[CHARACTER_PROPOSAL]` apply-to-form path this repo lacked.
+- Patch: Allowlisted `personaId` lookup on `/api/summons/chat`. Known ids use `buildPersonaChatInstruction` (clipped context). Unknown ids keep character voice. Modal picker + proposal card. `handleApplyProposal` fills the summon form. Parser extracted for tests. Kept `!res.ok` + clipboard fallback. Escape + backdrop close.
+- Red Test: Chat had no `personaId` and no proposal apply. Unknown ids would have been ignored or, in a naive port, treated as a prompt injection surface.
+- Green Test: `npx vitest run src/__tests__/federovPersonas.test.ts src/__tests__/characterDraft.test.ts` → 8/8 (v5.0.3). `npx tsc --noEmit` exit 0.
+- Regression Guard: 15 unique ids; unknown id → undefined / UI fallback archivist; proposal parse + strip; lore clip at 800.
+- Residual Risk: Live Gemini still required for a real proposal. No AI falls back to a speech-sample notice without a proposal block. Not on Cloud Run until commit+rebuild. Filename keeps AI Studio spelling `federovPersonas`.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — persona catalog is static; client sends only an allowlisted id.
+
+## [2026-10-04] Draft auto-save + blank-slate default
+- Category: persistence
+- Persona: frontend
+- File(s): src/lib/characterDraft.ts, src/App.tsx, src/__tests__/characterDraft.test.ts
+- Requester / Rationale: Port AI Studio patch `wv-port2-autosave-blankslate` onto current App without applying stale hunks.
+- Root Cause: App initialized the sheet as Gelbinor and the run key used `name || "Gelbinor"` / `class || "Necromancer"`, so a blank form reloaded the last Gelbinor run from localStorage.
+- Patch: Extracted typed draft module (`DRAFT_STORAGE_KEY`, parse/load/persist/clear). Blank `UiSheetData` is the default; a valid draft restores form + sheet + theme + run/step/image. Autosave debounces 500ms and skips the first post-hydrate tick. Start Blank confirms, clears draft, resets run/step/image. `worldvision_run_*` load/save is gated: skipped when name or class is empty, and load is skipped while a draft key exists.
+- Red Test: Empty form still constructed `worldvision_run_${btoa("Gelbinor-Necromancer-...")}` and overwrote the blank sheet.
+- Green Test: `node node_modules/vitest/vitest.mjs run src/__tests__/characterDraft.test.ts` → 3/3 pass (v5.0.3). `npx tsc --noEmit` exit 0.
+- Regression Guard: Vitest covers blank shape, garbage/empty reject, persist/load/clear round-trip.
+- Residual Risk: Typing Gelbinor + Necromancer with no draft key can still restore an old run. A huge data-URL portrait can QuotaExceeded on persist. Instant Summon / this draft path are not on Cloud Run until commit+rebuild.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — client-only localStorage, no secrets, no provider call.
+
+## [2026-10-03] FEDOROV Instant Summon procedural creator
+- Category: ui-state
+- Persona: frontend
+- File(s): src/lib/fedorovInstantGenerator.ts, src/App.tsx, src/__tests__/fedorovInstantGenerator.test.ts
+- Requester / Rationale: Port one-click Instant Summon from AI Studio without a Gemini call.
+- Root Cause: The live Summon path always hits the Express Gemini proxy. AI Studio had a local procedural creator that this repo lacked.
+- Patch: Crypto-backed race/class generator with last-5 collision history; three Instant Summon buttons populate form + full `UiSheetData` and a procedural plate. RNG uses unbiased rejection sampling; session history hydrates before append.
+- Red Test: `generateFedorovInstantCharacter` was missing; Instant Summon buttons did not exist in `App.tsx`.
+- Green Test: `npx vitest run src/__tests__/fedorovInstantGenerator.test.ts` → 6/6 pass (v5.0.3). `npx tsc --noEmit` exit 0. Browser click Instant Summon on http://127.0.0.1:3000 replaced Gelbinor with `Corvus Blackthorn` / `Samurai Blademaster` / level 15.
+- Regression Guard: Vitest suite covers sheet shape, last-5 uniqueness, reserved preset names, pixie STR cap.
+- Residual Risk: Race/class OR-collision can exhaust the pool after many clicks and fall through at attempt 50. Instant Summon still uses the procedural plate, not Gemini portraits. Amber chrome is hardcoded so the control stays visible on every theme.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — client-only, no provider call, no secrets.
 
 ## [2026-10-01] Runtime image Prisma installer crash
 - Category: build-config

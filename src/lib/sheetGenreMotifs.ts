@@ -26,6 +26,9 @@ export const THEME_MOTIFS = {
   postApocalyptic: ["pirate-sword", "gold-chest", "pirate-ship"],
   eldritchArcane: ["grimoire", "floating-crystal", "occult-ring"],
   victorianGothic: ["gas-lamp", "cameo-locket", "carriage-wheel"],
+  bioMechanical: ["chitin-rib", "arterial-syringe", "neural-spine"],
+  eighties3DRender: ["wireframe-cube", "phosphor-grid", "chrome-sphere"],
+  solarpunkUtopia: ["solar-leaf", "amber-crystal", "living-spire"],
 } as const;
 
 export type MotifThemeId = keyof typeof THEME_MOTIFS;
@@ -209,6 +212,48 @@ const MOTIF_DRAW: Record<MotifThemeId, readonly [MotifFn, MotifFn, MotifFn]> = {
       <circle cx="0" cy="0" r="10" fill="none" stroke="${p.clash}" stroke-width="3"/>
       <path d="M0 -42 L8 -52 L-8 -52 Z M42 0 L52 8 L52 -8 Z M0 42 L-8 52 L8 52 Z M-42 0 L-52 -8 L-52 8 Z"
         fill="${p.accent2}" opacity="0.75"/>`,
+  ],
+  bioMechanical: [
+    (p) => `
+      <path d="M-40 -20 Q-10 -70 20 -20 Q40 10 10 40 Q-20 10 -40 -20 Z" fill="none" stroke="${p.accent}" stroke-width="4"/>
+      <path d="M-18 -8 Q0 -28 16 -6" fill="none" stroke="${p.clash}" stroke-width="2.5"/>
+      <path d="M-8 8 L8 22" stroke="${p.accent2}" stroke-width="3"/>`,
+    (p) => `
+      <rect x="-8" y="-42" width="16" height="48" fill="none" stroke="${p.accent2}" stroke-width="3"/>
+      <circle cx="0" cy="16" r="14" fill="none" stroke="${p.accent}" stroke-width="3"/>
+      <path d="M0 30 V48" stroke="${p.clash}" stroke-width="3"/>`,
+    (p) => `
+      <path d="M0 -50 V50" stroke="${p.accent}" stroke-width="5"/>
+      <circle cx="0" cy="-18" r="10" fill="none" stroke="${p.clash}" stroke-width="2"/>
+      <circle cx="0" cy="10" r="10" fill="none" stroke="${p.accent2}" stroke-width="2"/>
+      <circle cx="0" cy="36" r="8" fill="none" stroke="${p.clash}" stroke-width="2"/>`,
+  ],
+  eighties3DRender: [
+    (p) => `
+      <path d="M0 -40 L40 0 L0 40 L-40 0 Z" fill="none" stroke="${p.accent}" stroke-width="3"/>
+      <path d="M0 -40 V40 M-40 0 H40" stroke="${p.accent2}" stroke-width="1.5" opacity="0.8"/>`,
+    (p) => `
+      <g stroke="${p.accent}" stroke-width="1.5">
+        <path d="M-40 -20 H40 M-40 0 H40 M-40 20 H40"/>
+        <path d="M-20 -40 V40 M0 -40 V40 M20 -40 V40"/>
+      </g>
+      <circle cx="0" cy="0" r="6" fill="${p.clash}"/>`,
+    (p) => `
+      <circle cx="0" cy="0" r="36" fill="none" stroke="${p.accent2}" stroke-width="3"/>
+      <ellipse cx="-10" cy="-8" rx="12" ry="8" fill="none" stroke="${p.clash}" stroke-width="2"/>
+      <circle cx="8" cy="10" r="4" fill="${p.accent}"/>`,
+  ],
+  solarpunkUtopia: [
+    (p) => `
+      <path d="M0 36 C-28 8 -24 -28 0 -40 C24 -28 28 8 0 36 Z" fill="none" stroke="${p.accent2}" stroke-width="3"/>
+      <path d="M0 36 V-28" stroke="${p.accent}" stroke-width="2"/>`,
+    (p) => `
+      <path d="M0 -40 L18 8 L0 32 L-18 8 Z" fill="none" stroke="${p.accent}" stroke-width="3"/>
+      <circle cx="0" cy="0" r="8" fill="none" stroke="${p.clash}" stroke-width="2"/>`,
+    (p) => `
+      <path d="M-16 40 L0 -48 L16 40" fill="none" stroke="${p.accent2}" stroke-width="3"/>
+      <path d="M-22 8 H22" stroke="${p.accent}" stroke-width="2"/>
+      <circle cx="0" cy="-20" r="6" fill="${p.clash}" opacity="0.8"/>`,
   ],
 };
 

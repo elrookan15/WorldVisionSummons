@@ -386,6 +386,34 @@
   box-shadow: inset 0 0 0 1px rgba(203, 213, 225, 0.18), inset 0 0 0 5px rgba(14, 16, 19, 0.4);
 }
 
+[data-sheet="bioMechanical"]::before {
+  background:
+    radial-gradient(ellipse at 12% 18%, rgba(220, 38, 38, 0.2), transparent 42%),
+    repeating-linear-gradient(180deg, transparent 0 22px, rgba(245, 158, 11, 0.05) 22px 23px);
+}
+[data-sheet="bioMechanical"] .sheet-card {
+  border-radius: 12px !important;
+  box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.28), inset 0 0 0 5px rgba(15, 16, 18, 0.45);
+}
+[data-sheet="eighties3DRender"]::before {
+  background:
+    linear-gradient(180deg, rgba(57, 255, 20, 0.06), transparent 22%),
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(37, 99, 235, 0.08) 28px 29px);
+}
+[data-sheet="eighties3DRender"] .sheet-card {
+  border-radius: 0 !important;
+  box-shadow: inset 0 0 0 1px rgba(57, 255, 20, 0.28), 0 0 18px rgba(255, 43, 214, 0.12);
+}
+[data-sheet="solarpunkUtopia"]::before {
+  background:
+    radial-gradient(ellipse at 80% 8%, rgba(245, 158, 11, 0.18), transparent 46%),
+    radial-gradient(ellipse at 18% 88%, rgba(16, 185, 129, 0.16), transparent 42%);
+}
+[data-sheet="solarpunkUtopia"] .sheet-card {
+  border-radius: 24px !important;
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.28);
+}
+
 @keyframes wv-rift {
   0%, 100% { border-radius: 46% 54% 42% 58% / 42% 38% 62% 58%; }
   50% { border-radius: 58% 42% 54% 46% / 52% 60% 40% 48%; }
@@ -1157,6 +1185,70 @@
 }
 [data-sheet="victorianGothic"] .sheet-page--relationships .bond-grid {
   grid-template-columns: 1fr 1fr;
+}
+
+/* BioMechanical — chitin carapace: ribbed two-up mosaic, circular organ ports */
+[data-sheet="bioMechanical"] {
+  --sheet-layout: chitin-carapace;
+}
+[data-sheet="bioMechanical"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 16px;
+}
+[data-sheet="bioMechanical"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+}
+[data-sheet="bioMechanical"] .sheet-page--physical .portrait-frame {
+  border-radius: 42% 58% 46% 54% / 48% 42% 58% 52%;
+}
+[data-sheet="bioMechanical"] .sheet-page--abilities .ability-layout {
+  grid-template-columns: 1.2fr 0.8fr;
+}
+[data-sheet="bioMechanical"] .sheet-page--stats .attr-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* 1980s 3D Render — phosphor wireframe: HUD columns + square CRT portrait */
+[data-sheet="eighties3DRender"] {
+  --sheet-layout: phosphor-wireframe;
+}
+[data-sheet="eighties3DRender"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+[data-sheet="eighties3DRender"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+}
+[data-sheet="eighties3DRender"] .sheet-page--physical .portrait-frame {
+  border-radius: 0;
+  aspect-ratio: 4 / 3;
+}
+[data-sheet="eighties3DRender"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1fr;
+}
+[data-sheet="eighties3DRender"] .sheet-page--stats .attr-grid {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* Solarpunk Utopia — living canopy: wide garden mosaic + circular solar portrait */
+[data-sheet="solarpunkUtopia"] {
+  --sheet-layout: living-canopy;
+}
+[data-sheet="solarpunkUtopia"] .sheet-page--overview .overview-mosaic {
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 18px;
+}
+[data-sheet="solarpunkUtopia"] .sheet-page--physical .hero-spread {
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+}
+[data-sheet="solarpunkUtopia"] .sheet-page--physical .portrait-frame {
+  border-radius: 50%;
+}
+[data-sheet="solarpunkUtopia"] .sheet-page--lore .lore-manuscript {
+  grid-template-columns: 1.4fr 0.6fr;
+}
+[data-sheet="solarpunkUtopia"] .sheet-page--relationships .bond-grid {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 @media (max-width: 1024px) {

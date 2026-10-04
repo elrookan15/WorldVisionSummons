@@ -8,6 +8,7 @@ import { buildProceduralPortrait } from "./src/lib/portraitFallback";
 import { buildCTracesGoalPrompt } from "./src/lib/prompts/cTracesGoal";
 import { archChronologerSheetSystemInstruction } from "./src/lib/prompts/archChronologer";
 import { requireWvsApiAuth } from "./src/lib/apiAuth";
+import { findPersonaById, buildPersonaChatInstruction } from "./src/lib/federovPersonas";
 import { requireGeminiBudget } from "./src/lib/apiRateLimit";
 import { publicProviderError } from "./src/lib/publicError";
 import { writeCodexSnapshot } from "./src/lib/codexSnapshotStore";
@@ -547,7 +548,8 @@ function generateFallbackPersonaReply(params: {
 // Unified Chat Handler for /api/chat and /api/summons/chat
 const handleChatTurn = async (req: express.Request, res: express.Response) => {
   try {
-    const { messages, characterContext, stochasticSeed } = req.body;
+    const { messages, characterContext, stochasticSeed, personaId } = req.body;
+    const persona = typeof personaId === "string" ? findPersonaById(personaId) : undefined;
     const ai = getAiClient();
 
     const charName = characterContext?.character_name || characterContext?.name || "The Summoned Entity";
@@ -561,7 +563,9 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
     const lastMsg = messages && messages.length > 0 ? messages[messages.length - 1].text : "";
 
     if (!ai) {
-      const fallbackReply = generateFallbackPersonaReply({
+      const fallbackReply = persona
+        ? `"${persona.speechSample}"\n\nThe live codex is dark. I remain ${persona.name}, ${persona.title}. Speak a concept when the gate opens, or use Instant Summon.`
+        : generateFallbackPersonaReply({
         lastUserMessage: lastMsg,
         charName,
         charClass,
@@ -576,7 +580,19 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
     }
 
     const currentSeed = stochasticSeed || Math.floor(Math.random() * 1000000);
-    const compiled = buildCTracesGoalPrompt({
+    const inventoryText = typeof inventory === "string" ? inventory : JSON.stringify(inventory);
+    const systemInstruction = persona
+      ? buildPersonaChatInstruction({
+          persona,
+          sheetStyle,
+          charName,
+          charClass,
+          level: String(level),
+          lore,
+          inventory: inventoryText,
+          currentSeed,
+        })
+      : `${buildCTracesGoalPrompt({
       characterName: charName,
       characterClass: charClass,
       characterLevel: level,
@@ -593,8 +609,7 @@ const handleChatTurn = async (req: express.Request, res: express.Response) => {
       survivalInstinct: signature.survival_instinct || signature.survivalInstinct,
       legacyFear: signature.legacy_fear || signature.legacyFear,
       primaryWeapon: typeof inventory === "string" ? inventory.split(",")[0] : "",
-    });
-    const systemInstruction = `${compiled.systemInstruction}\n\nSTOCHASTIC VECTOR: #${currentSeed}\nEQUIPMENT: ${typeof inventory === "string" ? inventory : JSON.stringify(inventory)}`;
+    }).systemInstruction}\n\nSTOCHASTIC VECTOR: #${currentSeed}\nEQUIPMENT: ${inventoryText}`;
 
     const contents = (messages || []).map((m: any) => ({
       role: m.role === "user" ? "user" : "model",

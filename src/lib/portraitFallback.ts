@@ -11,6 +11,9 @@ const STYLE_PALETTES: Record<string, { bg: string; bg2: string; accent: string; 
   "Post-Apocalyptic": { bg: "#2b1f14", bg2: "#4a341c", accent: "#b8451b", accent2: "#ff6b2a", text: "#f5e6c8" },
   "Eldritch Arcane": { bg: "#0b0813", bg2: "#241c3d", accent: "#c084fc", accent2: "#38bdf8", text: "#f3e8ff" },
   "Victorian Gothic": { bg: "#0e1013", bg2: "#252a32", accent: "#cbd5e1", accent2: "#f59e0b", text: "#e2e8f0" },
+  BioMechanical: { bg: "#0f1012", bg2: "#1d2024", accent: "#dc2626", accent2: "#f59e0b", text: "#e4e7eb" },
+  "1980s 3D Render": { bg: "#070617", bg2: "#1c194f", accent: "#39ff14", accent2: "#2563eb", text: "#f5f3ff" },
+  "Solarpunk Utopia": { bg: "#081410", bg2: "#1a3d32", accent: "#f59e0b", accent2: "#10b981", text: "#ecfdf5" },
 };
 
 function xmlEscape(value: string): string {

@@ -20,8 +20,8 @@ describe("FEDOROV_AI Arch-Chronologer prompt module", () => {
     }
   });
 
-  it("lists the same ten genres as atmospheric matrices", () => {
-    expect(ARCH_CHRONOLOGER_GENRES).toHaveLength(10);
+  it("lists the same thirteen genres as atmospheric matrices", () => {
+    expect(ARCH_CHRONOLOGER_GENRES).toHaveLength(13);
     for (const genre of ARCH_CHRONOLOGER_GENRES) {
       expect(GENRE_ATMOSPHERIC_MATRICES[genre]).toBeDefined();
     }

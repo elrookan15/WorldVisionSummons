@@ -76,6 +76,27 @@ export const GENRE_ATMOSPHERIC_MATRICES: Record<string, {
     slotDesign: "carved mahogany frames with wrought-iron scrollwork, velvet backing, silver filigree borders",
     mapTreatment: "19th-century London municipal ward atlas, faded sepia ink, detailed street names and asylum borders",
     negativeConstraints: ["cybernetics", "alien technology", "modern cars", "high fantasy magic wands"]
+  },
+  BioMechanical: {
+    palette: "ribbed biosteel exoskeleton, synthetic flesh, gunmetal titanium grey (#3a3d45), arterial crimson red (#dc2626), ceremonial gold filigree (#f59e0b), organic cybernetic sinew",
+    lighting: "dramatic specular glints on chitinous bio-ribs, arterial crimson bioluminescent conduit glow, warm ceremonial gold edge reflection",
+    slotDesign: "chitinous ribbed bio-armor sockets, interlocking titanium bone frames with arterial crimson capillary channels",
+    mapTreatment: "biomechanical hive organogram, chitin-veined subterranean conduit map, living bio-architecture schema",
+    negativeConstraints: ["steampunk brass gears", "bright anime pastel", "flat cartoony vectors", "clean cheerful plastic"]
+  },
+  "1980s 3D Render": {
+    palette: "early 1980s CGI workstation render, Silicon Graphics IRIS raytracing, vector wireframe phosphor lime green (#39ff14), deep royal blue (#2563eb), electric synth purple (#8b5cf6), chrome sphere specular glints",
+    lighting: "early-CGI Gouraud/Phong vector shading, cathode ray phosphor glow, wireframe horizon backlight",
+    slotDesign: "orthographic wireframe polygon panels, phosphor lime green coordinate tags, beveled royal blue borders with purple cathode glow",
+    mapTreatment: "orthographic 3D vector wireframe landscape, perspective depth grid, royal blue wire terrain with purple horizon void",
+    negativeConstraints: ["photorealistic film grain", "grungy medieval dirt", "muddy textures", "parchment paper", "renaissance ink"]
+  },
+  "Solarpunk Utopia": {
+    palette: "verdant living architecture, crystalline solar glass, sunlit alabaster white, jade foliage (#10b981), warm solar amber gold (#f59e0b), clean aerogel sky cyan",
+    lighting: "radiant golden-hour solar illumination, dappled sunbeams filtering through living canopies, warm solar flare glow",
+    slotDesign: "living curved alabaster frames with inlaid photovoltaic gold traces and interwoven jade botanical tendrils",
+    mapTreatment: "canopy-level ecological sector chart, terraced solar biome atlas, clean gilded botanical cartography",
+    negativeConstraints: ["dystopian grime", "industrial smog", "rusted metal", "gothic skulls", "radioactive waste"]
   }
 };
 
@@ -189,7 +210,7 @@ Example output:
 };
 
 /**
- * Compiles a high-fidelity diffusion prompt for the Hero Portrait across any of the 10 genre styles.
+ * Compiles a high-fidelity diffusion prompt for the Hero Portrait across any of the 13 genre styles.
  */
 export function compilePortraitPrompt(char: any, overrideStyle?: string): string {
   const esc = (s: string) => (s || "").replace(/[\u0000-\u001F]/g, "").trim();
@@ -235,7 +256,7 @@ Negative Constraints: ${negative}`;
 }
 
 /**
- * Compiles a top-down flat-lay inventory grid prompt across any of the 10 genre styles.
+ * Compiles a top-down flat-lay inventory grid prompt across any of the 13 genre styles.
  */
 export function compileInventoryPrompt(char: any): string {
   const esc = (s: string) => (s || "").replace(/[\u0000-\u001F]/g, "").trim();
@@ -255,7 +276,7 @@ Arrangement: Even, organized grid matrix with crisp item silhouettes, consistent
 }
 
 /**
- * Compiles a compact 300x300 isometric map thumbnail prompt across any of the 10 genre styles.
+ * Compiles a compact 300x300 isometric map thumbnail prompt across any of the 13 genre styles.
  */
 export function compileMapPrompt(char: any): string {
   const esc = (s: string) => (s || "").replace(/[\u0000-\u001F]/g, "").trim();

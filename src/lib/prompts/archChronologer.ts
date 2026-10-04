@@ -18,6 +18,9 @@ export const ARCH_CHRONOLOGER_GENRES = [
   "Post-Apocalyptic",
   "Eldritch Arcane",
   "Victorian Gothic",
+  "BioMechanical",
+  "1980s 3D Render",
+  "Solarpunk Utopia",
 ] as const;
 
 export type ArchChronologerGenre = (typeof ARCH_CHRONOLOGER_GENRES)[number];

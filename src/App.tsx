@@ -5,7 +5,7 @@ import {
   Bookmark, Eye, Terminal, Flame, Award, Heart, ShieldAlert,
   BookMarked, Beaker, ChartColumn, Cog, Crown, EyeOff, Feather,
   Moon, Truck, Users, FileSpreadsheet, LogIn, LogOut,
-  Star, Dices
+  Star, Dices, Eraser, Dna, Layers, Flower2
 } from "lucide-react";
 import { CharacterSheetData, SheetPreset } from "./types";
 import StatsRadarComparison from "./components/StatsRadarComparison";
@@ -21,6 +21,16 @@ import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
 import { withWvsApiHeaders } from "./lib/apiClientHeaders";
+import { generateFedorovInstantCharacter } from "./lib/fedorovInstantGenerator";
+import {
+  createBlankSheetData,
+  loadSavedDraft,
+  persistDraft,
+  clearSavedDraft,
+  draftHasContent,
+  DRAFT_STORAGE_KEY,
+  type SavedDraft,
+} from "./lib/characterDraft";
 import { CANONICAL_SHEET_STYLES, canonicalizeSheetStyle, themeIdForStyle } from "./lib/themeMap";
 import { sheetPageBackgroundCssVars } from "./lib/sheetPageBackgrounds";
 import { clampResource, mapGeneratedSheetToUi, mergeImportedSheet, portraitPromptContext, UiSheetData } from "./lib/sheetMapper";
@@ -32,6 +42,19 @@ import {
   loadCodex,
   upsertCodexEntry
 } from "./lib/characterCodex";
+
+const INSTANT_SUMMON_STYLE = {
+  backgroundColor: "#f59e0b",
+  color: "#000",
+  borderColor: "#fbbf24",
+  boxShadow: "0 0 16px rgba(245, 158, 11, 0.4)",
+} as const;
+
+const START_BLANK_STYLE = {
+  backgroundColor: "#1e2937",
+  color: "#e2e8f0",
+  borderColor: "#64748b",
+} as const;
 
 const THEMES = [
   // clash = complementary opposite of the genre's core accent (sparks, not recolor)
@@ -64,7 +87,16 @@ const THEMES = [
     fonts:{display:"'Cinzel Decorative', serif",body:"'Cinzel', serif",mono:"'IBM Plex Mono', monospace"}},
   {id:"victorianGothic", alias:"victorian", name:"Victorian Gothic", short:"VIC", icon:Feather, desc:"Cobblestone alleys, gaslamps & mourning lace — clash: rose vermillion", texture:"victorian", chrome:"gazette", radius:"0px",
     tokens:{bg:"#0e1013",bg2:"#171a1f",card:"#1d2127",card2:"#252a32",border:"#333945",borderStrong:"#cbd5e1",text:"#e2e8f0",muted:"#94a3b8",muted2:"#64748b",accent:"#cbd5e1",accent2:"#f59e0b",accentText:"#0e1013",clash:"#f43f5e",clashText:"#ffffff",shadow:"rgba(0,0,0,0.7)"},
-    fonts:{display:"'Newsreader', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}}
+    fonts:{display:"'Newsreader', serif",body:"'Newsreader', serif",mono:"'Special Elite', monospace"}},
+  {id:"bioMechanical", alias:"biomech", name:"BioMechanical", short:"BIO", icon:Dna, desc:"Ribbed exoskeleton, synth-flesh, arterial red & ceremonial gold — clash: bio-lumen cyan", texture:"biomech", chrome:"carapace", radius:"12px",
+    tokens:{bg:"#0f1012",bg2:"#18191c",card:"#141619",card2:"#1d2024",border:"#3a3d45",borderStrong:"#f59e0b",text:"#e4e7eb",muted:"#9ca3af",muted2:"#6b7280",accent:"#dc2626",accent2:"#f59e0b",accentText:"#ffffff",clash:"#22d3ee",clashText:"#04121a",shadow:"rgba(220,38,38,0.25)"},
+    fonts:{display:"'Philosopher', serif",body:"'IBM Plex Mono', monospace",mono:"'Share Tech Mono', monospace"}},
+  {id:"eighties3DRender", alias:"render80s", name:"1980s 3D Render", short:"80R", icon:Layers, desc:"Wireframe CGI, lime green phosphor, royal blue & purple raytracing — clash: hot magenta", texture:"render80s", chrome:"wireframe", radius:"0px",
+    tokens:{bg:"#070617",bg2:"#0e0c29",card:"#131138",card2:"#1c194f",border:"#2e286e",borderStrong:"#39ff14",text:"#f5f3ff",muted:"#a78bfa",muted2:"#6d28d9",accent:"#39ff14",accent2:"#2563eb",accentText:"#070617",clash:"#ff2bd6",clashText:"#1a0014",shadow:"rgba(57,255,20,0.3)"},
+    fonts:{display:"'Orbitron', sans-serif",body:"'Share Tech Mono', monospace",mono:"'JetBrains Mono', monospace"}},
+  {id:"solarpunkUtopia", alias:"solarpunk", name:"Solarpunk Utopia", short:"SLR", icon:Flower2, desc:"Living architecture, warm solar amber, jade foliage & alabaster — clash: deep teal", texture:"solarpunk", chrome:"canopy", radius:"24px",
+    tokens:{bg:"#081410",bg2:"#0e211b",card:"#132c24",card2:"#1a3d32",border:"#255444",borderStrong:"#10b981",text:"#ecfdf5",muted:"#6ee7b7",muted2:"#34d399",accent:"#f59e0b",accent2:"#10b981",accentText:"#042f1a",clash:"#14b8a6",clashText:"#04201c",shadow:"rgba(245,158,11,0.22)"},
+    fonts:{display:"'Fraunces', serif",body:"'Philosopher', serif",mono:"'IBM Plex Mono', monospace"}}
 ];
 
 const NAV_TABS = [
@@ -556,23 +588,53 @@ const PRESETS: SheetPreset[] = [
     charClass: "Obsidian Zealot",
     lore: "Fasting for forty days inside the volcanic caldera of Mount Ash, Kuro forged his flesh into an unyielding conduit for black basalt magic.",
     items: "Basalt Staff,Obsidian Dagger,Vial of Magma,Cindershroud"
+  },
+  {
+    name: "Xylon-Prime — Bio-Chitin Weaver",
+    style: "BioMechanical",
+    category: "Science & Lab",
+    charName: "Xylon-Prime",
+    charClass: "Bio-Mechanical Synthesist",
+    lore: "Forging biosteel endoskeletons bound with living neural sinew, arterial coolant tubes, and gold-leaf ceremonial shielding to transcend biological decay.",
+    items: "Biosteel Chitin Plating,Arterial Syringe Array,Ceremonial Gold Scalpel,Neural Interface Spine"
+  },
+  {
+    name: "Vector-9 — Phosphor Raytracer",
+    style: "1980s 3D Render",
+    category: "Tech & Cyber",
+    charName: "Vector-9",
+    charClass: "Wireframe Vector Cyber-Knight",
+    lore: "Materialized from an experimental 1985 silicon graphics workstation, wielding pure phosphorescent lime-green wireframes and royal blue vector barriers.",
+    items: "Phosphor Vector Blade,Royal Blue Wireframe Shield,CGI Coordinate Core,Gouraud Shading Prism"
+  },
+  {
+    name: "Solaria — Canopy Architect",
+    style: "Solarpunk Utopia",
+    category: "Nature & Fey",
+    charName: "Solaria Vane",
+    charClass: "Solar Living Architect",
+    lore: "Cultivating soaring living-wood spires fused with photovoltaic amber crystals and sky-glass reservoirs to nurture self-sustaining sky sanctuaries.",
+    items: "Amber Solar Staff,Living Chlorophyll Weave,Botanical Grafting Chisel,Crystalline Sunstone"
   }
 ];
 
 export default function App() {
-  const [themeId, setThemeId] = useState("gothicDarkFantasy");
+  const [initialDraft] = useState<SavedDraft | null>(() => loadSavedDraft());
+  const [themeId, setThemeId] = useState(() =>
+    initialDraft?.sheetStyle ? themeIdForStyle(initialDraft.sheetStyle) : "gothicDarkFantasy"
+  );
   const currentTheme = THEMES.find(t => t.id === themeId) || THEMES[0];
   const c = currentTheme.tokens;
 
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Input states for AI generation / Summon
-  const [characterName, setCharacterName] = useState("");
-  const [characterClass, setCharacterClass] = useState("");
-  const [characterLevel, setCharacterLevel] = useState("16");
-  const [characterLore, setCharacterLore] = useState("");
-  const [inventoryItems, setInventoryItems] = useState("");
-  const [sheetStyle, setSheetStyle] = useState("Gothic Dark Fantasy");
+  // Input states for AI generation / Summon — restored from local draft when present
+  const [characterName, setCharacterName] = useState(initialDraft?.characterName ?? "");
+  const [characterClass, setCharacterClass] = useState(initialDraft?.characterClass ?? "");
+  const [characterLevel, setCharacterLevel] = useState(initialDraft?.characterLevel ?? "");
+  const [characterLore, setCharacterLore] = useState(initialDraft?.characterLore ?? "");
+  const [inventoryItems, setInventoryItems] = useState(initialDraft?.inventoryItems ?? "");
+  const [sheetStyle, setSheetStyle] = useState(initialDraft?.sheetStyle ?? "Gothic Dark Fantasy");
   const [presetStyleFilter, setPresetStyleFilter] = useState("All");
   const [presetCategoryFilter, setPresetCategoryFilter] = useState("All");
   const [presetSearchQuery, setPresetSearchQuery] = useState("");
@@ -629,14 +691,26 @@ export default function App() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(() =>
+    typeof initialDraft?.currentStep === "number" ? initialDraft.currentStep : 0
+  );
+  const [imageUrl, setImageUrl] = useState<string | null>(() =>
+    typeof initialDraft?.imageUrl === "string" ? initialDraft.imageUrl : null
+  );
   const [imageEngine, setImageEngine] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
-  const [activePresetName, setActivePresetName] = useState<string>("Gelbinor — The Shy Grave");
+  const [activePresetName, setActivePresetName] = useState<string>(initialDraft?.activePresetName ?? "");
+  const [draftSaveStatus, setDraftSaveStatus] = useState<"saved" | "saving" | "cleared" | "idle">(
+    initialDraft ? "saved" : "idle"
+  );
+  const [lastSavedTimestamp, setLastSavedTimestamp] = useState<string | null>(
+    initialDraft?.savedAt
+      ? new Date(initialDraft.savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : null
+  );
   const [showStatsRadarOverlay, setShowStatsRadarOverlay] = useState<boolean>(false);
 
   // Google Workspace & Sheets state
@@ -705,7 +779,7 @@ export default function App() {
       setSheetsStatusMsg(`Import failed: ${err.message}`);
     }
   };
-  const [runState, setRunState] = useState<string>("draft"); // draft | validating | generating_text | generating_portrait | generating_inventory | generating_map | composing | awaiting_approval | revised | approved | exporting | completed
+  const [runState, setRunState] = useState<string>(initialDraft?.runState ?? "draft"); // draft | validating | generating_text | generating_portrait | generating_inventory | generating_map | composing | awaiting_approval | revised | approved | exporting | completed
   const [codexEntries, setCodexEntries] = useState<CodexEntry[]>(() => loadCodex());
   const [activeCodexId, setActiveCodexId] = useState<string | null>(null);
   const [showCodex, setShowCodex] = useState(false);
@@ -741,124 +815,23 @@ export default function App() {
     setSheetsStatusMsg(`Loaded ${entry.name} from the Codex.`);
   };
 
-  // Default editable character state initialized with Gelbinor
-  const [sheetData, setSheetData] = useState({
-    name: "Gelbinor",
-    title: "The Shy Grave • Reluctant Necromancer / Ossuary Librarian",
-    player: "Keeper of Quiet",
-    sheet_style: "Gothic Dark Fantasy",
-    overview: {
-      race: "Human Hollowed",
-      age: "28 winters",
-      gender: "Male (he/him, avoids eye contact)",
-      alignment: "True Neutral — shy, not cruel",
-      classRole: "Necromancer 16 — School of Quiet",
-      level: "16 — Keeper of Unclaimed Dead",
-      origin: "Charnel Library of Karst — city over mass grave",
-      faction: "Keeper of Unclaimed Dead — Ossuary Librarian"
-    },
-    physical: {
-      height: '6\'1" (hunches to 5\'9")',
-      weight: "130 lbs, lanky, translucent",
-      build: "Lanky, pale translucent, greyish-blue veins visible, cold to touch. Bone charms sewn at collarbone.",
-      eyes: "Milky white with pinprick pupils, avoids eye contact, stares at floor.",
-      hair: "Long stringy black, covers face like curtain, never cut.",
-      skin: "Pale translucent, greyish, blue veins like river map.",
-      marks: "Bone charms sewn at collarbone — finger bones, teeth, tiny warding sigils.",
-      scars: "Self-stitched warding sigils around collarbone and throat.",
-      clothing: "Tattered oversized funeral shroud robe, patches warding sigils.",
-      voice: "Mumbles, apologizes to corpses, doors, chairs.",
-      posture: "Hunches to be smaller, fidgets hem, hides behind Mister Cracks."
-    },
-    lore: {
-      backstory: "Born in Karst — a city built over a mass grave that never stopped whispering. The ground is paper-thin veil. Other kids heard wind; Gelbinor heard names. Raised by the Charnel Librarians who catalog the unclaimed dead.",
-      childhood: "Raised among shelves of unclaimed dead. Taught to write names so no one is forgotten.",
-      formative: "Age 12 — Warlord burned the Charnel Library. Gelbinor went silent for 3 days and whispered apologies, causing the army to peacefully walk away.",
-      motivations: "Wants a quiet corner, cold tea that never goes cold, and to finish cataloging the 10,000 nameless.",
-      secrets: "Mister Cracks is a child lich who stayed as a book. Deranged form: hair floats, eyes twin moons, too-wide smile.",
-      world: "Karst — city built over mass grave, streets whisper at dusk. Charnel Library vaulted ossuary."
-    },
-    abilities: [
-      { name: "Shy Ward", desc: "Undead refuse to harm him unless directly controlled. Skeletons step aside, zombies bow heads.", cooldown: "Passive", cost: "Being small", type: "Passive" },
-      { name: "Whisper Catalog", desc: "Holds a bone, hears its final memory and gives them a name.", cooldown: "At will", cost: "1 min + apology", type: "Primary" },
-      { name: "Mister Cracks Grimoire", desc: "Cracked skull grimoire containing 10,000 names. Casts necromancy up to 6th level when asked nicely.", cooldown: "Ask nicely", cost: "Politeness", type: "Primary" }
-    ],
-    weaknesses: "Loud noises cause anxiety disadvantage, crowds cause stammer. Sunlight migraines. Iron Sanctum bells stun for 1 round.",
-    skills: [
-      { name: "Ossuary Catalog / True Names", value: 98 },
-      { name: "Listening to Final Memories", value: 94 },
-      { name: "Apologetic Diplomacy", value: 89 },
-      { name: "Being Small / Unnoticed", value: 87 },
-      { name: "Containing The Quiet", value: 68 }
-    ],
-    magic: "School of Quiet — necromancy by asking, not commanding. Veil is paper-thin where he stands.",
-    equipment: {
-      primaryWeapon: "Mister Cracks — cracked skull grimoire, child lich who stayed as book",
-      secondaryFocus: "Bone-carved chime of quiet warding",
-      armor: "Bone tassel robe — tattered oversized funeral shroud",
-      utilityTools: "Cataloging quill, jar of grave-binding wax, iron shears, bone needle",
-      consumables: "Satchel of grave dirt, cold tea thermos, 12 pre-written apology notes",
-      relics: "Three duckling skulls, shard of Karst foundation stone, finger-bone rosary",
-      currency: "No coin — trades in burials and names",
-      weapons: "Mister Cracks — cracked skull grimoire",
-      items: "Satchel of grave dirt, cold tea thermos"
-    },
-    signatureAttributes: {
-      reputation: "The Shy Grave — whispered legend of the Karst ossuary",
-      vice: "Compulsive, paralyzing apologies to the dead",
-      virtue: "Refuses to raise corpses as thralls; remembers the forgotten",
-      fear: "That Mister Cracks will finally close and leave him alone",
-      obsession: "Cataloging every soul among the 10,000 nameless dead",
-      tell: "Counting finger-bone tassels sewn along his collar",
-      loyalty: "The Charnel Librarians and the peaceful dead",
-      blindSpot: "Cannot perceive living hostility until struck physically",
-      survivalInstinct: "Playing dead and fading into background dust",
-      legacyFear: "Being erased from the library records without a true name"
-    },
-    derivedStats: {
-      hpCurrent: 74,
-      hpMax: 74,
-      ac: 14,
-      initiative: "+1",
-      speed: "30 ft",
-      level: 16,
-      resourceName: "Quiet Solace",
-      resourceCurrent: 6,
-      resourceMax: 6,
-      passives: [
-        "School of Quiet: Undead refuse to initiate attacks",
-        "Ossuary Recall: Touch bones to witness final memories",
-        "Apologetic Aura: Hostile humanoids pause before striking"
-      ]
-    },
-    personality: {
-      traits: "Shy, stammers, fidgets hem, hides behind Mister Cracks, apologizes to doors and chairs.",
-      ideals: "Everyone deserves a name. Remembering is kinder than raising.",
-      flaws: "Would rather die than be rude — cannot say no, easily exploited.",
-      fears: "That he is actually a monster. That Mister Cracks will finally leave.",
-      mannerisms: "Pulls sleeves over hands, hides face with hair, counts bone tassels when nervous.",
-      speech: "Mumbles, stammers 'S-sorry— may I—?', long pauses, asks permission from corpses."
-    },
-    relationships: {
-      allies: "Mister Cracks, 3 Floating Skulls, Children's Wing skulls, Archivist Mirren.",
-      enemies: "Warlord who burned library, Sanctum of Iron Bell.",
-      mentors: "Charnel Librarians, The Dead Themselves, Mister Cracks.",
-      family: "Found as baby on shelf 0. Considers all unclaimed dead family."
-    },
-    stats: [
-      { key: "STR", label: "Strength", value: 8, desc: "130lbs, lanky, can't lift heavy coffins" },
-      { key: "DEX", label: "Dexterity", value: 12, desc: "Precise with bone beads, clumsy when stared at" },
-      { key: "CON", label: "Constitution", value: 14, desc: "Cold tea and grave dust diet" },
-      { key: "INT", label: "Intelligence", value: 22, desc: "Knows 7,341 names and last memories" },
-      { key: "WIS", label: "Wisdom", value: 19, desc: "Listens to dead, hears unfinished business" },
-      { key: "CHA", label: "Charisma", value: 7, desc: "Shy 7, Deranged 18" }
-    ]
-  });
+  // Blank slate by default; restores the auto-saved draft when one exists.
+  // Gelbinor remains available in the Quick Presets Library.
+  const [sheetData, setSheetData] = useState<UiSheetData>(
+    () => initialDraft?.sheetData ?? createBlankSheetData()
+  );
 
-  const idempotencyKey = `worldvision_run_${btoa(encodeURIComponent(`${characterName || "Gelbinor"}-${characterClass || "Necromancer"}-${sheetStyle}`))}`;
+  const skipNextAutosave = useRef(true);
+
+  const runIdentity = `${characterName.trim()}-${characterClass.trim()}-${sheetStyle}`;
+  const idempotencyKey = characterName.trim() && characterClass.trim()
+    ? `worldvision_run_${btoa(encodeURIComponent(runIdentity))}`
+    : "";
 
   useEffect(() => {
+    if (!idempotencyKey) return;
     try {
+      if (localStorage.getItem(DRAFT_STORAGE_KEY)) return;
       const saved = localStorage.getItem(idempotencyKey);
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -872,6 +845,7 @@ export default function App() {
   }, [idempotencyKey]);
 
   useEffect(() => {
+    if (!idempotencyKey) return;
     try {
       localStorage.setItem(idempotencyKey, JSON.stringify({
         currentStep,
@@ -883,6 +857,94 @@ export default function App() {
       console.error("Failed to persist run to localStorage:", e);
     }
   }, [currentStep, sheetData, runState, idempotencyKey]);
+
+  // Draft auto-save: debounce form progress to localStorage (~500ms).
+  useEffect(() => {
+    const snapshot = {
+      characterName,
+      characterClass,
+      characterLore,
+      inventoryItems,
+      sheetData,
+      activePresetName,
+    };
+    if (skipNextAutosave.current) {
+      skipNextAutosave.current = false;
+      return;
+    }
+    if (!draftHasContent(snapshot)) return;
+
+    setDraftSaveStatus("saving");
+    const timer = window.setTimeout(() => {
+      const now = new Date();
+      const saved = persistDraft({
+        characterName,
+        characterClass,
+        characterLevel,
+        characterLore,
+        inventoryItems,
+        sheetStyle,
+        activePresetName,
+        sheetData,
+        imageUrl,
+        runState,
+        currentStep,
+        savedAt: now.toISOString(),
+      });
+      if (saved) {
+        setDraftSaveStatus("saved");
+        setLastSavedTimestamp(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    characterName,
+    characterClass,
+    characterLevel,
+    characterLore,
+    inventoryItems,
+    sheetStyle,
+    activePresetName,
+    sheetData,
+    imageUrl,
+    runState,
+    currentStep,
+  ]);
+
+  const handleClearForm = () => {
+    if (draftHasContent({
+      characterName,
+      characterClass,
+      characterLore,
+      inventoryItems,
+      sheetData,
+      activePresetName,
+    })) {
+      const ok = window.confirm("Start with a completely blank form? This will reset all fields and clear your auto-saved draft.");
+      if (!ok) return;
+    }
+
+    setCharacterName("");
+    setCharacterClass("");
+    setCharacterLevel("");
+    setCharacterLore("");
+    setInventoryItems("");
+    setSheetStyle("Gothic Dark Fantasy");
+    setThemeId("gothicDarkFantasy");
+    setActivePresetName("");
+    setImageUrl(null);
+    setImageEngine(null);
+    setImageError(null);
+    setRunState("draft");
+    setCurrentStep(0);
+    setLoading(false);
+    setSheetData(createBlankSheetData());
+    skipNextAutosave.current = true;
+    clearSavedDraft();
+    setDraftSaveStatus("cleared");
+    setLastSavedTimestamp(null);
+  };
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -962,6 +1024,81 @@ export default function App() {
     setInventoryItems(preset.items);
     setSheetStyle(style);
     setThemeId(themeIdForStyle(style));
+  };
+
+  const handleApplyProposal = (proposal: {
+    name: string;
+    classRole: string;
+    style: string;
+    lore: string;
+    inventory: string;
+  }) => {
+    if (proposal.name) setCharacterName(proposal.name);
+    if (proposal.classRole) setCharacterClass(proposal.classRole);
+    const style = proposal.style ? canonicalizeSheetStyle(proposal.style) : null;
+    if (style) {
+      setSheetStyle(style);
+      setThemeId(themeIdForStyle(style));
+    }
+    if (proposal.lore) setCharacterLore(proposal.lore);
+    if (proposal.inventory) setInventoryItems(proposal.inventory);
+    setActivePresetName("");
+    setSheetData((prev) => ({
+      ...prev,
+      name: proposal.name || prev.name,
+      sheet_style: style || prev.sheet_style,
+      overview: {
+        ...prev.overview,
+        classRole: proposal.classRole || prev.overview.classRole,
+      },
+      lore: {
+        ...prev.lore,
+        backstory: proposal.lore || prev.lore.backstory,
+      },
+    }));
+  };
+
+  const handleFedorovInstantSummon = () => {
+    const generated = generateFedorovInstantCharacter(PRESETS);
+    setCharacterName(generated.characterName);
+    setCharacterClass(generated.characterClass);
+    setCharacterLevel(generated.characterLevel);
+    setCharacterLore(generated.characterLore);
+    setInventoryItems(generated.inventoryItems);
+    const style = canonicalizeSheetStyle(generated.sheetStyle);
+    setSheetStyle(style);
+    setThemeId(themeIdForStyle(style));
+    setActivePresetName("");
+    setSheetData({
+      name: generated.characterName,
+      title: `${generated.characterClass} • Level ${generated.characterLevel}`,
+      player: "FEDOROV Instant Summon",
+      sheet_style: style,
+      overview: generated.overview,
+      physical: generated.physical,
+      lore: generated.lore,
+      abilities: generated.abilities,
+      weaknesses: generated.weaknesses,
+      skills: generated.skills,
+      magic: generated.magic,
+      equipment: generated.equipment,
+      signatureAttributes: generated.signatureAttributes,
+      derivedStats: generated.derivedStats,
+      personality: generated.personality,
+      relationships: generated.relationships,
+      stats: generated.stats,
+    });
+    setRunState("completed");
+    setCurrentStep(9);
+    setLoading(false);
+    setImageError(null);
+    setImageUrl(buildProceduralPortrait({
+      name: generated.characterName,
+      charClass: generated.characterClass,
+      style,
+      distinguishingFeature: generated.physical.marks,
+    }));
+    setImageEngine("WorldVision Procedural Codex");
   };
 
   const handleApplyBaselineToSheet = (baseline: StatBaseline) => {
@@ -1206,6 +1343,9 @@ export default function App() {
         .texture-wasteland { background-image: repeating-linear-gradient(-32deg, ${c.accent}14 0 10px, transparent 10px 22px); }
         .texture-eldritch { background-image: radial-gradient(circle at 40% 20%, ${c.accent}28, transparent 24%); }
         .texture-victorian { background-image: repeating-linear-gradient(90deg, transparent 0 16px, ${c.accent}10 16px 17px); }
+        .texture-biomech { background-image: repeating-linear-gradient(180deg, transparent 0 18px, ${c.accent}22 18px 20px), radial-gradient(circle at 18% 22%, ${c.clash}28, transparent 22%); }
+        .texture-render80s { background-image: linear-gradient(${c.accent}22 1px, transparent 1px), linear-gradient(90deg, ${c.accent2}22 1px, transparent 1px); background-size: 36px 36px; }
+        .texture-solarpunk { background-image: radial-gradient(ellipse at 80% 10%, ${c.accent}33, transparent 28%), radial-gradient(circle at 16% 82%, ${c.accent2}22, transparent 20%); }
       `}</style>
 
       <div className={`pointer-events-none fixed inset-0 z-0 texture-${currentTheme.texture}`} />
@@ -1318,6 +1458,30 @@ export default function App() {
             >
               <Dices className="w-3.5 h-3.5" />
               <span className="mono text-[11px]">Dice Tray</span>
+            </button>
+
+            <button
+              type="button"
+              id="fedorov-instant-summon-header-btn"
+              onClick={handleFedorovInstantSummon}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-bold border transition hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+              style={INSTANT_SUMMON_STYLE}
+              title="FEDOROV Instant Summon — generate a complete random character instantly"
+            >
+              <Zap className="w-3.5 h-3.5 fill-black text-black" />
+              <span className="mono text-[11px] font-black tracking-wide uppercase">Instant Summon</span>
+            </button>
+
+            <button
+              type="button"
+              id="clear-form-header-btn"
+              onClick={handleClearForm}
+              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+              style={START_BLANK_STYLE}
+              title="Start Blank — reset all fields and clear the auto-saved draft"
+            >
+              <Eraser className="w-3.5 h-3.5" />
+              <span className="mono text-[11px]">Start Blank</span>
             </button>
 
             <button
@@ -1477,11 +1641,43 @@ export default function App() {
       {/* Quick Presets & AI Summoner Configuration Bar */}
       <div className="max-w-[1600px] mx-auto px-5 md:px-10 pt-6">
         <div className="rounded-[20px] border p-5 md:p-6" style={{ backgroundColor: c.card, borderColor: c.border }}>
-          <div className="flex items-center justify-between mb-4 border-b pb-3" style={{ borderColor: c.border }}>
-            <h2 className="text-lg font-serif font-bold flex items-center gap-2" style={{ color: c.text }}>
-              <Sliders className="w-5 h-5" style={{ color: c.accent }} /> Parameter Configuration & AI Summoner
-            </h2>
-            <span className="mono text-[11px]" style={{ color: c.muted }}>Fill parameters or pick a preset to synthesize character</span>
+          <div className="flex items-center justify-between mb-4 border-b pb-3 gap-3 flex-wrap" style={{ borderColor: c.border }}>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-lg font-serif font-bold flex items-center gap-2" style={{ color: c.text }}>
+                <Sliders className="w-5 h-5" style={{ color: c.accent }} /> Parameter Configuration & AI Summoner
+              </h2>
+              {draftSaveStatus === "saved" && (
+                <span className="mono text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/25">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Draft saved ✓ {lastSavedTimestamp ? `(${lastSavedTimestamp})` : ""}</span>
+                </span>
+              )}
+              {draftSaveStatus === "saving" && (
+                <span className="mono text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 font-semibold text-sky-400 bg-sky-400/10 border border-sky-400/25 animate-pulse">
+                  <RefreshCw className="w-3 h-3 animate-spin text-sky-400" />
+                  <span>Saving draft...</span>
+                </span>
+              )}
+              {draftSaveStatus === "cleared" && (
+                <span className="mono text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 font-semibold text-neutral-400 bg-neutral-500/10 border border-neutral-500/20">
+                  <span>Form cleared • Blank slate</span>
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="mono text-[11px]" style={{ color: c.muted }}>Fill parameters or pick a preset to synthesize character</span>
+              <button
+                type="button"
+                id="clear-form-top-btn"
+                onClick={handleClearForm}
+                className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+                style={START_BLANK_STYLE}
+                title="Start Blank — reset all fields and clear the auto-saved draft"
+              >
+                <Eraser className="w-3.5 h-3.5" style={{ color: c.muted }} />
+                <span className="mono text-[11px]">Start Blank</span>
+              </button>
+            </div>
           </div>
 
           {/* Categorized & Tabbed Preset Library Browser */}
@@ -1494,6 +1690,17 @@ export default function App() {
                 <p className="text-xs" style={{ color: c.muted }}>Select an archetype tab or search to instantly populate character parameters</p>
               </div>
               <div className="flex items-center gap-2 w-full md:w-auto">
+                <button
+                  type="button"
+                  id="fedorov-instant-summon-top-btn"
+                  onClick={handleFedorovInstantSummon}
+                  className="px-4 py-2 rounded-xl text-xs font-bold shadow-md flex items-center gap-2 transition hover:scale-[1.03] active:scale-95 border cursor-pointer shrink-0"
+                  style={INSTANT_SUMMON_STYLE}
+                  title="FEDOROV Instant Summon — generate a complete random character instantly"
+                >
+                  <Zap className="w-3.5 h-3.5 fill-black text-black" />
+                  <span className="uppercase tracking-wide">Instant Summon</span>
+                </button>
                 <input
                   type="text"
                   placeholder="Search 50+ presets..."
@@ -1656,7 +1863,7 @@ export default function App() {
             </div>
 
             <div>
-              <label className="block mono text-[10px] uppercase font-semibold mb-1.5" style={{ color: c.muted }}>Visual Codex Genre (10 Styles)</label>
+              <label className="block mono text-[10px] uppercase font-semibold mb-1.5" style={{ color: c.muted }}>Visual Codex Genre (13 Styles)</label>
               <select
                 value={sheetStyle}
                 onChange={e => {
@@ -1721,6 +1928,34 @@ export default function App() {
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
                 style={{ backgroundColor: c.bg2, borderColor: c.border, color: c.text }}
               />
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                id="fedorov-instant-summon-action-btn"
+                onClick={handleFedorovInstantSummon}
+                className="w-full h-10 rounded-lg font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition hover:scale-[1.02] active:scale-95 border cursor-pointer"
+                style={INSTANT_SUMMON_STYLE}
+                title="FEDOROV Instant Summon — generate a complete random character instantly (no AI call)"
+              >
+                <Zap className="w-4 h-4 fill-black text-black" />
+                <span className="uppercase tracking-wide">Instant Summon</span>
+              </button>
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                id="clear-form-action-btn"
+                onClick={handleClearForm}
+                className="w-full h-10 rounded-lg font-bold text-sm shadow-md flex items-center justify-center gap-2 transition hover:scale-[1.02] active:scale-95 border cursor-pointer"
+                style={START_BLANK_STYLE}
+                title="Start Blank — reset all fields and clear the auto-saved draft"
+              >
+                <Eraser className="w-4 h-4" />
+                <span className="uppercase tracking-wide">Start Blank</span>
+              </button>
             </div>
 
             <div className="flex items-end">
@@ -2486,6 +2721,7 @@ export default function App() {
             character_lore: sheetData.lore.backstory,
             signature_attributes: (sheetData as UiSheetData).signatureAttributes,
           }}
+          onApplyCharacter={handleApplyProposal}
         />
       )}
 
