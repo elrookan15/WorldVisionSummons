@@ -1343,6 +1343,9 @@ export default function App() {
         .texture-wasteland { background-image: repeating-linear-gradient(-32deg, ${c.accent}14 0 10px, transparent 10px 22px); }
         .texture-eldritch { background-image: radial-gradient(circle at 40% 20%, ${c.accent}28, transparent 24%); }
         .texture-victorian { background-image: repeating-linear-gradient(90deg, transparent 0 16px, ${c.accent}10 16px 17px); }
+        .texture-biomech { background-image: repeating-linear-gradient(180deg, transparent 0 18px, ${c.accent}22 18px 20px), radial-gradient(circle at 18% 22%, ${c.clash}28, transparent 22%); }
+        .texture-render80s { background-image: linear-gradient(${c.accent}22 1px, transparent 1px), linear-gradient(90deg, ${c.accent2}22 1px, transparent 1px); background-size: 36px 36px; }
+        .texture-solarpunk { background-image: radial-gradient(ellipse at 80% 10%, ${c.accent}33, transparent 28%), radial-gradient(circle at 16% 82%, ${c.accent2}22, transparent 20%); }
       `}</style>
 
       <div className={`pointer-events-none fixed inset-0 z-0 texture-${currentTheme.texture}`} />

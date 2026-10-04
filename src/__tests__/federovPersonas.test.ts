@@ -17,7 +17,7 @@ describe("federovPersonas", () => {
   });
 
   it("resolves known ids and ignores unknown ones", () => {
-    expect(findPersonaById("cyber-fixer")?.name).toBe("Cyber-Fixer Federov");
+    expect(findPersonaById("cyber-fixer")?.name).toBe("Kaelen Federov");
     expect(findPersonaById("not-a-persona")).toBeUndefined();
     expect(getPersonaById("garbage").id).toBe("archivist");
   });

@@ -15,7 +15,7 @@ Cap: 12 active. Merge duplicates. Patterns only — no secrets, no proprietary s
 - Detection_check: `git apply --check` or first hunk context grep fails.
 - Evidence: wv-port2 (draft), wv-port3 (personas), wv-port4 (13 themes). Vitest 39/39 after port4. tsc exit 0.
 - Confidence: medium
-- Times_applied / succeeded: 3 / 3
+- Times_applied / succeeded: 4 / 4
 - Status: validated
 
 ## SIL-002
@@ -43,7 +43,7 @@ Cap: 12 active. Merge duplicates. Patterns only — no secrets, no proprietary s
 - Detection_check: Shell is powershell; `listen EADDRINUSE`.
 - Evidence: port3 tsc ~121s exit 0; second dev server exit 1 EADDRINUSE; browser still served the app.
 - Confidence: high
-- Times_applied / succeeded: 3 / 3
+- Times_applied / succeeded: 4 / 4
 - Status: validated
 
 ## SIL-004
@@ -57,6 +57,20 @@ Cap: 12 active. Merge duplicates. Patterns only — no secrets, no proprietary s
 - Detection_check: `git diff` against that path removes `## SIL-` headings or flips the file to a header-only table.
 - Evidence: This install's first write replaced the store. `git checkout -- .fedorov/lessons-store.md` restored SIL-001 through SIL-003. Not promoted: one recovery, no second-task re-run yet.
 - Confidence: high
+- Times_applied / succeeded: 1 / 1
+- Status: candidate
+
+## SIL-005
+- Date: 2026-10-04
+- Language/framework: Express + React / WorldVision Summons
+- Task_type: FEATURE (theme port follow-up)
+- Situation: A style-list edit lands on `handleChatTurn` after the persona port.
+- Symptom: `tsc` reports TS1005 at the chat prompt, and theme ids exist while `.texture-*` rules for those ids are missing.
+- Root_cause_pattern: A partial delete leaves `persona` and `response` referenced without the `generateContent` call, and page-wash CSS is edited separately from the THEMES array.
+- Strategy: Restore `personaId` lookup plus the generateContent block from the last compiling commit. Grep `App.tsx` for each new `texture:` id's CSS class. Do not paste the patch's server style-list hunk.
+- Detection_check: `npx tsc --noEmit` TS1005 in `server.ts`; `data-sheet` set with no matching `.texture-<id>` rule.
+- Evidence: This turn, tsc exit 2 at `server.ts:583` before restore, exit 0 after. Browser `eighties3DRender` and `bioMechanical` layouts switched.
+- Confidence: medium
 - Times_applied / succeeded: 1 / 1
 - Status: candidate
 
