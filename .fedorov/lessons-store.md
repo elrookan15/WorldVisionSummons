@@ -46,6 +46,20 @@ Cap: 12 active. Merge duplicates. Patterns only — no secrets, no proprietary s
 - Times_applied / succeeded: 3 / 3
 - Status: validated
 
+## SIL-004
+- Date: 2026-10-04
+- Language/framework: Cursor rules / git
+- Task_type: FEATURE (rules install)
+- Situation: A `.fedorov` store is missing on disk but still tracked in HEAD.
+- Symptom: A directory listing shows only `ledger.md`. Writing an empty lessons file deletes validated rows.
+- Root_cause_pattern: Create-if-missing treats a deleted worktree file as absent. HEAD still holds the rows.
+- Strategy: Run `git show HEAD:<path>` before creating a store. If headings exist, restore them and append. Do not write an empty table over them.
+- Detection_check: `git diff` against that path removes `## SIL-` headings or flips the file to a header-only table.
+- Evidence: This install's first write replaced the store. `git checkout -- .fedorov/lessons-store.md` restored SIL-001 through SIL-003. Not promoted: one recovery, no second-task re-run yet.
+- Confidence: high
+- Times_applied / succeeded: 1 / 1
+- Status: candidate
+
 ## Regression set (fixed)
 1. Instant Summon — `src/__tests__/fedorovInstantGenerator.test.ts`
 2. Draft IO — `src/__tests__/characterDraft.test.ts`
