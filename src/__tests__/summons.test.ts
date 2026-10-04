@@ -318,6 +318,12 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     // Explicit examples from product request
     expect(expectedClash.postApocalyptic).toBe("#a3e635");
     expect(expectedClash.steampunkTinkerer).toBe("#14b8a6");
+    expect(app).toContain('id:"bioMechanical"');
+    expect(app).toContain('id:"eighties3DRender"');
+    expect(app).toContain('id:"solarpunkUtopia"');
+    expect(app).toContain("Xylon-Prime — Bio-Chitin Weaver");
+    expect(app).toContain("Vector-9 — Phosphor Raytracer");
+    expect(app).toContain("Solaria — Canopy Architect");
   });
 
   it("should calculate accurate baseline stats and comparison deltas for archetypes", async () => {

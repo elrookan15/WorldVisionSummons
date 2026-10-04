@@ -612,7 +612,7 @@ OPERATIONAL RULES:
 [CHARACTER_PROPOSAL]
 Name: <Suggested Character Name & Epithet>
 Class: <Class / Archetype>
-Style: <One of: Gothic Dark Fantasy, Cyberpunk, Steampunk, 8-Bit Retro RPG, High Fantasy, Cosmic Horror, Samurai Era, Post-Apocalyptic, Eldritch Arcane, Victorian Gothic>
+Style: <One of: Gothic Dark Fantasy, Cyberpunk, Steampunk, 8-Bit Retro RPG, High Fantasy, Cosmic Horror, Samurai Era, Post-Apocalyptic, Eldritch Arcane, Victorian Gothic, BioMechanical, 1980s 3D Render, Solarpunk Utopia>
 Lore: <2-3 sentences of evocative backstory, origin, and sworn oath>
 Inventory: <comma-separated notable gear>
 [/CHARACTER_PROPOSAL]

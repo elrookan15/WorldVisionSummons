@@ -37,6 +37,7 @@ describe("federovPersonas", () => {
     expect(instruction).toContain("ACTIVE PERSONA: Archivist Federov");
     expect(instruction).toContain("Currently Summoned Character: Ada (Hexblade, Level 7)");
     expect(instruction).toContain("[CHARACTER_PROPOSAL]");
+    expect(instruction).toContain("BioMechanical, 1980s 3D Render, Solarpunk Utopia");
     expect(instruction).toContain("STOCHASTIC VECTOR: #42");
     expect(instruction).not.toContain("x".repeat(801));
   });
