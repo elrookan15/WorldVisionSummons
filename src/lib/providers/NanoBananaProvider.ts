@@ -1,5 +1,7 @@
 import { ImageGenerationProvider, ImageGenerationRequest, GeneratedImage, ProviderResult } from '../../types/providers';
 import { withWvsApiHeaders } from '../apiClientHeaders';
+import { compileDesignSheetPrompt, DESIGN_SHEET_NEGATIVE } from '../prompts/designSheet';
+import { getAtmosphericMatrix } from '../prompts/generators';
 
 export interface CharacterPromptInput {
   characterName: string;
@@ -51,86 +53,24 @@ export class NanoBananaProvider implements ImageGenerationProvider {
    * Compiles domain character data into an uncompromising high-fidelity visual description.
    */
   public static buildCharacterPrompt(input: CharacterPromptInput): { prompt: string; negativePrompt: string } {
-    const styleModifiers = NanoBananaProvider.getStyleVisualMatrix(input.sheetStyle);
-
-    const prompt = [
-      `Professional champion reference sheet and concept art board of ${input.characterName || 'Hero'}, a ${input.characterClass || 'Adventurer'}.`,
-      `Central composition: Full-body heroic illustration of ${input.characterName || 'Hero'} in ${input.sheetStyle || 'Gothic Dark Fantasy'} tactical armor and garb holding ${input.primaryWeapon || 'Primary Weapon'}.`,
-      `UI overlays & infographic side panels: Character Class Stat Radar Chart, Active Skill Ability icons with cooldown timers, leader line callouts pointing to gear items with text labels (helmet, cuirass, gauntlets, weapons), Elemental Affinity Wheel, Passive Buff Badges, and scale comparison silhouette against standard human.`,
-      input.characterLore ? `Lore grounding: ${input.characterLore}` : '',
-      `Physical presence: standing ${input.height || '6\'0"'}, ${input.build || 'athletic'} frame, distinct feature: ${input.distinguishingFeature || 'scarred visage'}.`,
-      `Costume: layered attire reflecting ${input.sheetStyle || 'Gothic Dark Fantasy'}, micro-textures, weathered seams, authentic material degradation, ornate faction hardware.`,
-      `Visual atmosphere: ${styleModifiers.atmosphere}.`,
-      `Lighting and palette: ${styleModifiers.lighting}.`,
-      `Masterpiece 8k resolution, cinematic volumetric depth, octane render realism, award-winning concept art sourcebook illustration.`
-    ].filter(Boolean).join(' ');
-
-    const negativePrompt = [
-      'cropped feet',
-      'cut-off boots',
-      'out of frame head',
-      'deformed anatomy',
-      'extra arms',
-      'duplicated fingers',
-      'floating gear',
-      'unrelated background characters',
-      'illegible costume details',
-      'flat ambient lighting',
-      'watermark',
-      'artist signature',
-      'text labels',
-      'borders',
-      styleModifiers.negativeConstraints
-    ].join(', ');
-
-    return { prompt, negativePrompt };
-  }
-
-  private static getStyleVisualMatrix(style: string): { atmosphere: string; lighting: string; negativeConstraints: string } {
-    const lower = (style || '').toLowerCase();
-    if (lower.includes('gothic') || lower.includes('dark fantasy')) {
-      return {
-        atmosphere: 'ruined cathedral courtyard, ancient gravestones, creeping black brambles, ash drifts',
-        lighting: 'low-key chiaroscuro, cold moonlight rim, faint crimson embers, charcoal and tarnished iron palette',
-        negativeConstraints: 'neon lights, high saturation, futuristic alloys'
-      };
-    } else if (lower.includes('cyberpunk') || lower.includes('neon')) {
-      return {
-        atmosphere: 'dense megacity alleyway, rain-slick reflective asphalt, holographic signage, dense urban smog',
-        lighting: 'high-contrast cyan and electric magenta rim lighting, toxic green underglow, deep obsidian shadows',
-        negativeConstraints: 'parchment textures, medieval armor, magic sigils'
-      };
-    } else if (lower.includes('steampunk')) {
-      return {
-        atmosphere: 'Victorian industrial foundry, clockwork gears, elevated iron pipes, drifting white steam',
-        lighting: 'warm gaslight lanterns, polished brass specular reflections, rich amber and soot-black tones',
-        negativeConstraints: 'digital screens, laser beams, clean modern plastics'
-      };
-    } else if (lower.includes('high fantasy')) {
-      return {
-        atmosphere: 'soaring elven spires, sunlit mountain pass, ancient runic monoliths, floating arcane motes',
-        lighting: 'celestial golden-hour rays, radiant silver and sapphire accents, pure emerald jewel tones',
-        negativeConstraints: 'grungy dystopian textures, industrial grime, modern guns'
-      };
-    } else if (lower.includes('cosmic') || lower.includes('horror')) {
-      return {
-        atmosphere: 'non-Euclidean megaliths, cyclopean coastal ruins, abyssal fog, unnatural constellations',
-        lighting: 'sickly luminescent viridian glow, bruised void purples, eerie bioluminescent ambient rim',
-        negativeConstraints: 'cheerful warm tones, pristine polished surfaces'
-      };
-    } else if (lower.includes('samurai')) {
-      return {
-        atmosphere: 'traditional ink wash, ukiyo-e woodblock texture, falling cherry blossoms, blood-red sun crest, cinematic fog',
-        lighting: 'dramatic shadow-play, high-contrast monochrome with crimson focal points',
-        negativeConstraints: 'futuristic mechs, modern plastic gear'
-      };
-    } else {
-      return {
-        atmosphere: 'thematic atmospheric environment with clear layered depth and environmental grounding',
-        lighting: 'dramatic three-point cinematic lighting with strong edge definition',
-        negativeConstraints: 'muddy textures, overexposed surfaces'
-      };
-    }
+    const style = input.sheetStyle || 'Gothic Dark Fantasy';
+    const matrix = getAtmosphericMatrix(style);
+    const prompt = compileDesignSheetPrompt({
+      character_name: input.characterName,
+      character_class: input.characterClass,
+      sheet_style: style,
+      inventory_items: input.primaryWeapon,
+      physical: {
+        height: input.height,
+        build: input.build,
+        distinguishing_feature: input.distinguishingFeature,
+      },
+    }, style, {
+      palette: matrix.palette,
+      lighting: matrix.lighting,
+      negativeConstraints: matrix.negativeConstraints,
+    });
+    return { prompt, negativePrompt: DESIGN_SHEET_NEGATIVE };
   }
 
   public async generateImage(request: ImageGenerationRequest): Promise<ProviderResult<GeneratedImage> & {

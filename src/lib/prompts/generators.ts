@@ -1,4 +1,5 @@
 import { archChronologerFieldPreamble } from "./archChronologer";
+import { compileDesignSheetPrompt, DESIGN_SHEET_NEGATIVE } from "./designSheet";
 
 export const GENRE_ATMOSPHERIC_MATRICES: Record<string, {
   palette: string;
@@ -210,50 +211,20 @@ Example output:
 };
 
 /**
- * Compiles a high-fidelity diffusion prompt for the Hero Portrait across any of the 13 genre styles.
+ * Compiles the hero image as one character design sheet (figure, callouts, title, turnaround).
+ * Long lore and stats stay in the Codex renderer; the image model only gets short labels.
  */
 export function compilePortraitPrompt(char: any, overrideStyle?: string): string {
-  const esc = (s: string) => (s || "").replace(/[\u0000-\u001F]/g, "").trim();
-  const name = esc(char.character_name || char.name || "Hero");
-  const cls = esc(char.character_class || char.overview?.classRole || "Adventurer");
-  const lore = esc(char.character_lore || char.lore?.backstory || "A mysterious traveler.");
-  const style = esc(overrideStyle || char.sheet_style || "Gothic Dark Fantasy");
+  const style = String(overrideStyle || char?.sheet_style || "Gothic Dark Fantasy");
   const matrix = getAtmosphericMatrix(style);
-
-  const items = Array.isArray(char.inventory_items)
-    ? char.inventory_items.map((it: { name?: string } | string) => esc(typeof it === "string" ? it : (it.name || ""))).join(", ")
-    : (typeof char.inventory_items === "string" ? char.inventory_items : "");
-  const primaryWeapon = esc(
-    char.equipment?.primaryWeapon ||
-    char.equipment?.weapons ||
-    items.split(",")[0] ||
-    "Obsidian Catalyst Staff"
-  );
-
-  const height = char.physical?.height || "6'0\"";
-  const weight = char.physical?.weight || "180 lbs";
-  const build = char.physical?.build || "Athletic";
-  const feat = char.physical?.distinguishing_feature || char.physical?.marks || "weathered battle marks";
-
-  const negative = [
-    "cropped feet", "out of frame head", "cut-off boots", "extra arms",
-    "duplicated hands", "malformed fingers", "blurry textures", "watermarks",
-    "UI text", "borders", "infographic panels", "stat bars", "split screen",
-    "collage", "multiple characters", "low resolution",
-    ...matrix.negativeConstraints
-  ].join(", ");
-
-  return `Generate a single high-fidelity image: a full-body cinematic character portrait of ${name}, a ${cls}, standing in a heroic three-quarter pose, head-to-toe completely in frame.
-This is a finished tabletop RPG visual-codex illustration, not a collage and not a UI mockup.
-Lore Context: ${lore}
-Primary Focus & Weapon: Wielding ${primaryWeapon}, integrated organically with character stance and posture.
-Anatomy & Physical Grounds: Anatomically correct adult human proportions, grounded stance, boots planted, zero cropping at feet or head. Physical profile: Height ${height}, weight ${weight}, ${build} build, distinguishing feature: ${feat}.
-Atmospheric Matrix: ${matrix.palette}
-Lighting & Shadows: ${matrix.lighting}
-Render Fidelity: Award-winning concept art, 2K resolution, sharp focus, rich material textures, volumetric atmosphere, cinematic color grading, octane-render realism with painterly costume detail.
-Output: one character, one scene, no captions, no watermarks, no HUD.
-Negative Constraints: ${negative}`;
+  return compileDesignSheetPrompt(char, style, {
+    palette: matrix.palette,
+    lighting: matrix.lighting,
+    negativeConstraints: matrix.negativeConstraints,
+  });
 }
+
+export { DESIGN_SHEET_NEGATIVE };
 
 /**
  * Compiles a top-down flat-lay inventory grid prompt across any of the 13 genre styles.
@@ -335,8 +306,8 @@ export function generateMultiEnginePrompts(char: any) {
 
   return {
     midjourney: `${primaryPrompt} --ar 3:4 --s 350 --v 6.0`,
-    leonardo: `Character turnaround sheet, ${name} the ${cls}. ${style} RPG sourcebook art style, clean edges, studio reference lighting --no text, signatures, borders`,
-    flux: `(masterpiece, high-resolution:1.2), character portrait, (${name} ${cls}:1.1), ${style} aesthetic, chiaroscuro lighting, ink-hatching details, sharp focus, fantasy illustration`,
+    leonardo: `Character design sheet, ${name} the ${cls}. ${style} RPG sourcebook art, title and short labels only, clean edges, studio reference lighting --no paragraphs, fine print, watermark`,
+    flux: `(masterpiece, high-resolution:1.2), character design sheet, (${name} ${cls}:1.1), ${style} aesthetic, central full-body figure, detail callouts, short labels only, sharp focus`,
     geminiNano: `${name}, ${cls}, ${style}, highly detailed character concept, 8k, Octane render`,
     propCloseup: `Prop concept art, isolated weapon profile, etched steel blade, neutral studio background, highly detailed 3d render aesthetic`
   };

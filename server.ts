@@ -351,10 +351,11 @@ const handleImageGeneration = async (req: express.Request, res: express.Response
   }, ctx.style);
 
   const qualityDirective = [
-    "Generate exactly one finished character portrait image.",
-    "Do not return UI mockups, stat panels, watermarks, captions, or split-screen collages.",
+    "Generate exactly one finished character design sheet.",
+    "Center the full-body figure and keep the detail panels, title, short epithet, equipment strip, and turnaround inside the same image.",
+    "On-image text is the name and 1-4 word labels only. No paragraphs, stat blocks, or fine print.",
     `Use a vertical ${aspectRatio} composition at ${imageSize} fidelity.`,
-    "Keep the full figure in frame, anatomically correct hands and feet, sharp costume detail.",
+    "Coherent anatomy, sharp costume detail, large legible lettering.",
     negativePrompt ? `Avoid: ${negativePrompt}` : "",
     referenceImage ? `Honor the uploaded reference at strength ${Math.round(referenceStrength * 100)}% while remaining faithful to the character description.` : "",
   ].filter(Boolean).join(" ");
