@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-05 | Portrait prompt was a lone figure, not a design sheet | provider-integration | frontend | Active |
 | 2026-10-04 | Port 3 extra themes + presets (13 visual genres) | ui-theming | frontend | Active |
 | 2026-10-04 | FEDOROV chat personas + apply proposal | provider-integration | frontend | Active |
 | 2026-10-04 | Draft auto-save + blank-slate default | persistence | frontend | Active |
@@ -27,6 +28,19 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-05] Portrait prompt was a lone figure, not a design sheet
+- Category: provider-integration
+- Persona: frontend
+- File(s): src/lib/prompts/designSheet.ts, src/lib/prompts/generators.ts, src/lib/providers/NanoBananaProvider.ts, server.ts, src/__tests__/designSheet.test.ts, src/__tests__/summons.test.ts
+- Root Cause: `compilePortraitPrompt` asked for one cinematic portrait and banned borders, panels, and captions. The image route repeated that ban. The NanoBanana fallback then asked for stat radar charts and also banned text labels, so the model could not produce a reference-style design plate.
+- Patch: One design-sheet prompt: central figure, 4–5 callouts, title, one-line epithet, equipment strip, turnaround. Archival parchment for manuscript genres; tactical dossier for cyberpunk, wasteland, retro, biomech, 1980s, cosmic horror, and solarpunk. On-image text is limited to the name and 1–4 word labels. Backstory is not copied into the prompt.
+- Red Test: Gothic prompt contained "not a collage" and "no captions"; NanoBanana prompt contained "Stat Radar Chart" and negative "text labels".
+- Green Test: `src/__tests__/designSheet.test.ts` plus the Gelbinor portrait case. Cyberpunk prompt contains "matte black" and "cyan and magenta". Long lore is absent from the prompt.
+- Regression Guard: Vitest design-sheet suite and the updated summons portrait assertions.
+- Residual Risk: Image models can still garble even short titles. The procedural SVG fallback is still a single figure, not a sheet. Dense fine print from reference boards is intentionally not requested.
+- Recurrence Count: 1
+- Status: Active
 
 ## [2026-10-04] Port 3 extra themes + presets (13 visual genres)
 - Category: ui-theming

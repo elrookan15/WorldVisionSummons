@@ -34,14 +34,16 @@ describe("WorldVision Summons Visual Codex & Prompt Compilation Engine", () => {
     };
 
     const prompt = compilePortraitPrompt(mockCharacter);
-    expect(prompt).toContain("Gelbinor");
+    expect(prompt).toContain("GELBINOR");
     expect(prompt).toContain("Ossuary Necromancer");
     expect(prompt).toContain("Mister Cracks Skull Grimoire");
     expect(prompt).toContain("5'11\"");
     expect(prompt).toContain("Gaunt");
     expect(prompt).toContain("Finger-bone tassels");
-    expect(prompt).toContain("Generate a single high-fidelity image");
-    expect(prompt).toContain("2K resolution");
+    expect(prompt).toContain("character design sheet");
+    expect(prompt).toContain("TEXT RULE");
+    expect(prompt).toContain("parchment");
+    expect(prompt).not.toContain("A quiet, apologetic archivist");
   });
 
   it("should compile categorized inventory grid prompt", () => {
