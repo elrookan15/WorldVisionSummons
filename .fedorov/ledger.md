@@ -2,6 +2,7 @@
 
 | Date | Title | Category | Persona | Status |
 |------|-------|----------|---------|--------|
+| 2026-10-06 | Official logo brand pack + favicons + OG meta | ui-theming | frontend | Active |
 | 2026-10-04 | Port 3 extra themes + presets (13 visual genres) | ui-theming | frontend | Active |
 | 2026-10-04 | FEDOROV chat personas + apply proposal | provider-integration | frontend | Active |
 | 2026-10-04 | Draft auto-save + blank-slate default | persistence | frontend | Active |
@@ -27,6 +28,21 @@
 | 2026-09-14 | HP/resource +/- stale-closure under rapid clicks | ui-state | frontend | Active |
 | 2026-09-13 | Dossier page atmospheric backgrounds | ui-theming | frontend | Active |
 | 2026-09-14 | Lore/Stats blend presence too quiet | ui-theming | frontend | Active |
+
+## [2026-10-06] Official logo brand pack + favicons + OG meta
+- Category: ui-theming
+- Persona: frontend
+- File(s): public/brand/*, public/favicon*, public/apple-touch-icon.png, public/android-chrome-*.png, public/site.webmanifest, index.html, src/App.tsx, src/__tests__/productionServer.test.ts, metadata.json
+- Requester / Rationale: Owner supplied exact 1024×1024 PNG as official WorldVision Summons logo; wire into static assets, UI header/footer, favicon set (portal crop), OG/Twitter meta without touching Gemini gate or secrets.
+- Root Cause: App used a generic "WV" circle wordmark and had no favicon/OG image assets; Vite `public/` was empty.
+- Patch: Committed original art + WebP/PNG derivatives under `public/brand/`. Portal center-crop favicons (16/32/ICO/180/192/512). Wired `index.html` icons + OG/Twitter. Header/footer show the logo. Extended production static-serve test so SPA `*` cannot swallow brand paths.
+- Red Test: Pre-change header had no `/brand/` img; `index.html` lacked favicon/og:image links; production test did not assert `/brand/*` or `/favicon.ico`.
+- Green Test: 2026-10-06 — lint/test/build green for brand pack; production static curl OK. Follow-ups: hero banner; then edge-to-edge blurred backdrop + compact mobile header (lint/test/build green 2026-10-06).
+- Regression Guard: `productionServer.test.ts` asserts `/brand/worldvision-summons-logo.png`, `/favicon.ico`, and `/site.webmanifest` return non-HTML bodies before SPA fallback.
+- Residual Risk: `og:image` is root-relative until a canonical absolute Cloud Run URL is chosen. OG crawlers that reject relative image URLs need a follow-up.
+- Recurrence Count: 1
+- Status: Active
+- Risk: Low — static branding only; no secrets; gate untouched.
 
 ## [2026-10-04] Port 3 extra themes + presets (13 visual genres)
 - Category: ui-theming

@@ -18,6 +18,7 @@ import ImageEditorModal from "./components/ImageEditorModal";
 import GeminiChatModal from "./components/GeminiChatModal";
 import { nanoBananaProvider } from "./lib/providers/NanoBananaProvider";
 import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
+import { BrandHeroBanner } from "./components/BrandHeroBanner";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
 import { withWvsApiHeaders } from "./lib/apiClientHeaders";
@@ -1351,184 +1352,216 @@ export default function App() {
       <div className={`pointer-events-none fixed inset-0 z-0 texture-${currentTheme.texture}`} />
       <div className="sheet-bezel">
 
-      {/* Top Header */}
+      {/* Top Header — compact single row; carved title lives in the hero */}
       <header className="sticky top-0 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
-        <div className="max-w-[1600px] mx-auto px-5 md:px-10 min-h-[72px] py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full grid place-items-center display font-bold tracking-tight shadow-lg" style={{ backgroundColor: c.text, color: c.bg }}>
-              WV
-            </div>
-            <div>
-              <div className="display text-lg font-bold tracking-tight" style={{ fontFamily: currentTheme.fonts.display }}>
-                WORLDVISION SUMMONS
-              </div>
-              <div className="mono text-[10px] tracking-widest" style={{ color: c.muted }}>
-                DETERMINISTIC RPG LORE & CHARACTER SHEET ENGINE
-              </div>
-            </div>
-          </div>
+        <div className="max-w-[1600px] mx-auto px-2.5 sm:px-5 md:px-10 min-h-[52px] py-2 flex items-center gap-1.5 sm:gap-2.5">
+          <a
+            href="#brand-hero"
+            className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            style={{ outlineColor: c.accent }}
+            title="WorldVision Summons"
+          >
+            <img
+              src="/brand/portal-mark-128.webp"
+              alt=""
+              width={32}
+              height={32}
+              decoding="async"
+              className="h-8 w-8 rounded-full object-cover shadow-md"
+              style={{ boxShadow: `0 0 0 1px ${c.border}` }}
+            />
+            <span className="sr-only">WorldVision Summons</span>
+          </a>
 
-          <div className="flex items-center flex-wrap gap-2.5">
-            {!googleUser ? (
-              <button
-                onClick={handleGoogleSignIn}
-                disabled={isSigningInGoogle}
-                className="no-print shrink-0 flex items-center gap-2 px-4 h-9 rounded-full font-semibold border transition hover:opacity-90 shadow-sm"
-                style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
-              >
-                <LogIn className="w-3.5 h-3.5 text-blue-400" />
-                <span className="mono text-[11px]">{isSigningInGoogle ? "Connecting..." : "Sign in with Google"}</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleExportSheets}
-                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
-                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
-                  title="Export Character to Google Sheets"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="mono text-[11px]">Export Sheets</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowImportModal(true)}
-                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
-                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
-                  title="Import Character from Google Sheets"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="mono text-[11px]">Import Sheets</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await logout();
-                    setGoogleUser(null);
-                    setGoogleToken(null);
-                    setSheetsStatusMsg("Signed out of Google Workspace.");
-                  }}
-                  className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:opacity-90"
-                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
-                  title={googleUser?.email || "Sign out"}
-                >
-                  <LogOut className="w-3.5 h-3.5 text-rose-400" />
-                  <span className="mono text-[11px]">Sign out</span>
-                </button>
-              </div>
-            )}
-
-            <button
-              type="button"
-              disabled={!codexReady(sheetData as UiSheetData).ok}
-              onClick={() => setShowCodexPage(true)}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] disabled:opacity-40"
-              style={{ backgroundColor: c.accent, borderColor: c.borderStrong, color: c.accentText }}
-              title={codexReady(sheetData as UiSheetData).ok ? "Open the print-ready Codex page" : "Name and class are required"}
-            >
-              <Scroll className="w-3.5 h-3.5" />
-              <span className="mono text-[11px]">Finalize Codex</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowCodex(true)}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
-              style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
-              title="Open Character Codex"
-            >
-              <BookMarked className="w-3.5 h-3.5" style={{ color: c.clash || c.accent }} />
-              <span className="mono text-[11px]">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowDiceTray((v) => !v)}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
-              style={{
-                backgroundColor: showDiceTray ? c.accent : c.card,
-                borderColor: showDiceTray ? (c.clash || c.borderStrong) : c.border,
-                color: showDiceTray ? c.accentText : c.text
-              }}
-              title="Open tabletop dice tray"
-              aria-expanded={showDiceTray}
-            >
-              <Dices className="w-3.5 h-3.5" />
-              <span className="mono text-[11px]">Dice Tray</span>
-            </button>
-
+          {/* Primary CTAs — always visible, never wrap under the brand mark */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               id="fedorov-instant-summon-header-btn"
               onClick={handleFedorovInstantSummon}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-bold border transition hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+              className="no-print shrink-0 flex items-center gap-1 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-bold border transition hover:scale-105 active:scale-95 shadow-md cursor-pointer"
               style={INSTANT_SUMMON_STYLE}
               title="FEDOROV Instant Summon — generate a complete random character instantly"
             >
-              <Zap className="w-3.5 h-3.5 fill-black text-black" />
-              <span className="mono text-[11px] font-black tracking-wide uppercase">Instant Summon</span>
+              <Zap className="w-3.5 h-3.5 fill-black text-black shrink-0" />
+              <span className="mono text-[10px] sm:text-[11px] font-black tracking-wide uppercase">
+                <span className="sm:hidden">Summon</span>
+                <span className="hidden sm:inline">Instant Summon</span>
+              </span>
             </button>
 
             <button
               type="button"
               id="clear-form-header-btn"
               onClick={handleClearForm}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+              className="no-print shrink-0 flex items-center gap-1 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02] active:scale-95 cursor-pointer"
               style={START_BLANK_STYLE}
               title="Start Blank — reset all fields and clear the auto-saved draft"
             >
-              <Eraser className="w-3.5 h-3.5" />
-              <span className="mono text-[11px]">Start Blank</span>
+              <Eraser className="w-3.5 h-3.5 shrink-0" />
+              <span className="mono text-[10px] sm:text-[11px]">
+                <span className="sm:hidden">Blank</span>
+                <span className="hidden sm:inline">Start Blank</span>
+              </span>
             </button>
+          </div>
 
-            <button
-              id="copy-character-json-btn"
-              onClick={handleCopyCharacterJson}
-              className="no-print shrink-0 flex items-center gap-1.5 px-3.5 h-9 rounded-full font-semibold border transition hover:scale-[1.02] shadow-sm"
-              style={{
-                backgroundColor: copiedJson ? "rgba(16, 185, 129, 0.15)" : c.card,
-                borderColor: copiedJson ? "#10b981" : c.border,
-                color: copiedJson ? "#10b981" : c.text
-              }}
-              title="Copy entire character sheet JSON to clipboard"
-              aria-label="Copy Character JSON"
-            >
-              {copiedJson ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="mono text-[11px] text-emerald-400 font-bold">JSON Copied!</span>
-                </>
+          {/* Secondary actions — horizontal scroll on narrow viewports (no multi-row wrap) */}
+          <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar overscroll-x-contain">
+            <div className="flex items-center gap-1.5 flex-nowrap justify-end w-max min-w-full ml-auto">
+              {!googleUser ? (
+                <button
+                  onClick={handleGoogleSignIn}
+                  disabled={isSigningInGoogle}
+                  className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-4 h-8 sm:h-9 rounded-full font-semibold border transition hover:opacity-90 shadow-sm"
+                  style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                  title={isSigningInGoogle ? "Connecting..." : "Sign in with Google"}
+                  aria-label={isSigningInGoogle ? "Connecting to Google" : "Sign in with Google"}
+                >
+                  <LogIn className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span className="mono text-[11px] hidden md:inline">{isSigningInGoogle ? "Connecting..." : "Sign in with Google"}</span>
+                </button>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5" style={{ color: c.accent }} />
-                  <span className="mono text-[11px]">Copy Character JSON</span>
+                  <button
+                    type="button"
+                    onClick={handleExportSheets}
+                    className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                    style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                    title="Export Character to Google Sheets"
+                    aria-label="Export Sheets"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="mono text-[11px] hidden md:inline">Export Sheets</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(true)}
+                    className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                    style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                    title="Import Character from Google Sheets"
+                    aria-label="Import Sheets"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="mono text-[11px] hidden md:inline">Import Sheets</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await logout();
+                      setGoogleUser(null);
+                      setGoogleToken(null);
+                      setSheetsStatusMsg("Signed out of Google Workspace.");
+                    }}
+                    className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:opacity-90"
+                    style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                    title={googleUser?.email || "Sign out"}
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                    <span className="mono text-[11px] hidden md:inline">Sign out</span>
+                  </button>
                 </>
               )}
-            </button>
 
-            <button
-              onClick={() => setShowChatModal(true)}
-              className="no-print shrink-0 flex items-center gap-2 px-4 h-9 rounded-full border transition hover:scale-[1.02]"
-              style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
-            >
-              <Terminal className="w-3.5 h-3.5" style={{ color: c.accent }} />
-              <span className="mono text-[11px] font-semibold">Ask Federov AI</span>
-            </button>
+              <button
+                type="button"
+                disabled={!codexReady(sheetData as UiSheetData).ok}
+                onClick={() => setShowCodexPage(true)}
+                className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02] disabled:opacity-40"
+                style={{ backgroundColor: c.accent, borderColor: c.borderStrong, color: c.accentText }}
+                title={codexReady(sheetData as UiSheetData).ok ? "Open the print-ready Codex page" : "Name and class are required"}
+                aria-label="Finalize Codex"
+              >
+                <Scroll className="w-3.5 h-3.5 shrink-0" />
+                <span className="mono text-[11px] hidden md:inline">Finalize Codex</span>
+              </button>
 
-            <button
-              onClick={() => window.print()}
-              className="no-print shrink-0 flex items-center gap-2 px-4 h-9 rounded-full font-bold shadow-md transition hover:opacity-90"
-              style={{ backgroundColor: c.accent, color: c.accentText }}
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span className="mono text-[11px]">Export / Print</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowCodex(true)}
+                className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                title="Open Character Codex"
+                aria-label={`Codex${codexEntries.length ? ` (${codexEntries.length})` : ""}`}
+              >
+                <BookMarked className="w-3.5 h-3.5 shrink-0" style={{ color: c.clash || c.accent }} />
+                <span className="mono text-[11px] hidden md:inline">Codex{codexEntries.length ? ` (${codexEntries.length})` : ""}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDiceTray((v) => !v)}
+                className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02]"
+                style={{
+                  backgroundColor: showDiceTray ? c.accent : c.card,
+                  borderColor: showDiceTray ? (c.clash || c.borderStrong) : c.border,
+                  color: showDiceTray ? c.accentText : c.text
+                }}
+                title="Open tabletop dice tray"
+                aria-expanded={showDiceTray}
+                aria-label="Dice Tray"
+              >
+                <Dices className="w-3.5 h-3.5 shrink-0" />
+                <span className="mono text-[11px] hidden md:inline">Dice Tray</span>
+              </button>
+
+              <button
+                id="copy-character-json-btn"
+                onClick={handleCopyCharacterJson}
+                className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-full font-semibold border transition hover:scale-[1.02] shadow-sm"
+                style={{
+                  backgroundColor: copiedJson ? "rgba(16, 185, 129, 0.15)" : c.card,
+                  borderColor: copiedJson ? "#10b981" : c.border,
+                  color: copiedJson ? "#10b981" : c.text
+                }}
+                title="Copy entire character sheet JSON to clipboard"
+                aria-label="Copy Character JSON"
+              >
+                {copiedJson ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="mono text-[11px] text-emerald-400 font-bold hidden md:inline">JSON Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 shrink-0" style={{ color: c.accent }} />
+                    <span className="mono text-[11px] hidden md:inline">Copy Character JSON</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => setShowChatModal(true)}
+                className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-4 h-8 sm:h-9 rounded-full border transition hover:scale-[1.02]"
+                style={{ backgroundColor: c.card, borderColor: c.border, color: c.text }}
+                title="Ask Federov AI"
+                aria-label="Ask Federov AI"
+              >
+                <Terminal className="w-3.5 h-3.5 shrink-0" style={{ color: c.accent }} />
+                <span className="mono text-[11px] font-semibold hidden md:inline">Ask Federov AI</span>
+              </button>
+
+              <button
+                onClick={() => window.print()}
+                className="no-print shrink-0 flex items-center gap-1.5 px-2.5 sm:px-4 h-8 sm:h-9 rounded-full font-bold shadow-md transition hover:opacity-90"
+                style={{ backgroundColor: c.accent, color: c.accentText }}
+                title="Export / Print"
+                aria-label="Export / Print"
+              >
+                <Download className="w-3.5 h-3.5 shrink-0" />
+                <span className="mono text-[11px] hidden md:inline">Export / Print</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      <div id="brand-hero" className="w-full">
+        <BrandHeroBanner bg={c.bg} accent={c.accent} clash={c.clash} />
+      </div>
 
       {/* Sheets Status Banner */}
       {sheetsStatusMsg && (
@@ -2688,8 +2721,18 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="pt-10 pb-12 border-t text-center mono text-[11px] tracking-wider" style={{ borderColor: c.border, color: c.muted2 }}>
-        WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
+      <footer className="pt-10 pb-12 border-t text-center" style={{ borderColor: c.border, color: c.muted2 }}>
+        <img
+          src="/brand/worldvision-summons-logo-256.webp"
+          alt=""
+          width={48}
+          height={48}
+          decoding="async"
+          className="mx-auto mb-3 h-12 w-12 object-contain opacity-90"
+        />
+        <div className="mono text-[11px] tracking-wider">
+          WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
+        </div>
       </footer>
       </div>
 

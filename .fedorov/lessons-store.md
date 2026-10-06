@@ -74,10 +74,25 @@ Cap: 12 active. Merge duplicates. Patterns only — no secrets, no proprietary s
 - Times_applied / succeeded: 1 / 1
 - Status: candidate
 
+## SIL-006
+- Date: 2026-10-06
+- Language/framework: Vite + Express static / branding
+- Task_type: FEATURE (logo / favicon pack)
+- Situation: Owner supplies a dense 1024 full-scene logo for app chrome and favicons.
+- Symptom: At 16×16/32×32 the full scene (title + heroes + portal) turns to mush; SPA `*` can look like it swallowed assets if `public/` is missing from `dist`.
+- Root_cause_pattern: Favicon crops need a high-contrast center (portal vortex), not the full composition. Vite only emits root static files from `public/`; Express must `express.static(dist)` before SPA fallback.
+- Strategy: Keep original art under `public/brand/`. Generate portal center-crop icons. Assert `/brand/*` and `/favicon.ico` return non-HTML in `productionServer.test.ts`. Verify with `NODE_ENV=production` curl content-types.
+- Detection_check: Tiny favicon looks like noise; curl `/favicon.ico` returns `text/html`.
+- Evidence: 2026-10-06 branding PR — lint/test/build green; prod :8080 served image/* for brand/favicon and text/html for unknown routes.
+- Confidence: medium
+- Times_applied / succeeded: 1 / 1
+- Status: candidate
+
 ## Regression set (fixed)
 1. Instant Summon — `src/__tests__/fedorovInstantGenerator.test.ts`
 2. Draft IO — `src/__tests__/characterDraft.test.ts`
 3. Personas / proposal parse — `src/__tests__/federovPersonas.test.ts`
 4. `npx tsc --noEmit`
+5. Production static brand paths — `src/__tests__/productionServer.test.ts`
 
 Re-run these after each port. If any fail, do not add lessons — fix the regression first.

@@ -1,6 +1,6 @@
 {
-  "name": "Worldvision Summons Character Sheet Generator",
-  "description": "Deterministic RPG lore architect, statistical engine, and cinematic character sheet generator powered by Gemini with high-thinking mode.",
+  "name": "WorldVision Summons",
+  "description": "Multi-genre RPG lore architect, statistical engine, and cinematic character sheet generator powered by Gemini.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
