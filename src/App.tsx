@@ -1354,15 +1354,27 @@ export default function App() {
       {/* Top Header */}
       <header className="sticky top-0 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
         <div className="max-w-[1600px] mx-auto px-5 md:px-10 min-h-[72px] py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full grid place-items-center display font-bold tracking-tight shadow-lg" style={{ backgroundColor: c.text, color: c.bg }}>
-              WV
-            </div>
-            <div>
-              <div className="display text-lg font-bold tracking-tight" style={{ fontFamily: currentTheme.fonts.display }}>
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            <picture className="shrink-0">
+              <source
+                type="image/webp"
+                srcSet="/brand/worldvision-summons-logo-256.webp 256w, /brand/worldvision-summons-logo-512.webp 512w"
+                sizes="(min-width: 768px) 64px, 52px"
+              />
+              <img
+                src="/brand/worldvision-summons-logo-512.png"
+                alt="WorldVision Summons"
+                width={64}
+                height={64}
+                decoding="async"
+                className="h-[52px] w-[52px] md:h-16 md:w-16 object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]"
+              />
+            </picture>
+            <div className="min-w-0">
+              <div className="display text-base md:text-lg font-bold tracking-tight truncate" style={{ fontFamily: currentTheme.fonts.display }}>
                 WORLDVISION SUMMONS
               </div>
-              <div className="mono text-[10px] tracking-widest" style={{ color: c.muted }}>
+              <div className="mono text-[10px] tracking-widest truncate" style={{ color: c.muted }}>
                 DETERMINISTIC RPG LORE & CHARACTER SHEET ENGINE
               </div>
             </div>
@@ -2688,8 +2700,18 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="pt-10 pb-12 border-t text-center mono text-[11px] tracking-wider" style={{ borderColor: c.border, color: c.muted2 }}>
-        WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
+      <footer className="pt-10 pb-12 border-t text-center" style={{ borderColor: c.border, color: c.muted2 }}>
+        <img
+          src="/brand/worldvision-summons-logo-256.webp"
+          alt=""
+          width={48}
+          height={48}
+          decoding="async"
+          className="mx-auto mb-3 h-12 w-12 object-contain opacity-90"
+        />
+        <div className="mono text-[11px] tracking-wider">
+          WORLDVISION SUMMONS ENGINE • RUNNING WITH PRISMA PERSISTENCE & GEMINI AI
+        </div>
       </footer>
       </div>
 

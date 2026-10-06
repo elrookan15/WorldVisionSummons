@@ -38,6 +38,10 @@ describe("attachProductionFrontend", () => {
     fs.writeFileSync(path.join(dist, "index.html"), "<!doctype html><title>wvs</title>");
     fs.mkdirSync(path.join(dist, "assets"));
     fs.writeFileSync(path.join(dist, "assets", "app.js"), "console.log(1)");
+    fs.mkdirSync(path.join(dist, "brand"), { recursive: true });
+    fs.writeFileSync(path.join(dist, "brand", "worldvision-summons-logo.png"), "logo-bytes");
+    fs.writeFileSync(path.join(dist, "favicon.ico"), "ico-bytes");
+    fs.writeFileSync(path.join(dist, "site.webmanifest"), '{"name":"WorldVision Summons"}');
 
     const app = express();
     app.get("/api/health", (_req, res) => {
@@ -59,6 +63,19 @@ describe("attachProductionFrontend", () => {
       const asset = await fetch(`http://127.0.0.1:${port}/assets/app.js`);
       expect(asset.status).toBe(200);
       expect(await asset.text()).toBe("console.log(1)");
+
+      const brand = await fetch(`http://127.0.0.1:${port}/brand/worldvision-summons-logo.png`);
+      expect(brand.status).toBe(200);
+      expect(await brand.text()).toBe("logo-bytes");
+      expect(brand.headers.get("content-type")).not.toMatch(/text\/html/);
+
+      const favicon = await fetch(`http://127.0.0.1:${port}/favicon.ico`);
+      expect(favicon.status).toBe(200);
+      expect(await favicon.text()).toBe("ico-bytes");
+
+      const manifest = await fetch(`http://127.0.0.1:${port}/site.webmanifest`);
+      expect(manifest.status).toBe(200);
+      expect(await manifest.text()).toContain("WorldVision Summons");
 
       const health = await fetch(`http://127.0.0.1:${port}/api/health`);
       expect(await health.json()).toEqual({ status: "ok" });
