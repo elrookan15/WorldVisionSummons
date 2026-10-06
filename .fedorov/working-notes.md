@@ -1,17 +1,14 @@
 # Working Notes
 
 ## Goal
-FEATURE: Hero banner for official logo on PR #27 — in progress / verifying.
-
-## Constraints
-- Same branch `Cursor/jonathan-official-logo-branding-9268`. Do not merge.
-- Keep favicons, OG meta, sheet layouts. Primary actions stay reachable (sticky header).
-- Respect prefers-reduced-motion.
+FEATURE: Hero banner for official logo on PR #27 — done.
 
 ## Confirmed facts
-- `BrandHeroBanner` at `src/components/BrandHeroBanner.tsx` uses full art + webp srcset.
+- `BrandHeroBanner` shows full art via WebP/PNG with soft mask + edge fades.
 - Header wordmark simplified to portal mark + "Summon Engine".
-- lint/test/build green after hero add.
+- Sticky Instant Summon / Start Blank remain in header.
+- prefers-reduced-motion disables parallax.
+- lint/test/build green after hero.
 
 ## Next step
-Desktop + mobile screenshots; update PR #27 description.
+Operator review of draft PR #27. Do not merge.
