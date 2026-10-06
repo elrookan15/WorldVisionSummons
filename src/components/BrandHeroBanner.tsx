@@ -73,41 +73,39 @@ export function BrandHeroBanner({ bg, accent, clash }: BrandHeroBannerProps) {
           height={512}
           decoding="async"
           draggable={false}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute left-1/2 top-1/2 h-[140%] w-[140%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover"
           style={{
-            // Scale past edges so blur doesn't flash transparent fringes.
-            transform: "scale(1.18)",
-            filter: "blur(36px) brightness(0.38) saturate(1.45)",
+            // Keep portal/smoke readable at the sides; still clearly behind the plate.
+            filter: "blur(42px) brightness(0.58) saturate(1.7) contrast(1.08)",
           }}
         />
         <div
           className="absolute inset-0"
           style={{
             background: [
-              `linear-gradient(90deg, ${bg}cc 0%, transparent 18%, transparent 82%, ${bg}cc 100%)`,
-              `linear-gradient(180deg, ${bg}b3 0%, transparent 22%, transparent 70%, ${bg}e6 100%)`,
-              `radial-gradient(ellipse 80% 70% at 50% 42%, ${accent}22 0%, transparent 65%)`,
-              `linear-gradient(180deg, ${bg}66 0%, ${bg}99 100%)`,
+              `linear-gradient(90deg, ${bg}99 0%, transparent 22%, transparent 78%, ${bg}99 100%)`,
+              `linear-gradient(180deg, ${bg}a6 0%, transparent 28%, transparent 72%, ${bg}d9 100%)`,
+              `radial-gradient(ellipse 90% 80% at 50% 45%, transparent 40%, ${bg}66 100%)`,
             ].join(", "),
           }}
         />
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse 55% 45% at 50% 48%, ${glow}33 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 60% 50% at 50% 48%, ${glow}40 0%, ${accent}18 45%, transparent 75%)`,
           }}
         />
       </div>
 
       {/* Sharp plate — contain, never crop title/heroes; full width on mobile */}
-      <div className="relative z-[1] flex w-full justify-center px-0 sm:px-4 md:px-10 py-3 md:py-6">
+      <div className="relative z-[1] flex w-full justify-center px-0 md:px-8 py-2 md:py-5">
         <div
           className="relative w-full md:w-auto"
           style={{
             transform: reduceMotion ? undefined : `translate3d(0, ${parallaxY}px, 0)`,
             transition: reduceMotion ? undefined : "transform 90ms linear",
             willChange: reduceMotion ? undefined : "transform",
-            maxWidth: "min(100vw, 580px)",
+            maxWidth: "min(100%, 580px)",
           }}
         >
           <img
@@ -121,16 +119,22 @@ export function BrandHeroBanner({ bg, accent, clash }: BrandHeroBannerProps) {
             onError={() => {
               if (foreSrc !== HERO_SRC_PNG) setForeSrc(HERO_SRC_PNG);
             }}
-            className="block h-auto w-full object-contain"
+            className="brand-hero-plate block h-auto w-full object-contain"
             style={{
               aspectRatio: "1 / 1",
-              maxHeight: "min(56vh, 560px)",
-              // Soft vignette mask — blends into backdrop, no hard card edge.
-              WebkitMaskImage:
-                "radial-gradient(ellipse 96% 94% at 50% 50%, #000 58%, rgba(0,0,0,0.85) 78%, transparent 100%)",
-              maskImage:
-                "radial-gradient(ellipse 96% 94% at 50% 50%, #000 58%, rgba(0,0,0,0.85) 78%, transparent 100%)",
-              filter: "drop-shadow(0 20px 50px rgba(0,0,0,0.55))",
+              maxHeight: "min(58vh, 560px)",
+              // Feather only the outer rim so title/heroes stay sharp; blend into backdrop.
+              WebkitMaskImage: [
+                "linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%)",
+                "linear-gradient(to bottom, transparent 0%, #000 4%, #000 96%, transparent 100%)",
+              ].join(", "),
+              maskImage: [
+                "linear-gradient(to right, transparent 0%, #000 5%, #000 95%, transparent 100%)",
+                "linear-gradient(to bottom, transparent 0%, #000 4%, #000 96%, transparent 100%)",
+              ].join(", "),
+              WebkitMaskComposite: "source-in",
+              maskComposite: "intersect",
+              filter: "drop-shadow(0 18px 42px rgba(0,0,0,0.65))",
             }}
           />
         </div>
