@@ -1,14 +1,12 @@
 # Working Notes
 
 ## Goal
-FEATURE: Hero banner for official logo on PR #27 — done.
+FEATURE: Edge-to-edge hero backdrop + compact mobile header on PR #27.
 
 ## Confirmed facts
-- `BrandHeroBanner` shows full art via WebP/PNG with soft mask + edge fades.
-- Header wordmark simplified to portal mark + "Summon Engine".
-- Sticky Instant Summon / Start Blank remain in header.
-- prefers-reduced-motion disables parallax.
-- lint/test/build green after hero.
+- Hero: blurred 512 WebP cover backdrop + sharp full WebP plate (object-contain).
+- Header: single row — brand | Summon/Blank | horizontally scrolling icon-only secondaries on narrow.
+- lint/test/build green.
 
 ## Next step
-Operator review of draft PR #27. Do not merge.
+Screenshots + PR #27 update. Do not merge.
