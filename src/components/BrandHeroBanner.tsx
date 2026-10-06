@@ -75,24 +75,25 @@ export function BrandHeroBanner({ bg, accent, clash }: BrandHeroBannerProps) {
           draggable={false}
           className="absolute left-1/2 top-1/2 h-[140%] w-[140%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover"
           style={{
-            // Keep portal/smoke readable at the sides; still clearly behind the plate.
-            filter: "blur(42px) brightness(0.58) saturate(1.7) contrast(1.08)",
+            // Modest wash bump (~20%): portal colors a bit more vivid at the edges;
+            // sharp plate still dominates.
+            filter: "blur(42px) brightness(0.70) saturate(2.0) contrast(1.12)",
           }}
         />
         <div
           className="absolute inset-0"
           style={{
             background: [
-              `linear-gradient(90deg, ${bg}99 0%, transparent 22%, transparent 78%, ${bg}99 100%)`,
-              `linear-gradient(180deg, ${bg}a6 0%, transparent 28%, transparent 72%, ${bg}d9 100%)`,
-              `radial-gradient(ellipse 90% 80% at 50% 45%, transparent 40%, ${bg}66 100%)`,
+              `linear-gradient(90deg, ${bg}80 0%, transparent 24%, transparent 76%, ${bg}80 100%)`,
+              `linear-gradient(180deg, ${bg}8c 0%, transparent 30%, transparent 70%, ${bg}c4 100%)`,
+              `radial-gradient(ellipse 90% 80% at 50% 45%, transparent 42%, ${bg}55 100%)`,
             ].join(", "),
           }}
         />
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse 60% 50% at 50% 48%, ${glow}40 0%, ${accent}18 45%, transparent 75%)`,
+            background: `radial-gradient(ellipse 62% 52% at 50% 48%, ${glow}4d 0%, ${accent}22 48%, transparent 78%)`,
           }}
         />
       </div>
