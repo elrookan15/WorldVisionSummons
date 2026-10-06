@@ -1,27 +1,17 @@
 # Working Notes
 
 ## Goal
-FEATURE: Official WorldVision Summons logo brand pack — done this turn.
+FEATURE: Hero banner for official logo on PR #27 — in progress / verifying.
 
 ## Constraints
-- Exact owner art; portal crop for favicons only.
-- No secrets / .env / Gemini gate edits.
-- Branch `Cursor/jonathan-official-logo-branding-9268`; draft PR #27 to main; do not merge.
-
-## Current plan
-Complete. Verification green. Screenshots + demo video in `/opt/cursor/artifacts/`.
+- Same branch `Cursor/jonathan-official-logo-branding-9268`. Do not merge.
+- Keep favicons, OG meta, sheet layouts. Primary actions stay reachable (sticky header).
+- Respect prefers-reduced-motion.
 
 ## Confirmed facts
-- Assets live under `public/` → Vite copies into `dist/` → `express.static` before SPA `*`.
-- Prod curl: brand/favicon = image/*; unknown route = text/html.
-- Gates: lint exit 0; vitest 71/71; build exit 0.
-- Header/footer show logo; favicons are portal crops (left=297, top=420, size=430).
-
-## Open questions
-- Absolute `og:image` URL once Cloud Run canonical host is designated.
-
-## Rejected hypotheses
-- Auto luminance crop at y≈726 (stairs) — rejected for mid portal crop.
+- `BrandHeroBanner` at `src/components/BrandHeroBanner.tsx` uses full art + webp srcset.
+- Header wordmark simplified to portal mark + "Summon Engine".
+- lint/test/build green after hero add.
 
 ## Next step
-Operator review of draft PR #27. Do not merge.
+Desktop + mobile screenshots; update PR #27 description.

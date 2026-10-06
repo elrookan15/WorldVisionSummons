@@ -18,6 +18,7 @@ import ImageEditorModal from "./components/ImageEditorModal";
 import GeminiChatModal from "./components/GeminiChatModal";
 import { nanoBananaProvider } from "./lib/providers/NanoBananaProvider";
 import { googleSignIn, initAuth, logout } from "./lib/workspaceAuth";
+import { BrandHeroBanner } from "./components/BrandHeroBanner";
 import { exportCharacterToGoogleSheet, importCharacterFromGoogleSheet } from "./lib/sheetsService";
 import { compilePortraitPrompt } from "./lib/prompts/generators";
 import { withWvsApiHeaders } from "./lib/apiClientHeaders";
@@ -1351,31 +1352,28 @@ export default function App() {
       <div className={`pointer-events-none fixed inset-0 z-0 texture-${currentTheme.texture}`} />
       <div className="sheet-bezel">
 
-      {/* Top Header */}
+      {/* Top Header — wordmark omitted; carved title lives in the hero artwork */}
       <header className="sticky top-0 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: `${c.bg}F2`, borderColor: c.border }}>
-        <div className="max-w-[1600px] mx-auto px-5 md:px-10 min-h-[72px] py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 md:gap-4 min-w-0">
-            <picture className="shrink-0">
-              <source
-                type="image/webp"
-                srcSet="/brand/worldvision-summons-logo-256.webp 256w, /brand/worldvision-summons-logo-512.webp 512w"
-                sizes="(min-width: 768px) 64px, 52px"
-              />
+        <div className="max-w-[1600px] mx-auto px-5 md:px-10 min-h-[64px] py-2.5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <a href="#brand-hero" className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ outlineColor: c.accent }} title="WorldVision Summons">
               <img
-                src="/brand/worldvision-summons-logo-512.png"
-                alt="WorldVision Summons"
-                width={64}
-                height={64}
+                src="/brand/portal-mark-128.webp"
+                alt=""
+                width={40}
+                height={40}
                 decoding="async"
-                className="h-[52px] w-[52px] md:h-16 md:w-16 object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]"
+                className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover ring-1 shadow-md"
+                style={{ borderColor: c.border, boxShadow: `0 0 0 1px ${c.border}` }}
               />
-            </picture>
-            <div className="min-w-0">
-              <div className="display text-base md:text-lg font-bold tracking-tight truncate" style={{ fontFamily: currentTheme.fonts.display }}>
-                WORLDVISION SUMMONS
+              <span className="sr-only">WorldVision Summons</span>
+            </a>
+            <div className="min-w-0 hidden sm:block">
+              <div className="mono text-[10px] tracking-[0.18em] uppercase truncate" style={{ color: c.muted }}>
+                Summon Engine
               </div>
-              <div className="mono text-[10px] tracking-widest truncate" style={{ color: c.muted }}>
-                DETERMINISTIC RPG LORE & CHARACTER SHEET ENGINE
+              <div className="mono text-[9px] tracking-widest truncate" style={{ color: c.muted2 }}>
+                Lore · Stats · Codex
               </div>
             </div>
           </div>
@@ -1541,6 +1539,10 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      <div id="brand-hero">
+        <BrandHeroBanner bg={c.bg} accent={c.accent} clash={c.clash} />
+      </div>
 
       {/* Sheets Status Banner */}
       {sheetsStatusMsg && (

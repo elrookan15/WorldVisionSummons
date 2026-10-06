@@ -37,7 +37,7 @@
 - Root Cause: App used a generic "WV" circle wordmark and had no favicon/OG image assets; Vite `public/` was empty.
 - Patch: Committed original art + WebP/PNG derivatives under `public/brand/`. Portal center-crop favicons (16/32/ICO/180/192/512). Wired `index.html` icons + OG/Twitter. Header/footer show the logo. Extended production static-serve test so SPA `*` cannot swallow brand paths.
 - Red Test: Pre-change header had no `/brand/` img; `index.html` lacked favicon/og:image links; production test did not assert `/brand/*` or `/favicon.ico`.
-- Green Test: 2026-10-06 — `npm run lint` (tsc) exit 0; `npm test` 13 files / 71 passed; `npm run build` exit 0 with brand + favicon files in `dist/`. Production `NODE_ENV=production` on :8080 returned image/* for `/brand/*` and `/favicon*`, `application/manifest+json` for `/site.webmanifest`, and `text/html` for unknown SPA routes. Browser confirmed header/footer logo + portal favicon.
+- Green Test: 2026-10-06 — lint/test/build green for brand pack; production static curl OK. Follow-up same day: hero banner (`BrandHeroBanner`) — lint exit 0, vitest 71/71, build exit 0 with `worldvision-summons-logo.webp` in dist.
 - Regression Guard: `productionServer.test.ts` asserts `/brand/worldvision-summons-logo.png`, `/favicon.ico`, and `/site.webmanifest` return non-HTML bodies before SPA fallback.
 - Residual Risk: `og:image` is root-relative until a canonical absolute Cloud Run URL is chosen. OG crawlers that reject relative image URLs need a follow-up.
 - Recurrence Count: 1
